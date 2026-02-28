@@ -1,3 +1,3 @@
 test("Dummy test", () => {
-  expect(true).toBe(true); // 항상 통과
+  expect(true).toBe(false); // 항상 실패
 });
