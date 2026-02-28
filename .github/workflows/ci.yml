@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  flutter-test:
+    name: Frontend (Flutter) Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.2"
+      - name: Install dependencies
+        run: |
+          cd apps/mobile
+          flutter pub get
+      - name: Run tests
+        run: |
+          cd apps/mobile
+          flutter test
+
+  supabase-test:
+    name: Backend (Supabase) Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm install
+      - name: Run tests
+        run: |
+          cd backend
+          npm test

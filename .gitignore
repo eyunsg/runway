@@ -1,0 +1,58 @@
+# ===============================
+# Flutter / Dart
+# ===============================
+# Build outputs
+/build/
+/.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/.idea/
+*.iml
+
+# Generated files
+*.flutter-*.dart
+*.lock
+*.log
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+
+# Android
+android/.gradle/
+android/app/build/
+android/.idea/
+android/local.properties
+android/captures/
+
+# ===============================
+# Node.js / Supabase
+# ===============================
+# Node modules
+/backend/supabase/node_modules/
+
+# Logs
+/backend/supabase/*.log
+/backend/supabase/npm-debug.log*
+/backend/supabase/yarn-debug.log*
+/backend/supabase/yarn-error.log*
+
+# Env
+/backend/supabase/.env
+/backend/supabase/.env.local
+/backend/supabase/.env.*.local
+
+# Build outputs
+/backend/supabase/dist/
+/backend/supabase/.vercel/
