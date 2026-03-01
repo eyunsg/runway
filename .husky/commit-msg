@@ -1,0 +1,20 @@
+#!/bin/sh
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+# commitlint 기본 체크
+npx --no -- commitlint --edit "$commit_msg_file" || exit 1
+
+RED='\033[0;31m'
+NC='\033[0m'
+
+# feat/fix/refactor RUNWAY-숫자 체크
+type=$(echo "$commit_msg" | cut -d':' -f1 | cut -d'(' -f1)
+scope=$(echo "$commit_msg" | grep -oE '\(([^)]+)\)' | tr -d '()')
+
+if echo "$type" | grep -Eq '^(feat|fix|refactor)$'; then
+  if [ -z "$scope" ] || ! echo "$scope" | grep -Eq '^RUNWAY-[0-9]+$'; then
+    echo "${RED}Error: $type type은 RUNWAY-번호 형식의 scope가 필요합니다${NC}"
+    exit 1
+  fi
+fi
