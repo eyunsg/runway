@@ -54,3 +54,58 @@
 ## 6. API Design
 
 - [API Specification](https://iyunsung423.atlassian.net/wiki/x/DAA_/)
+
+## 7. Development Environment Setup
+
+본 저장소는 Monorepo 구조이며 Git Commit 규칙을 강제하기 위해  
+**Husky + Commitlint**가 Repository Root 기준으로 설정되어 있습니다.
+
+따라서 프로젝트 최초 실행 시 **루트 경로에서 dependency 설치가 반드시 필요합니다.**
+
+### 1. Repository Clone
+
+```bash
+git clone https://github.com/eyunsg/runway.git
+
+cd runway
+```
+
+### 2. Install Root Dependency
+
+```bash
+npm install
+```
+
+### 3. Setup Backend Environment
+
+- backend 디렉토리로 이동
+
+```bash
+cd backend
+```
+
+- 환경 변수 파일 생성
+
+```bash
+cp .env.example .env
+```
+
+- 의존성 설치
+
+```bash
+npm install
+```
+
+- 테스트 실행
+
+```bash
+npm test
+```
+
+### 4. Install Frontend Dependency
+
+```bash
+cd apps/mobile
+
+flutter pub get
+```
