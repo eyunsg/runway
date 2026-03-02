@@ -57,6 +57,18 @@
 
 ## 7. Development Environment Setup
 
+### Prerequisites
+
+로컬 개발 환경 구성을 위해 아래 실행 환경이 사전에 설치되어 있어야 합니다.
+
+- Node.js >= 20.18.0 (LTS)
+- npm >= 10.x
+- Flutter >= 3.41.2
+- Dart >= 3.11.0
+- Git >= 2.50
+
+---
+
 본 저장소는 Monorepo 구조이며 Git Commit 규칙을 강제하기 위해  
 **Husky + Commitlint**가 Repository Root 기준으로 설정되어 있습니다.
 
