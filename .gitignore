@@ -41,6 +41,8 @@ android/captures/
 # ===============================
 # Node modules
 /backend/supabase/node_modules/
+/backend/node_modules/
+/node_modules/
 
 # Logs
 /backend/supabase/*.log
