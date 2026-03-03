@@ -51,11 +51,24 @@ android/captures/
 /backend/supabase/yarn-debug.log*
 /backend/supabase/yarn-error.log*
 
-# Env
-/backend/supabase/.env
-/backend/supabase/.env.local
-/backend/supabase/.env.*.local
-
 # Build outputs
 /backend/supabase/dist/
 /backend/supabase/.vercel/
+
+# ===============================
+# Environment Variables
+# ===============================
+# Root
+.env
+.env.local
+.env.*.local
+
+# Backend
+/backend/.env
+/backend/.env.local
+/backend/.env.*.local
+
+# Supabase
+/backend/supabase/.env
+/backend/supabase/.env.local
+/backend/supabase/.env.*.local
