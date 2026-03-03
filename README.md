@@ -114,6 +114,12 @@ npm install
 npm test
 ```
 
+-
+
+```bash
+npm run test:supabase
+```
+
 ### 4. Install Frontend Dependency
 
 ```bash
