@@ -114,7 +114,7 @@ npm install
 npm test
 ```
 
--
+- Supabase 연결 테스트
 
 ```bash
 npm run test:supabase
