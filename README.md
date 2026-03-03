@@ -127,3 +127,11 @@ cd apps/mobile
 
 flutter pub get
 ```
+
+---
+
+> **⚠️ VSCode Prettier Extension 설치**
+> <br>
+> 작업 시 팀에서 지정한 Prettier 룰을 적용하려면
+> <br>
+> VSCode에서 Prettier - Code Formatter 확장 프로그램 설치를 권장합니다.
