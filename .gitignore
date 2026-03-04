@@ -52,6 +52,10 @@ android/captures/
 /backend/supabase/dist/
 /backend/supabase/.vercel/
 
+# Supabase internal / temp
+/backend/supabase/.temp/
+/backend/supabase/.branches/
+
 # ===============================
 # Environment Variables
 # ===============================
