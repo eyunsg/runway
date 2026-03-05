@@ -3,6 +3,7 @@
 # ===============================
 # Build outputs
 /build/
+apps/mobile/build/
 .dart_tool/
 /.flutter-plugins
 .flutter-plugins-dependencies
