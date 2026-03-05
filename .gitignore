@@ -74,3 +74,33 @@ android/captures/
 /backend/supabase/.env
 /backend/supabase/.env.local
 /backend/supabase/.env.*.local
+
+# Mobile
+apps/mobile/.env
+
+# ===============================
+# Flutter Generated (apps/mobile)
+# ===============================
+
+# iOS generated
+apps/mobile/ios/Flutter/Debug.xcconfig
+apps/mobile/ios/Flutter/Release.xcconfig
+
+# macOS generated
+apps/mobile/macos/Flutter/Flutter-Debug.xcconfig
+apps/mobile/macos/Flutter/Flutter-Release.xcconfig
+apps/mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Linux generated
+apps/mobile/linux/flutter/generated_*
+
+# Windows generated
+apps/mobile/windows/flutter/generated_*
+
+# CocoaPods
+apps/mobile/ios/Pods/
+apps/mobile/macos/Pods/
+
+# Pod lock (팀 정책에 따라 필요 없으면 ignore)
+apps/mobile/ios/Podfile.lock
+apps/mobile/macos/Podfile.lock
