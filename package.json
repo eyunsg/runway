@@ -13,6 +13,9 @@
   "lint-staged": {
     "*.{js,ts,tsx,json,md,css,scss}": [
       "prettier --write"
+    ],
+    "*.dart": [
+      "dart format"
     ]
   }
 }
