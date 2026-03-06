@@ -146,6 +146,10 @@ cp .env.example assets/env/.env
 
 > **⚠️ VSCode Prettier Extension 설치**
 > <br>
-> 작업 시 팀에서 지정한 Prettier 룰을 적용하려면
+> 프로젝트 내 코드 스타일 일관성 유지를 위해 아래 확장 프로그램 설치를 권장합니다.
 > <br>
-> VSCode에서 Prettier - Code Formatter 확장 프로그램 설치를 권장합니다.
+> `Prettier - Code Formatter`
+> <br>
+> `Prettier SQL Formatter`
+> <br>
+> 확장 설치 후 저장 시 자동으로 팀 Prettier 규칙이 적용됩니다.
