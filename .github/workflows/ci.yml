@@ -15,7 +15,11 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.41.2"
+          flutter-version: '3.41.2'
+      - name: Create env file
+        run: |
+          mkdir -p apps/mobile/assets/env
+          cp apps/mobile/.env.example apps/mobile/assets/env/.env
       - name: Install dependencies
         run: |
           cd apps/mobile

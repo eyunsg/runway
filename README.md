@@ -122,10 +122,24 @@ npm run test:supabase
 
 ### 4. Install Frontend Dependency
 
+- 루트 디렉토리로 이동
+
+```bash
+cd ..
+```
+
+- 의존성 설치
+
 ```bash
 cd apps/mobile
 
 flutter pub get
+```
+
+- 환경 변수 파일 생성
+
+```bash
+cp .env.example assets/env/.env
 ```
 
 ---
