@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'features/register/page/register_temp_screen.dart';
+import 'router/app_router.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Runway', home: RegisterTempScreen());
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      routerConfig: AppRouter.router,
+    );
   }
 }
