@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/register/controller/register_controller.dart';
-import '../features/register/controller/register_state.dart';
+import '../features/register/types/register_state.dart';
 import '../features/register/usecase/register_usecase.dart';
 import '../features/register/repository/register_repository.dart';
 

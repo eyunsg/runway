@@ -3,8 +3,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:runway/features/register/controller/register_controller.dart';
-import 'package:runway/features/register/controller/register_state.dart';
 import 'package:runway/features/register/usecase/register_usecase.dart';
+import 'package:runway/core/state/async_state.dart';
 
 class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 
@@ -34,8 +34,8 @@ void main() {
       displayName: "tester",
     );
 
-    expect(controller.state.status, RegisterStatus.error);
-    expect(controller.state.errorMessage, "비밀번호가 일치하지 않습니다.");
+    expect(controller.state.status, AsyncState().error);
+    expect(controller.state.error, "비밀번호가 일치하지 않습니다.");
   });
 
   test('회원가입 성공 시 success 상태', () async {
@@ -54,7 +54,7 @@ void main() {
       displayName: "tester",
     );
 
-    expect(controller.state.status, RegisterStatus.success);
+    expect(controller.state.status, AsyncStatus.success);
 
     verify(
       () => mockUsecase.execute(
@@ -81,6 +81,6 @@ void main() {
       displayName: "tester",
     );
 
-    expect(controller.state.status, RegisterStatus.error);
+    expect(controller.state.status, AsyncStatus.error);
   });
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
-import '../controller/register_state.dart';
+import '../../../core/state/async_state.dart';
 
 class RegisterTempScreen extends ConsumerWidget {
   RegisterTempScreen({super.key});
@@ -56,7 +56,7 @@ class RegisterTempScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
-            if (state.status == RegisterStatus.loading)
+            if (state.status == AsyncStatus.loading)
               const CircularProgressIndicator(),
 
             SizedBox(
