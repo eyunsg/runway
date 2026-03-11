@@ -16,7 +16,11 @@ class LoginController extends StateNotifier<LoginState> {
 
       state = state.copyWith(status: AsyncStatus.success);
     } catch (e) {
-      state = state.copyWith(status: AsyncStatus.error, error: e.toString());
+      final errorMessage = e is Exception
+          ? e.toString().replaceFirst('Exception: ', '')
+          : e.toString();
+
+      state = state.copyWith(status: AsyncStatus.error, error: errorMessage);
     }
   }
 }
