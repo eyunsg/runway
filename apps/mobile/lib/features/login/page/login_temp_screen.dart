@@ -1,31 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class LoginTempScreen extends StatelessWidget {
-  const LoginTempScreen({super.key});
+import '../../../core/providers.dart';
+import '../../../core/state/async_state.dart';
+
+class LoginTempScreen extends ConsumerWidget {
+  LoginTempScreen({super.key});
+
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(loginControllerProvider);
+
+    ref.listen(loginControllerProvider, (previous, next) {
+      if (next.status == AsyncStatus.success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('로그인에 성공했습니다.')));
+      }
+
+      if (next.status == AsyncStatus.error && next.error != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
+      }
+    });
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
                 labelText: '이메일',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
-            const TextField(
-              decoration: InputDecoration(
+
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(
                 labelText: '비밀번호',
                 border: OutlineInputBorder(),
               ),
               obscureText: true,
             ),
+
             const SizedBox(height: 24),
+
+            if (state.status == AsyncStatus.loading)
+              const CircularProgressIndicator(),
+
+            const SizedBox(height: 16),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -35,17 +68,26 @@ class LoginTempScreen extends StatelessWidget {
                 child: const Text('비밀번호를 잊으셨나요?'),
               ),
             ),
+
             const SizedBox(height: 16),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: 로그인 로직 연결
+                  ref
+                      .read(loginControllerProvider.notifier)
+                      .login(
+                        email: emailController.text,
+                        password: passwordController.text,
+                      );
                 },
                 child: const Text('로그인'),
               ),
             ),
+
             const SizedBox(height: 16),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
