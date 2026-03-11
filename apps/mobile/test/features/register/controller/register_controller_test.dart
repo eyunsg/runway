@@ -34,7 +34,7 @@ void main() {
       displayName: "tester",
     );
 
-    expect(controller.state.status, AsyncState().error);
+    expect(controller.state.status, AsyncStatus.error);
     expect(controller.state.error, "비밀번호가 일치하지 않습니다.");
   });
 
