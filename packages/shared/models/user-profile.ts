@@ -5,7 +5,7 @@ import {
   DISPLAY_NAME_MIN_LENGTH,
   DISPLAY_NAME_MAX_LENGTH,
   ERROR_MESSAGES,
-} from '../constants/user_constant.ts';
+} from '../constants/user-constant.ts';
 
 /*
  사용자 프로필 도메인 모델

@@ -1,5 +1,5 @@
 import { assertEquals } from '@std/assert';
-import { createGetProfileResponse } from './get_profile_response_dto.ts';
+import { createGetProfileResponse } from './get-profile-response-dto.ts';
 
 /*
   DTO 및 매퍼(Mapper) 통합 검증
