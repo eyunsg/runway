@@ -7,7 +7,7 @@
 import { assertEquals } from '@std/assert';
 import { validateProfileDisplayName, validateEmailFormat } from './user_profile.ts';
 /* [가이드 v1.1] 상수 파일에서 에러 메시지 정의를 가져옵니다. */
-import { ERROR_MESSAGES } from '../constants/user.constant.ts';
+import { ERROR_MESSAGES } from '../constants/user_constant.ts';
 
 Deno.test('Business Rule: 닉네임 유효성 검증 테스트 (상수 기반)', () => {
   /* 성공 케이스 */
