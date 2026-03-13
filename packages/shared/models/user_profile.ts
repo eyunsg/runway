@@ -1,28 +1,14 @@
-/**
- * 사용자 프로필 관련 비즈니스 규칙 검증
- * 닉네임 2~20자 제한
+/*
+ 비즈니스 규칙 및 도메인 로직 담당
  */
-export const validateProfileDisplayName = (name: string): string | null => {
-  const trimmedName = name?.trim() || '';
-  if (trimmedName.length < 2 || trimmedName.length > 20) {
-    return '닉네임은 2자 이상 20자 이하로 입력해주세요.';
-  }
-  return null;
-};
+import {
+  DISPLAY_NAME_MIN_LENGTH,
+  DISPLAY_NAME_MAX_LENGTH,
+  ERROR_MESSAGES,
+} from '../constants/user.constant.ts';
 
-/**
- * 이메일 형식 검증 (도메인 모델 레벨)
- */
-export const validateEmailFormat = (email: string): string | null => {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!email || !emailRegex.test(email)) {
-    return '유효하지 않은 이메일 형식입니다.';
-  }
-  return null;
-};
-
-/**
- * 사용자 프로필 도메인 모델
+/*
+ 사용자 프로필 도메인 모델
  */
 export interface UserProfile {
   id: string;
@@ -30,3 +16,33 @@ export interface UserProfile {
   displayName: string;
   updatedAt?: string;
 }
+
+/*
+ 비즈니스 규칙: 닉네임 유효성 검증
+ constants/user.constant.ts의 정의된 값을 참조하여 검증 수행
+ */
+export const validateProfileDisplayName = (name: string): string | null => {
+  const trimmedName = name?.trim() || '';
+
+  if (
+    trimmedName.length < DISPLAY_NAME_MIN_LENGTH ||
+    trimmedName.length > DISPLAY_NAME_MAX_LENGTH
+  ) {
+    return ERROR_MESSAGES.DISPLAY_NAME_LENGTH;
+  }
+
+  return null;
+};
+
+/*
+ 이메일 형식 검증 (도메인 모델 레벨)
+ */
+export const validateEmailFormat = (email: string): string | null => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  if (!email || !emailRegex.test(email)) {
+    return ERROR_MESSAGES.INVALID_EMAIL;
+  }
+
+  return null;
+};

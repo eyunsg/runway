@@ -6,17 +6,26 @@
 
 import { assertEquals } from '@std/assert';
 import { validateProfileDisplayName, validateEmailFormat } from './user_profile.ts';
+/* [가이드 v1.1] 상수 파일에서 에러 메시지 정의를 가져옵니다. */
+import { ERROR_MESSAGES } from '../constants/user.constant.ts';
 
-Deno.test('Business Rule: 닉네임 유효성 검증 테스트', () => {
-  assertEquals(validateProfileDisplayName('홍길'), null); // 성공
-  assertEquals(validateProfileDisplayName('홍'), '닉네임은 2자 이상 20자 이하로 입력해주세요.'); // 실패(짧음)
+Deno.test('Business Rule: 닉네임 유효성 검증 테스트 (상수 기반)', () => {
+  /* 성공 케이스 */
+  assertEquals(validateProfileDisplayName('홍길'), null);
+
+  /* 실패 케이스 (상수에 정의된 메시지와 일치하는지 검증) */
+  assertEquals(validateProfileDisplayName('홍'), ERROR_MESSAGES.DISPLAY_NAME_LENGTH);
+
   assertEquals(
     validateProfileDisplayName('일이삼사오육칠팔구십일이삼사오육칠팔구십일'),
-    '닉네임은 2자 이상 20자 이하로 입력해주세요.'
-  ); // 실패(긺)
+    ERROR_MESSAGES.DISPLAY_NAME_LENGTH
+  );
 });
 
 Deno.test('Business Rule: 이메일 형식 검증 테스트', () => {
-  assertEquals(validateEmailFormat('user@runway.dev'), null); // 성공
-  assertEquals(validateEmailFormat('invalid-email'), '유효하지 않은 이메일 형식입니다.'); // 실패
+  /* 성공 케이스 */
+  assertEquals(validateEmailFormat('user@runway.dev'), null);
+
+  /* 실패 케이스 (상수에 정의된 메시지와 일치하는지 검증) */
+  assertEquals(validateEmailFormat('invalid-email'), ERROR_MESSAGES.INVALID_EMAIL);
 });
