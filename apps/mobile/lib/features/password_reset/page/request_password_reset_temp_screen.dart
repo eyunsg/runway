@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class EmailInputTempScreen extends StatelessWidget {
-  const EmailInputTempScreen({super.key});
+class RequestPasswordResetTempScreen extends StatelessWidget {
+  const RequestPasswordResetTempScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
