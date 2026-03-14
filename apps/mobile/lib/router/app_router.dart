@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:runway/features/login/page/login_temp_screen.dart';
 import 'package:runway/features/password_reset/page/request_password_reset_temp_screen.dart';
 import 'package:runway/features/password_reset/page/password_reset_temp_screen.dart';
+import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import '../features/register/page/register_temp_screen.dart';
 
 class AppRouter {
@@ -14,6 +15,7 @@ class AppRouter {
         builder: (context, state) => RegisterTempScreen(),
       ),
       GoRoute(path: '/login', builder: (context, state) => LoginTempScreen()),
+      GoRoute(path: '/logout', builder: (context, state) => LogoutTempScreen()),
       GoRoute(
         path: '/reset-password',
         builder: (context, state) => RequestPasswordResetTempScreen(),
