@@ -83,7 +83,6 @@ final logoutControllerProvider =
       return LogoutController(usecase);
     });
 
-
 /// ---------------- PASSWORD RESET ----------------
 
 /// Request Password Reset
@@ -124,3 +123,4 @@ final resetPasswordControllerProvider =
     StateNotifierProvider<PasswordResetController, PasswordResetState>((ref) {
       final usecase = ref.read(resetPasswordUsecaseProvider);
       return PasswordResetController(usecase);
+    });
