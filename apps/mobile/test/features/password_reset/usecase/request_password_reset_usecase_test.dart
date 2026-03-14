@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:runway/features/password_reset/repository/request_password_reset_repository.dart.dart';
-import 'package:runway/features/password_reset/usecase/request_password_reset_usecase.dart.dart';
+import 'package:runway/features/password_reset/usecase/request_password_reset_usecase.dart';
 
 class MockRequestPasswordResetRepository extends Mock
     implements RequestPasswordResetRepository {}
