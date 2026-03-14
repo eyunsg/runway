@@ -46,5 +46,38 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('새 비밀번호가 공백만으로 이루어져 있으면 ArgumentError가 발생해야 한다', () {
+      expect(
+        () => PasswordChangeInput(
+          currentPassword: 'current123!',
+          newPassword: '      ',
+          newPasswordConfirm: '      ',
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('새 비밀번호에 중간 공백이 포함되어 있으면 ArgumentError가 발생해야 한다', () {
+      expect(
+        () => PasswordChangeInput(
+          currentPassword: 'current123!',
+          newPassword: 'new pass123',
+          newPasswordConfirm: 'new pass123',
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('새 비밀번호에 앞뒤 공백이 포함되어 있으면 ArgumentError가 발생해야 한다', () {
+      expect(
+        () => PasswordChangeInput(
+          currentPassword: 'current123!',
+          newPassword: ' newPass123 ',
+          newPasswordConfirm: ' newPass123 ',
+        ),
+        throwsArgumentError,
+      );
+    });
   });
 }
