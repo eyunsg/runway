@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class PasswordChangePage extends StatelessWidget {
   const PasswordChangePage({super.key});
@@ -13,27 +14,39 @@ class PasswordChangePage extends StatelessWidget {
           children: [
             const SizedBox(height: 24),
 
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: '현재 비밀번호',
               ),
+              obscureText: true,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+              ],
             ),
             const SizedBox(height: 16),
 
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: '새 비밀번호',
               ),
+              obscureText: true,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+              ],
             ),
             const SizedBox(height: 16),
 
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: '새 비밀번호 확인',
               ),
+              obscureText: true,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+              ],
             ),
             const SizedBox(height: 24),
 
