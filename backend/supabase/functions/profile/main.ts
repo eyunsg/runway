@@ -12,18 +12,29 @@ import * as Controller from './profile-controller.ts';
  * 전역 에러 응답 처리기
  * 모든 에러는 이곳에서 규격화된 JSON 응답으로 변환됩니다.
  */
-const handleError = (err: any, requestId: string): Response => {
-  const status = err instanceof AppError ? err.status : 500;
-  const message = err instanceof AppError ? err.message : '서버 내부 오류가 발생했습니다.';
+const handleError = (err: unknown, requestId: string): Response => {
+  // 1. 우리가 정의한 AppError인지 확인 (Type Guard)
+  const isAppError = err instanceof AppError;
 
-  // 상세 에러 로그 기록 (추적용)
+  // 2. 일반적인 Error 객체인지 확인 (message, stack 접근용)
+  const isStandardError = err instanceof Error;
+
+  const status = isAppError ? err.status : 500;
+  const message = isAppError ? err.message : '서버 내부 오류가 발생했습니다.';
+
+  // 3. 로그 기록을 위한 값 추출
+  // unknown 타입이므로 "어떤 타입인지" 확인된 경우에만 해당 속성을 가져옵니다.
+  const code = isAppError ? err.internalCode : 'UNKNOWN';
+  const errorMessage = isStandardError ? err.message : String(err);
+  const errorStack = isStandardError ? err.stack : undefined;
+
   console.error(
     JSON.stringify({
       level: 'ERROR',
       requestId,
-      code: err.internalCode || 'UNKNOWN',
-      message: err.message,
-      stack: err.stack,
+      code,
+      message: errorMessage,
+      stack: errorStack,
     })
   );
 
