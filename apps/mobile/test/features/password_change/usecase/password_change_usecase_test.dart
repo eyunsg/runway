@@ -24,23 +24,36 @@ void main() {
     const validNewPassword = 'newPassword456';
     const validNewPasswordConfirm = 'newPassword456';
 
-    test('유즈케이스는 입력받은 PasswordChangeInput의 값을 레포지토리에 전달한다', () async {
-      final input = PasswordChangeInput(
-        currentPassword: validCurrentPassword,
-        newPassword: validNewPassword,
-        newPasswordConfirm: validNewPasswordConfirm,
-      );
+    test(
+      '유즈케이스는 입력받은 PasswordChangeInput의 현재 비밀번호와 새 비밀번호를 레포지토리에 전달한다',
+      () async {
+        final input = PasswordChangeInput(
+          currentPassword: validCurrentPassword,
+          newPassword: validNewPassword,
+          newPasswordConfirm: validNewPasswordConfirm,
+        );
 
-      final mockResponse = MockUserResponse();
-      when(
-        () => mockRepository.changePassword(any()),
-      ).thenAnswer((_) async => mockResponse);
+        final mockResponse = MockUserResponse();
 
-      final result = await usecase.execute(input);
+        when(
+          () => mockRepository.changePassword(
+            currentPassword: any(named: 'currentPassword'),
+            newPassword: any(named: 'newPassword'),
+          ),
+        ).thenAnswer((_) async => mockResponse);
 
-      verify(() => mockRepository.changePassword(validNewPassword)).called(1);
-      expect(result, mockResponse);
-    });
+        final result = await usecase.execute(input);
+
+        verify(
+          () => mockRepository.changePassword(
+            currentPassword: validCurrentPassword,
+            newPassword: validNewPassword,
+          ),
+        ).called(1);
+
+        expect(result, mockResponse);
+      },
+    );
 
     test('레포지토리에서 Exception 발생 시 유즈케이스에서도 그대로 전달되어야 함', () async {
       final input = PasswordChangeInput(
@@ -50,12 +63,20 @@ void main() {
       );
 
       when(
-        () => mockRepository.changePassword(any()),
+        () => mockRepository.changePassword(
+          currentPassword: any(named: 'currentPassword'),
+          newPassword: any(named: 'newPassword'),
+        ),
       ).thenThrow(Exception('change failed'));
 
       expect(() => usecase.execute(input), throwsA(isA<Exception>()));
 
-      verify(() => mockRepository.changePassword(validNewPassword)).called(1);
+      verify(
+        () => mockRepository.changePassword(
+          currentPassword: validCurrentPassword,
+          newPassword: validNewPassword,
+        ),
+      ).called(1);
     });
   });
 }

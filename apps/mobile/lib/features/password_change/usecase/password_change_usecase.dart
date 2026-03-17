@@ -9,6 +9,9 @@ class PasswordChangeUsecase {
     : _repository = repository;
 
   Future<UserResponse> execute(PasswordChangeInput input) async {
-    return await _repository.changePassword(input.newPassword);
+    return await _repository.changePassword(
+      currentPassword: input.currentPassword,
+      newPassword: input.newPassword,
+    );
   }
 }
