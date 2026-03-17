@@ -4,20 +4,11 @@
  */
 
 import { SupabaseClient, User } from 'supabase';
-import * as Service from './profile-service.ts';
-import { AppError } from './profile-constants.ts';
+import * as Service from './profileService.ts';
 
 /**
  * GET 요청 처리: 프로필 조회
  */
 export const getProfile = async (supabaseClient: SupabaseClient, user: User, requestId: string) => {
   return await Service.fetchProfile(supabaseClient, user, requestId);
-};
-
-/**
- * PATCH 요청 처리: 프로필 수정 (추후 구현 예정)
- * 320에서 만든 검증 로직이 여기서 사용될 예정입니다.
- */
-export const updateProfile = () => {
-  throw new AppError(501, '프로필 수정 기능은 준비 중입니다.', 'NOT_IMPLEMENTED');
 };

@@ -3,7 +3,7 @@
  */
 
 import { SupabaseClient } from 'supabase';
-import { ProfileEntity } from './profile-entity.ts';
+import { ProfileEntity } from './profileEntity.ts';
 
 /**
  * ID로 사용자 프로필 정보 조회

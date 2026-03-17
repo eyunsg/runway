@@ -5,8 +5,8 @@
 
 import { serve } from 'std/http/server';
 import { createClient } from 'supabase';
-import { CORS_HEADERS, AppError } from './profile-constants.ts';
-import * as Controller from './profile-controller.ts';
+import { CORS_HEADERS, AppError } from './profileConstants.ts';
+import * as Controller from './profileController.ts';
 
 /**
  * 전역 에러 응답 처리기
@@ -55,6 +55,15 @@ serve(async (req: Request) => {
   }
 
   try {
+    // 프로필 조회는 오직 GET 메서드만 허용
+    if (req.method !== 'GET') {
+      throw new AppError(
+        405,
+        '프로필 조회 기능만 이용 가능합니다. (GET 메서드 필요)',
+        'METHOD_NOT_ALLOWED'
+      );
+    }
+
     // 3. Supabase 클라이언트 초기화
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new AppError(401, '인증 토큰이 누락되었습니다.', 'AUTH_MISSING');
@@ -70,17 +79,12 @@ serve(async (req: Request) => {
       data: { user },
       error: authError,
     } = await supabaseClient.auth.getUser();
-    if (authError || !user) throw new AppError(401, '유효하지 않은 세션입니다.', 'AUTH_INVALID');
+    if (authError || !user) {
+      throw new AppError(401, '유효하지 않은 세션입니다.', 'AUTH_INVALID');
+    }
 
     // 5. HTTP 메서드에 따른 컨트롤러 분기
-    let result;
-    if (req.method === 'GET') {
-      result = await Controller.getProfile(supabaseClient, user, requestId);
-    } else if (req.method === 'PATCH') {
-      result = await Controller.updateProfile();
-    } else {
-      throw new AppError(405, '허용되지 않는 요청 방식입니다.', 'METHOD_NOT_ALLOWED');
-    }
+    const result = await Controller.getProfile(supabaseClient, user, requestId);
 
     // 6. 성공 응답 반환
     // result는 이미 @shared 매퍼를 거쳐 { data, error } 구조를 가지고 있습니다.

@@ -2,20 +2,16 @@
  * Runway 프로젝트: 프로필 도메인 상수
  */
 
-import {
-  DISPLAY_NAME_MIN_LENGTH,
-  DISPLAY_NAME_MAX_LENGTH,
-  ERROR_MESSAGES,
-} from '../../../../packages/shared/constants/user-constant.ts';
+import { ERROR_MESSAGES } from '../../../../packages/shared/constants/userConstant.ts';
 
 // 외부 레이어에서 편하게 쓰도록 다시 내보내기 (Re-export)
-export { DISPLAY_NAME_MIN_LENGTH, DISPLAY_NAME_MAX_LENGTH, ERROR_MESSAGES };
+export { ERROR_MESSAGES };
 
 // CORS 설정 (모바일 앱이 서버에 접속할 수 있게 허용하는 '통행증')
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
 };
 
 /**

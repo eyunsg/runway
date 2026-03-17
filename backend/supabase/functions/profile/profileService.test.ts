@@ -5,8 +5,8 @@
 // deno-lint-ignore no-import-prefix
 import { assertEquals, assertRejects } from 'https://deno.land/std@0.168.0/testing/asserts.ts';
 import { SupabaseClient, User } from 'supabase';
-import { fetchProfile } from './profile-service.ts';
-import { AppError } from './profile-constants.ts';
+import { fetchProfile } from './profileService.ts';
+import { AppError } from './profileConstants.ts';
 
 /**
  * 1. 가짜 Supabase 클라이언트 모킹 함수

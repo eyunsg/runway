@@ -4,9 +4,9 @@
  */
 
 import { SupabaseClient, User } from 'supabase';
-import * as Repository from './profile-repository.ts';
-import { ProfileMapper } from './profile-mapper.ts';
-import { AppError } from './profile-constants.ts';
+import * as Repository from './profileRepository.ts';
+import { ProfileMapper } from './profileMapper.ts';
+import { AppError } from './profileConstants.ts';
 
 /**
  * 프로필 상세 정보 조회 로직 (API-USER-001)

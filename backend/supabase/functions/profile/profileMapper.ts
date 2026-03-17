@@ -3,9 +3,9 @@
  * [320 연동 완료] @shared/dto/profile/get-profile-response-dto.ts 활용
  */
 
-import { ProfileEntity } from './profile-entity.ts';
-import { Profile } from './profile-model.ts';
-import { createGetProfileResponse } from '../../../../packages/shared/dto/profile/get-profile-response-dto.ts';
+import { ProfileEntity } from './profileEntity.ts';
+import { Profile } from './profileModel.ts';
+import { createGetProfileResponse } from '../../../../packages/shared/dto/profile/getProfileResponseDto.ts';
 
 export const ProfileMapper = {
   /**
