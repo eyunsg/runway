@@ -20,12 +20,9 @@ export const fetchProfile = async (
     // 1. DB에서 프로필 원본 데이터 가져오기 (Repository 사용)
     const entity = await Repository.findById(supabaseClient, user.id);
 
-    // 2. 활동 통계(포트폴리오, 게시물 수) 가져오기
-    const stats = await Repository.fetchStats(supabaseClient, user.id);
-
-    // 3. DB 데이터를 서버 내부 표준 모델로 변환 (Mapper 사용)
+    // 2. DB 데이터를 서버 내부 표준 모델로 변환 (Mapper 사용)
     // user.email이 undefined일 수 있으므로 기본값 처리를 포함합니다.
-    const model = ProfileMapper.toDomain(entity, stats, user.email ?? '');
+    const model = ProfileMapper.toDomain(entity, user.email ?? '');
 
     // 4. 구조화된 로그 기록 (성능 모니터링 및 추적용)
     console.log(

@@ -11,17 +11,11 @@ export const ProfileMapper = {
   /**
    * DB Entity -> 도메인 모델 변환 (snake_case -> camelCase)
    */
-  toDomain(
-    entity: ProfileEntity,
-    stats: { portfolioCount: number; postCount: number },
-    email: string
-  ): Profile {
+  toDomain(entity: ProfileEntity, email: string): Profile {
     return {
       id: entity.id,
       email: email,
       displayName: entity.display_name,
-      portfolioCount: stats.portfolioCount,
-      postCount: stats.postCount,
       createdAt: new Date(entity.created_at),
     };
   },
