@@ -19,6 +19,7 @@ class AppRouter {
       GoRoute(
         path: '/password-change',
         builder: (context, state) => const PasswordChangePage(),
+      ),
       GoRoute(path: '/logout', builder: (context, state) => LogoutTempScreen()),
       GoRoute(
         path: '/reset-password',
