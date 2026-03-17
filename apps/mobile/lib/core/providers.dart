@@ -11,6 +11,11 @@ import '../features/login/types/login_state.dart';
 import '../features/login/usecase/login_usecase.dart';
 import '../features/login/repository/login_repository.dart';
 
+import '../features/password_change/controller/password_change_controller.dart';
+import '../features/password_change/types/password_change_state.dart';
+import '../features/password_change/usecase/password_change_usecase.dart';
+import '../features/password_change/repository/password_change_repository.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -49,4 +54,24 @@ final loginControllerProvider =
     StateNotifierProvider<LoginController, LoginState>((ref) {
       final usecase = ref.read(loginUsecaseProvider);
       return LoginController(usecase);
+    });
+
+/// ---------------- PASSWORD CHANGE ----------------
+
+final passwordChangeRepositoryProvider = Provider<PasswordChangeRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return PasswordChangeRepository(client: client);
+});
+
+final passwordChangeUsecaseProvider = Provider<PasswordChangeUsecase>((ref) {
+  final repository = ref.read(passwordChangeRepositoryProvider);
+  return PasswordChangeUsecase(repository: repository);
+});
+
+final passwordChangeControllerProvider =
+    StateNotifierProvider<PasswordChangeController, PasswordChangeState>((ref) {
+      final usecase = ref.read(passwordChangeUsecaseProvider);
+      return PasswordChangeController(usecase);
     });
