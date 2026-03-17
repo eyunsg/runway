@@ -112,18 +112,32 @@ void main() {
       verify(() => mockUsecase.execute(any())).called(1);
     });
 
-    test('7. 작업 시작 시 즉시 loading 상태로 변경되어야 한다', () {
+    test('7. 작업 시작 시 즉시 loading 상태로 변경되고, 중복 호출 방지 검증', () async {
+      final completer = Completer<UserResponse>();
       when(
         () => mockUsecase.execute(any()),
-      ).thenAnswer((_) => Completer<UserResponse>().future);
+      ).thenAnswer((_) => completer.future);
 
-      controller.changePassword(
+      final firstCall = controller.changePassword(
         currentPassword: 'oldPassword123!',
         newPassword: 'newPassword123!',
         newPasswordConfirm: 'newPassword123!',
       );
 
       expect(controller.debugState.status, AsyncStatus.loading);
+
+      await controller.changePassword(
+        currentPassword: 'oldPassword123!',
+        newPassword: 'newPassword123!',
+        newPasswordConfirm: 'newPassword123!',
+      );
+
+      completer.complete(MockUserResponse());
+      await firstCall;
+
+      verify(() => mockUsecase.execute(any())).called(1);
+
+      expect(controller.debugState.status, AsyncStatus.success);
     });
   });
 }
