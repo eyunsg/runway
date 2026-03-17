@@ -87,6 +87,8 @@ final passwordChangeControllerProvider =
     StateNotifierProvider<PasswordChangeController, PasswordChangeState>((ref) {
       final usecase = ref.read(passwordChangeUsecaseProvider);
       return PasswordChangeController(usecase);
+    });
+
 /// ---------------- LOGOUT ----------------
 
 final logoutRepositoryProvider = Provider<LogoutRepository>((ref) {
