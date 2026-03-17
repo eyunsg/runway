@@ -17,9 +17,7 @@ class LoginTempScreen extends ConsumerWidget {
 
     ref.listen(loginControllerProvider, (previous, next) {
       if (next.status == AsyncStatus.success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('로그인에 성공했습니다.')));
+        context.go('/logout');
       }
 
       if (next.status == AsyncStatus.error && next.error != null) {
@@ -63,7 +61,7 @@ class LoginTempScreen extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: 비밀번호 재설정 라우트 연결
+                  context.push('/reset-password');
                 },
                 child: const Text('비밀번호를 잊으셨나요?'),
               ),
