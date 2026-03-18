@@ -1,62 +1,57 @@
 import 'package:flutter/material.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileTempScreen extends StatelessWidget {
+  const ProfileTempScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           children: [
+            const SizedBox(height: 30),
+
             const Center(
-              child: SizedBox(
-                width: 120,
-                height: 120,
-                child: Placeholder(fallbackHeight: 120, fallbackWidth: 120),
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
+
+                  CircleAvatar(
+                    radius: 15,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.edit, size: 18),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(height: 15),
+
+            const Text('UserName'),
+            const SizedBox(height: 5),
+
+            const Text(
+              'user1234@gmail.com',
+              style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 40),
 
-            const Align(alignment: Alignment.centerLeft, child: Text('이름')),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'UserName',
-                border: OutlineInputBorder(),
-                enabled: false,
-              ),
+            ListTile(
+              title: const Text('앱 정보'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                // 앱 정보 화면 이동
+              },
             ),
-            const SizedBox(height: 20),
 
-            const Align(alignment: Alignment.centerLeft, child: Text('닉네임')),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'UserNickname',
-                border: OutlineInputBorder(),
-                enabled: false,
-              ),
-            ),
-            const SizedBox(height: 20),
+            const Divider(),
 
-            const Align(alignment: Alignment.centerLeft, child: Text('이메일')),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'user1234@gmail.com',
-                border: OutlineInputBorder(),
-                enabled: false,
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: 150,
-              child: ElevatedButton(
-                onPressed: () {
-                  // 로그아웃 로직
-                },
-                child: const Text('로그아웃'),
-              ),
+            ListTile(
+              title: const Text('로그아웃', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                // 로그아웃 팝업
+              },
             ),
           ],
         ),
