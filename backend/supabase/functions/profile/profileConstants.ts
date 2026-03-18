@@ -16,7 +16,6 @@ export const CORS_HEADERS = {
 
 /**
  * [에러 응답 명세서 4.1] 전역 예외 처리를 위한 커스텀 에러 상자
- * 비유: "문제가 생기면 이 상자에 에러 코드와 메시지를 담아 던진다"
  */
 export class AppError extends Error {
   constructor(
