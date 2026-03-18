@@ -1,0 +1,27 @@
+/**
+ * Runway 프로젝트: 프로필 리포지토리
+ */
+
+import { SupabaseClient } from 'supabase';
+import { ProfileEntity } from './profileEntity.ts';
+
+/**
+ * ID로 사용자 프로필 정보 조회
+ * [Soft Delete] deleted_at이 null인 활성 데이터만 조회 (명세 준수)
+ */
+export const findById = async (
+  supabaseClient: SupabaseClient,
+  userId: string
+): Promise<ProfileEntity> => {
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('id, display_name')
+    .eq('id', userId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) throw error;
+
+  // DB에서 가져온 데이터를 ProfileEntity 타입으로 확정하여 반환
+  return data as ProfileEntity;
+};

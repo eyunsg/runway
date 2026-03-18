@@ -1,0 +1,99 @@
+/**
+ * Runway 프로젝트: 프로필 API 메인 엔트리
+ * [엔트리 포인트] 서버 시작, 인증 체크, 전역 에러 처리를 담당합니다.
+ */
+
+import { serve } from 'std/http/server';
+import { createClient } from 'supabase';
+import { CORS_HEADERS, AppError } from './profileConstants.ts';
+import * as Controller from './profileController.ts';
+
+/**
+ * 전역 에러 응답 처리기
+ * 모든 에러는 이곳에서 규격화된 JSON 응답으로 변환됩니다.
+ */
+const handleError = (err: unknown, requestId: string): Response => {
+  // 1. 우리가 정의한 AppError인지 확인 (Type Guard)
+  const isAppError = err instanceof AppError;
+
+  // 2. 일반적인 Error 객체인지 확인 (message, stack 접근용)
+  const isStandardError = err instanceof Error;
+
+  const status = isAppError ? err.status : 500;
+  const message = isAppError ? err.message : '서버 내부 오류가 발생했습니다.';
+
+  // 3. 로그 기록을 위한 값 추출
+  // unknown 타입이므로 "어떤 타입인지" 확인된 경우에만 해당 속성을 가져옵니다.
+  const code = isAppError ? err.internalCode : 'UNKNOWN';
+  const errorMessage = isStandardError ? err.message : String(err);
+  const errorStack = isStandardError ? err.stack : undefined;
+
+  console.error(
+    JSON.stringify({
+      level: 'ERROR',
+      requestId,
+      code,
+      message: errorMessage,
+      stack: errorStack,
+    })
+  );
+
+  return new Response(JSON.stringify({ data: null, error: { message } }), {
+    status,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+};
+
+// Deno 서버 시작
+serve(async (req: Request) => {
+  // 1. 요청 식별 아이디 생성 (모든 로그를 하나로 묶는 열쇠)
+  const requestId = crypto.randomUUID();
+
+  // 2. CORS 사전 요청(Preflight) 처리
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: CORS_HEADERS });
+  }
+
+  try {
+    // 프로필 조회는 오직 GET 메서드만 허용
+    if (req.method !== 'GET') {
+      throw new AppError(
+        405,
+        '프로필 조회 기능만 이용 가능합니다. (GET 메서드 필요)',
+        'METHOD_NOT_ALLOWED'
+      );
+    }
+
+    // 3. Supabase 클라이언트 초기화
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) throw new AppError(401, '인증 토큰이 누락되었습니다.', 'AUTH_MISSING');
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // 4. JWT를 통한 사용자 신원 확인 (로그인 여부 체크)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      throw new AppError(401, '유효하지 않은 세션입니다.', 'AUTH_INVALID');
+    }
+
+    // 5. HTTP 메서드에 따른 컨트롤러 분기
+    const result = await Controller.getProfile(supabaseClient, user, requestId);
+
+    // 6. 성공 응답 반환
+    // result는 이미 @shared 매퍼를 거쳐 { data, error } 구조를 가지고 있습니다.
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    // 발생한 모든 에러를 포괄적으로 처리
+    return handleError(err, requestId);
+  }
+});
