@@ -34,14 +34,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
       - name: Install dependencies
         run: |
           cd backend
           npm install
+
       - name: Run tests
         run: |
           cd backend
