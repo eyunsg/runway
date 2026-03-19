@@ -1,25 +1,20 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileRepository {
-  final String baseUrl =
-      "https://tdyfozpynwtiqiqfchjn.supabase.co/functions/v1/user";
+  final SupabaseClient client;
+
+  ProfileRepository({required this.client});
 
   Future<Map<String, dynamic>> getProfile(String accessToken) async {
-    final response = await http.get(
-      Uri.parse("$baseUrl/profile"),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $accessToken",
-      },
+    final response = await client.functions.invoke(
+      'user/profile',
+      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
-    if (response.statusCode != 200) {
-      throw Exception(
-        "Failed to fetch profile: ${response.statusCode} ${response.body}",
-      );
+    if (response.status != 200) {
+      throw Exception('Failed to fetch profile');
     }
 
-    return jsonDecode(response.body);
+    return response.data;
   }
 }
