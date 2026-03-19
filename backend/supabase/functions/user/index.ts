@@ -1,5 +1,4 @@
-// import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { handleGetProfile } from './userController.ts';
+import { handleGetProfile } from '../../../api/user/userController.ts';
 
 Deno.serve((req: Request) => {
   const url = new URL(req.url);
