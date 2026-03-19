@@ -1,4 +1,4 @@
-import { User } from './domain/user.ts';
+import { User } from '../../../shared/domain/user/user.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const supabase = createClient(

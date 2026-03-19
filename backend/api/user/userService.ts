@@ -1,6 +1,8 @@
-import { GetProfileResponseDto } from './dto/getProfileResponse.dto.ts';
-import { findUserById } from './userRepository.ts';
-import { User } from './domain/user.ts';
+// backend/api/user/userService.ts
+
+import { GetProfileResponseDto } from '../../shared/dto/user/getProfileResponse.dto';
+import { User } from '../../shared/domain/user/user';
+import { findUserById } from '../../supabase/functions/user/userRepository';
 
 export async function getProfile(userId: string): Promise<GetProfileResponseDto> {
   const user: User | null = await findUserById(userId);

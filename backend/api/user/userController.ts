@@ -1,4 +1,4 @@
-import { getProfile } from './userService.ts';
+import { getProfile } from './userService';
 
 export async function handleGetProfile(req: Request) {
   try {
