@@ -1,21 +1,9 @@
+import { GetProfileResponseDto } from './dto/getProfileResponse.dto.ts';
 import { findUserById } from './userRepository.ts';
+import { User } from './domain/user.ts';
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  displayName: string;
-}
-
-export async function getProfile(userId: string): Promise<UserProfile> {
-  const user = await findUserById(userId);
-
-  if (!user) {
-    throw new Error('사용자를 찾을 수 없습니다.');
-  }
-
-  return {
-    id: user.id,
-    email: user.email,
-    displayName: user.display_name,
-  };
+export async function getProfile(userId: string): Promise<GetProfileResponseDto> {
+  const user: User | null = await findUserById(userId);
+  if (!user) throw new Error('User not found');
+  return new GetProfileResponseDto(user.email, user.displayName);
 }
