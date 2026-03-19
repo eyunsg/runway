@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "types": ["jest", "node"],
     "module": "commonjs",
     "target": "ES2020"

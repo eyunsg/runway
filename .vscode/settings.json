@@ -8,5 +8,5 @@
     "editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode"
   },
   "deno.enable": true,
-  "deno.enablePaths": ["backend/supabase/functions"]
+  "deno.enablePaths": ["backend/supabase/functions", "backend/api/user/*.ts"]
 }
