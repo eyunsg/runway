@@ -17,9 +17,7 @@ class LoginTempScreen extends ConsumerWidget {
 
     ref.listen(loginControllerProvider, (previous, next) {
       if (next.status == AsyncStatus.success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('로그인에 성공했습니다.')));
+        context.go('/profile');
       }
 
       if (next.status == AsyncStatus.error && next.error != null) {
