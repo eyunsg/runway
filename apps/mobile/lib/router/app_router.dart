@@ -15,7 +15,7 @@ class AppRouter {
       GoRoute(path: '/login', builder: (context, state) => LoginTempScreen()),
       GoRoute(
         path: '/profile',
-        builder: (context, state) => const ProfileTempScreen(),
+        builder: (context, state) => ProfileTempScreen(),
       ),
     ],
   );
