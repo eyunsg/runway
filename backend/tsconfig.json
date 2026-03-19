@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "types": ["jest", "node"],
+    "noEmit": true,
     "module": "commonjs",
+    "moduleResolution": "node",
+    "types": ["jest", "node"],
     "target": "ES2020"
   },
   "include": ["**/*.ts"]
