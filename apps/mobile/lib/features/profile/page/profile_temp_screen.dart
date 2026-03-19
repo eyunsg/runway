@@ -1,61 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ProfileTempScreen extends StatelessWidget {
+import 'package:runway/core/providers.dart';
+
+class ProfileTempScreen extends ConsumerStatefulWidget {
   const ProfileTempScreen({super.key});
 
   @override
+  ConsumerState<ProfileTempScreen> createState() => _ProfileTempScreenState();
+}
+
+class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final session = Supabase.instance.client.auth.currentSession;
+      final accessToken = session?.accessToken;
+      if (accessToken != null) {
+        ref.read(profileControllerProvider.notifier).fetchProfile(accessToken);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = ref.watch(profileControllerProvider);
+
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 30),
-
-            const Center(
-              child: Stack(
-                alignment: Alignment.bottomRight,
+      body: state.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : state.error != null
+          ? Center(child: Text(state.error!))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
                 children: [
-                  CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
+                  const SizedBox(height: 30),
 
-                  CircleAvatar(
-                    radius: 15,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.edit, size: 18),
+                  /// 프로필 영역
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: const [
+                        CircleAvatar(
+                          radius: 50,
+                          child: Icon(Icons.person, size: 50),
+                        ),
+                        CircleAvatar(
+                          radius: 15,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.edit, size: 18),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  Text(state.displayName ?? ''),
+                  const SizedBox(height: 5),
+
+                  Text(
+                    state.email ?? '',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  /// 메뉴 영역
+                  ListTile(
+                    title: const Text('앱 정보'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () {},
+                  ),
+
+                  const Divider(),
+
+                  ListTile(
+                    title: const Text(
+                      '로그아웃',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    onTap: () {},
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 15),
-
-            const Text('UserName'),
-            const SizedBox(height: 5),
-
-            const Text(
-              'user1234@gmail.com',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 40),
-
-            ListTile(
-              title: const Text('앱 정보'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                // 앱 정보 화면 이동
-              },
-            ),
-
-            const Divider(),
-
-            ListTile(
-              title: const Text('로그아웃', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                // 로그아웃 팝업
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
