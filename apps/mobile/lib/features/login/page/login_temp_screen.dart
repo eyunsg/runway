@@ -61,7 +61,7 @@ class LoginTempScreen extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: 비밀번호 재설정 라우트 연결
+                  context.push('/reset-password');
                 },
                 child: const Text('비밀번호를 잊으셨나요?'),
               ),
