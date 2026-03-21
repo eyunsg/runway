@@ -2,7 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:runway/features/login/page/login_temp_screen.dart';
 import '../features/register/page/register_temp_screen.dart';
-import 'package:runway/features/profile/page/profile_temp_screen.dart';
+import 'package:runway/features/get_profile/page/profile_temp_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(

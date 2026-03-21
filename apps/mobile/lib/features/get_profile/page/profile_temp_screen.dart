@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:runway/core/providers.dart';
 
@@ -17,11 +16,7 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final session = Supabase.instance.client.auth.currentSession;
-      final accessToken = session?.accessToken;
-      if (accessToken != null) {
-        ref.read(profileControllerProvider.notifier).fetchProfile(accessToken);
-      }
+      ref.read(profileControllerProvider.notifier).fetchProfile();
     });
   }
 
