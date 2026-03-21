@@ -91,7 +91,8 @@ final profileControllerProvider =
     StateNotifierProvider<GetProfileController, ProfileState>((ref) {
       final usecase = ref.read(getrofileUsecaseProvider);
       return GetProfileController(useCase: usecase);
-      
+    });
+
 /// ---------------- PASSWORD CHANGE ----------------
 
 final passwordChangeRepositoryProvider = Provider<PasswordChangeRepository>((
