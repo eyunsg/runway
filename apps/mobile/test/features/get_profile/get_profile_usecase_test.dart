@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:runway/features/profile/repository/profile_reposity.dart';
-import 'package:runway/features/profile/usecase/profile_usecase.dart';
+import 'package:runway/features/get_profile/repository/get_profile_reposity.dart';
+import 'package:runway/features/get_profile/usecase/get_profile_usecase.dart';
 
-class MockProfileRepository extends Mock implements ProfileRepository {}
+class MockProfileRepository extends Mock implements GetProfileReposity {}
 
 void main() {
   late MockProfileRepository mockRepository;
@@ -16,18 +16,16 @@ void main() {
   });
 
   test('repository에서 전달된 프로필 데이터를 그대로 반환해야 한다', () async {
-    const accessToken = 'test_token';
-
     final mockResponse = {'email': 'test@test.com', 'displayName': 'tester'};
 
     when(
-      () => mockRepository.getProfile(accessToken),
+      () => mockRepository.getProfile(),
     ).thenAnswer((_) async => mockResponse);
 
-    final result = await useCase.execute(accessToken);
+    final result = await useCase.execute();
 
     expect(result, mockResponse);
 
-    verify(() => mockRepository.getProfile(accessToken)).called(1);
+    verify(() => mockRepository.getProfile()).called(1);
   });
 }

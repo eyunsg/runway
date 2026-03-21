@@ -1,0 +1,59 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getProfile } from './profileService.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+};
+
+export async function handleGetProfile(req: Request) {
+  console.log('controller: ', req);
+  try {
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      {
+        global: {
+          headers: {
+            Authorization: req.headers.get('authorization') ?? '',
+          },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return new Response('Unauthorized', {
+        status: 401,
+        headers: corsHeaders,
+      });
+    }
+
+    const responseDto = await getProfile(user.id);
+
+    return new Response(JSON.stringify(responseDto), {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (err) {
+    return new Response(String(err), {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
+}

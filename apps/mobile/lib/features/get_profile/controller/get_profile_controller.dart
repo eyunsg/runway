@@ -1,17 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../usecase/profile_usecase.dart';
+import '../usecase/get_profile_usecase.dart';
 import '../types/profile_state.dart';
 
-class ProfileController extends StateNotifier<ProfileState> {
+class GetProfileController extends StateNotifier<ProfileState> {
   final GetProfileUseCase useCase;
 
-  ProfileController({required this.useCase}) : super(const ProfileState());
+  GetProfileController({required this.useCase}) : super(const ProfileState());
 
-  Future<void> fetchProfile(String accessToken) async {
+  Future<void> fetchProfile() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      final result = await useCase.execute(accessToken);
+      final result = await useCase.execute();
 
       state = state.copyWith(
         isLoading: false,

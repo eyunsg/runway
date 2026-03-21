@@ -11,10 +11,10 @@ import '../features/login/types/login_state.dart';
 import '../features/login/usecase/login_usecase.dart';
 import '../features/login/repository/login_repository.dart';
 
-import 'package:runway/features/profile/controller/profile_controller.dart';
-import 'package:runway/features/profile/repository/profile_reposity.dart';
-import 'package:runway/features/profile/usecase/profile_usecase.dart';
-import 'package:runway/features/profile/types/profile_state.dart';
+import 'package:runway/features/get_profile/controller/get_profile_controller.dart';
+import 'package:runway/features/get_profile/repository/get_profile_reposity.dart';
+import 'package:runway/features/get_profile/usecase/get_profile_usecase.dart';
+import 'package:runway/features/get_profile/types/profile_state.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -58,18 +58,18 @@ final loginControllerProvider =
 
 /// ---------------- PROFILE ----------------
 
-final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+final getProfileRepositoryProvider = Provider<GetProfileReposity>((ref) {
   final client = ref.read(supabaseClientProvider);
-  return ProfileRepository(client: client);
+  return GetProfileReposity(client: client);
 });
 
-final profileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
-  final repository = ref.read(profileRepositoryProvider);
+final getrofileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
+  final repository = ref.read(getProfileRepositoryProvider);
   return GetProfileUseCase(repository);
 });
 
 final profileControllerProvider =
-    StateNotifierProvider<ProfileController, ProfileState>((ref) {
-      final usecase = ref.read(profileUsecaseProvider);
-      return ProfileController(useCase: usecase);
+    StateNotifierProvider<GetProfileController, ProfileState>((ref) {
+      final usecase = ref.read(getrofileUsecaseProvider);
+      return GetProfileController(useCase: usecase);
     });

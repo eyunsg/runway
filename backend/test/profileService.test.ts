@@ -1,8 +1,8 @@
-import { getProfile } from './userService.ts';
-import { User } from '../../shared/domain/user/user.ts';
-import { findUserById } from '../../supabase/functions/user/userRepository.ts';
+import { getProfile } from '../supabase/functions/profile/profileService.ts';
+import { Profile } from '../shared/domain/profile/profile.ts';
+import { findUserById } from '../supabase/functions/profile/profileRepository.ts';
 
-jest.mock('../../supabase/functions/user/userRepository', () => ({
+jest.mock('../supabase/functions/profile/profileRepository', () => ({
   findUserById: jest.fn(),
 }));
 
@@ -12,7 +12,7 @@ describe('getProfile', () => {
   });
 
   it('정상적으로 유저를 조회하면 DTO를 반환한다', async () => {
-    const mockUser = new User('test@example.com', 'testName');
+    const mockUser = new Profile('test@example.com', 'testName');
 
     (findUserById as jest.Mock).mockResolvedValue(mockUser);
 
