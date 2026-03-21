@@ -3,7 +3,7 @@
 // 2. 검증
 // 3. 비즈니스 로직
 
-export class User {
+export class Profile {
   constructor(
     public email: string,
     public displayName: string
