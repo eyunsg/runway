@@ -1,16 +1,19 @@
 {
-  "type": "module",
   "scripts": {
-    "test": "jest",
+    "test": "npm run test:api && npm run test:shared",
+    "test:api": "jest",
+    "test:shared": "deno test --allow-all ../packages/shared/**/*.test.ts",
     "test:supabase": "tsx src/scripts/testSupabase.ts"
   },
   "devDependencies": {
-    "jest": "^30.2.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.98.0",
+    "@supabase/supabase-js": "^2.99.2",
     "dotenv": "^17.3.1"
   }
 }

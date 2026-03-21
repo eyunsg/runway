@@ -11,10 +11,16 @@ import '../features/login/types/login_state.dart';
 import '../features/login/usecase/login_usecase.dart';
 import '../features/login/repository/login_repository.dart';
 
+import 'package:runway/features/get_profile/controller/get_profile_controller.dart';
+import 'package:runway/features/get_profile/repository/get_profile_reposity.dart';
+import 'package:runway/features/get_profile/usecase/get_profile_usecase.dart';
+import 'package:runway/features/get_profile/types/profile_state.dart';
+
 import '../features/password_change/controller/password_change_controller.dart';
 import '../features/password_change/types/password_change_state.dart';
 import '../features/password_change/usecase/password_change_usecase.dart';
 import '../features/password_change/repository/password_change_repository.dart';
+
 import '../features/logout/controller/logout_controller.dart';
 import '../features/logout/types/logout_state.dart';
 import '../features/logout/usecase/logout_usecase.dart';
@@ -69,6 +75,23 @@ final loginControllerProvider =
       return LoginController(usecase);
     });
 
+/// ---------------- GET PROFILE ----------------
+
+final getProfileRepositoryProvider = Provider<GetProfileReposity>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetProfileReposity(client: client);
+});
+
+final getrofileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
+  final repository = ref.read(getProfileRepositoryProvider);
+  return GetProfileUseCase(repository);
+});
+
+final profileControllerProvider =
+    StateNotifierProvider<GetProfileController, ProfileState>((ref) {
+      final usecase = ref.read(getrofileUsecaseProvider);
+      return GetProfileController(useCase: usecase);
+      
 /// ---------------- PASSWORD CHANGE ----------------
 
 final passwordChangeRepositoryProvider = Provider<PasswordChangeRepository>((
