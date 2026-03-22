@@ -1,4 +1,4 @@
-import { GetProfileResponseDto } from '../../../shared/dto/profile/GetProfileResponse.dto.ts';
+import { GetProfileResponseDto } from '../../../shared/dto/profile/getProfileResponse.dto.ts';
 import { findUserById } from './profileRepository.ts';
 
 export async function getProfile(userId: string): Promise<GetProfileResponseDto> {
