@@ -2,7 +2,6 @@ import { GetProfileResponseDto } from '../../../shared/dto/profile/getProfileRes
 import { findUserById } from './profileRepository.ts';
 
 export async function getProfile(userId: string): Promise<GetProfileResponseDto> {
-  console.log('service: ', userId);
   const user = await findUserById(userId);
 
   if (!user) {

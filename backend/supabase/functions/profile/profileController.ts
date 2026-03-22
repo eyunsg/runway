@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 export async function handleGetProfile(req: Request) {
-  console.log('controller: ', req);
   try {
     if (req.method === 'OPTIONS') {
       return new Response(null, {
