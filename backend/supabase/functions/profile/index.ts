@@ -7,8 +7,6 @@ const corsHeaders = {
 };
 
 Deno.serve((req: Request) => {
-  console.log('index.ts: ', req);
-
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,

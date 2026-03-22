@@ -1,6 +1,6 @@
 import { getProfile } from '../supabase/functions/profile/profileService.ts';
-import { Profile } from '../shared/domain/profile/profile.ts';
 import { findUserById } from '../supabase/functions/profile/profileRepository.ts';
+import { Profile } from '../shared/domain/profile/Profile.ts';
 
 jest.mock('../supabase/functions/profile/profileRepository', () => ({
   findUserById: jest.fn(),

@@ -1,4 +1,4 @@
-import { Profile } from '../../../shared/domain/profile/profile.ts';
+import { Profile } from '../../../shared/domain/profile/Profile.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const supabase = createClient(
