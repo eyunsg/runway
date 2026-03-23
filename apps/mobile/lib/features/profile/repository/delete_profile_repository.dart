@@ -18,7 +18,7 @@ class DeleteProfileRepository {
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
-      if (response.status != 200) {
+      if (response.status != 204) {
         return Left(ServerFailure('Delete failed'));
       }
 
