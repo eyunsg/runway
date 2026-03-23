@@ -1,4 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:runway/features/profile/controller/delete_profile_controller.dart';
+import 'package:runway/features/profile/repository/delete_profile_repository.dart';
+import 'package:runway/features/profile/types/delete_profile_state.dart';
+import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/register/controller/register_controller.dart';
@@ -171,4 +175,24 @@ final resetPasswordControllerProvider =
     StateNotifierProvider<PasswordResetController, PasswordResetState>((ref) {
       final usecase = ref.read(resetPasswordUsecaseProvider);
       return PasswordResetController(usecase);
+    });
+
+/// ---------------- DELETE PROFILE ----------------
+
+final deleteProfileRepositoryProvider = Provider<DeleteProfileRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeleteProfileRepository(client: client);
+});
+
+final deleteProfileUsecaseProvider = Provider<DeleteProfileUseCase>((ref) {
+  final repository = ref.read(deleteProfileRepositoryProvider);
+  return DeleteProfileUseCase(repository: repository);
+});
+
+final deleteProfileControllerProvider =
+    StateNotifierProvider<DeleteProfileController, DeleteProfileState>((ref) {
+      final usecase = ref.read(deleteProfileUsecaseProvider);
+      return DeleteProfileController(deleteProfileUseCase: usecase);
     });
