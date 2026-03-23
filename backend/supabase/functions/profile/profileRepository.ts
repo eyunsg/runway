@@ -21,3 +21,14 @@ export async function findUserById(userId: string): Promise<Profile | null> {
 
   return new Profile(authData.user.email, profileData.display_name);
 }
+
+export async function deleteProfileRepo(client: any, userId: string) {
+  const { error } = await client.from('profiles').delete().eq('id', userId);
+
+  return !error;
+}
+
+export async function deleteAuthRepo(client: any, userId: string) {
+  const { error } = await client.auth.admin.deleteUser(userId);
+  return !error;
+}

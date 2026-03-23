@@ -1,9 +1,9 @@
-import { handleGetProfile } from './profileController.ts';
+import { handleGetProfile, handleDeleteProfile } from './profileController.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
 };
 
 Deno.serve((req: Request) => {
@@ -16,6 +16,10 @@ Deno.serve((req: Request) => {
 
   if (req.method === 'GET') {
     return handleGetProfile(req);
+  }
+
+  if (req.method === 'DELETE') {
+    return handleDeleteProfile(req);
   }
 
   return new Response('Not Found', {
