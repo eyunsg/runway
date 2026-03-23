@@ -5,7 +5,7 @@ import 'package:runway/features/password_reset/page/request_password_reset_temp_
 import 'package:runway/features/password_reset/page/password_reset_temp_screen.dart';
 import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import '../features/register/page/register_temp_screen.dart';
-import 'package:runway/features/get_profile/page/profile_temp_screen.dart';
+import 'package:runway/features/profile/page/profile_temp_screen.dart';
 import '../features/password_change/page/password_change_temp_screen.dart';
 
 class AppRouter {
