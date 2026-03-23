@@ -1,4 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:runway/features/profile/controller/delete_profile_controller.dart';
+import 'package:runway/features/profile/repository/delete_profile_repository.dart';
+import 'package:runway/features/profile/types/delete_profile_state.dart';
+import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/register/controller/register_controller.dart';
@@ -11,10 +15,10 @@ import '../features/login/types/login_state.dart';
 import '../features/login/usecase/login_usecase.dart';
 import '../features/login/repository/login_repository.dart';
 
-import 'package:runway/features/get_profile/controller/get_profile_controller.dart';
-import 'package:runway/features/get_profile/repository/get_profile_reposity.dart';
-import 'package:runway/features/get_profile/usecase/get_profile_usecase.dart';
-import 'package:runway/features/get_profile/types/profile_state.dart';
+import 'package:runway/features/profile/controller/get_profile_controller.dart';
+import 'package:runway/features/profile/repository/get_profile_reposity.dart';
+import 'package:runway/features/profile/usecase/get_profile_usecase.dart';
+import 'package:runway/features/profile/types/profile_state.dart';
 
 import '../features/password_change/controller/password_change_controller.dart';
 import '../features/password_change/types/password_change_state.dart';
@@ -171,4 +175,24 @@ final resetPasswordControllerProvider =
     StateNotifierProvider<PasswordResetController, PasswordResetState>((ref) {
       final usecase = ref.read(resetPasswordUsecaseProvider);
       return PasswordResetController(usecase);
+    });
+
+/// ---------------- DELETE PROFILE ----------------
+
+final deleteProfileRepositoryProvider = Provider<DeleteProfileRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeleteProfileRepository(client: client);
+});
+
+final deleteProfileUsecaseProvider = Provider<DeleteProfileUseCase>((ref) {
+  final repository = ref.read(deleteProfileRepositoryProvider);
+  return DeleteProfileUseCase(repository: repository);
+});
+
+final deleteProfileControllerProvider =
+    StateNotifierProvider<DeleteProfileController, DeleteProfileState>((ref) {
+      final usecase = ref.read(deleteProfileUsecaseProvider);
+      return DeleteProfileController(deleteProfileUseCase: usecase);
     });

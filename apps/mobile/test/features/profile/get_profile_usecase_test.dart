@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:runway/features/get_profile/repository/get_profile_reposity.dart';
-import 'package:runway/features/get_profile/usecase/get_profile_usecase.dart';
+import 'package:runway/features/profile/repository/get_profile_reposity.dart';
+import 'package:runway/features/profile/usecase/get_profile_usecase.dart';
 
 class MockProfileRepository extends Mock implements GetProfileReposity {}
 

@@ -1,4 +1,4 @@
-import 'package:runway/features/get_profile/repository/get_profile_reposity.dart';
+import 'package:runway/features/profile/repository/get_profile_reposity.dart';
 
 class GetProfileUseCase {
   final GetProfileReposity repository;

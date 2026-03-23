@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:runway/features/get_profile/controller/get_profile_controller.dart';
-import 'package:runway/features/get_profile/usecase/get_profile_usecase.dart';
+import 'package:runway/features/profile/controller/get_profile_controller.dart';
+import 'package:runway/features/profile/usecase/get_profile_usecase.dart';
 
 class MockGetProfileUseCase extends Mock implements GetProfileUseCase {}
 
