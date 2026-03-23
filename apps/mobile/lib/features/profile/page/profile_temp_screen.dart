@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:runway/core/providers.dart';
 
@@ -22,6 +23,18 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(deleteProfileControllerProvider, (prev, next) {
+      if (next.isSuccess) {
+        context.go('/login');
+      }
+
+      if (next.error != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
+      }
+    });
+
     final state = ref.watch(profileControllerProvider);
 
     return Scaffold(
@@ -80,6 +93,20 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                       style: TextStyle(color: Colors.red),
                     ),
                     onTap: () {},
+                  ),
+
+                  const Divider(),
+
+                  ListTile(
+                    title: const Text(
+                      '회원탈퇴 (임시)',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    onTap: () {
+                      ref
+                          .read(deleteProfileControllerProvider.notifier)
+                          .deleteProfile();
+                    },
                   ),
                 ],
               ),
