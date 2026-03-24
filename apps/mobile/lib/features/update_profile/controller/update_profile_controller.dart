@@ -14,12 +14,14 @@ class UpdateProfileController extends StateNotifier<ProfileState> {
 
       final result = await useCase.execute(newDisplayName);
 
-      state = state.copyWith(
-        isLoading: false,
-        isSuccess: true,
-        email: result['email'] as String?,
-        displayName: result['displayName'] as String?,
-      );
+      print(result);
+
+      // state = state.copyWith(
+      //   isLoading: false,
+      //   isSuccess: true,
+      //   email: result['email'] as String?,
+      //   displayName: result['displayName'] as String?,
+      // );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

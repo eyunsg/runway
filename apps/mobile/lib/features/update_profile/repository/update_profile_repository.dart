@@ -21,6 +21,8 @@ class UpdateProfileRepository {
       body: {'displayName': newDisplayName},
     );
 
+    print(response);
+
     // 응답 상태 확인
     if (response.status != 200) {
       throw Exception('프로필 수정 중 오류가 발생했습니다. (Status: ${response.status})');
