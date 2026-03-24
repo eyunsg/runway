@@ -1,20 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class UpdateProfileTempScreen extends StatelessWidget {
+import '../../profile/types/profile_state.dart';
+import 'package:runway/core/providers.dart';
+import 'package:go_router/go_router.dart';
+
+class UpdateProfileTempScreen extends ConsumerStatefulWidget {
   const UpdateProfileTempScreen({super.key});
 
   @override
+  ConsumerState<UpdateProfileTempScreen> createState() =>
+      _UpdateProfileTempScreenState();
+}
+
+class _UpdateProfileTempScreenState
+    extends ConsumerState<UpdateProfileTempScreen> {
+  late final TextEditingController _nicknameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nicknameController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(profileControllerProvider.notifier).fetchProfile();
+    });
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // TODO: 레포지토리/컨트롤러 작업 시 실제 DB로 교체 예정
-    // 현재는 Mock 데이터 배정
-    const String userEmail = "email@gmail.com";
-    const String userNickname = "Name";
+    final profileState = ref.watch(profileControllerProvider);
+    final updateState = ref.watch(updateProfileControllerProvider);
+
+    ref.listen<ProfileState>(updateProfileControllerProvider, (previous, next) {
+      if (next.isSuccess) {
+        context.pop();
+      }
+    });
 
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
-            /// 프로필 섹션
             const Center(
               child: CircleAvatar(
                 radius: 50,
@@ -23,47 +56,42 @@ class UpdateProfileTempScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            /// 이메일 섹션
             const SizedBox(width: double.infinity, child: Text('이메일')),
             TextFormField(
-              initialValue: userEmail,
+              initialValue: profileState.email ?? "email@gmail.com",
               decoration: const InputDecoration(border: OutlineInputBorder()),
               enabled: false,
             ),
             const SizedBox(height: 16),
 
-            /// 닉네임 섹션
             const SizedBox(width: double.infinity, child: Text('닉네임')),
             TextFormField(
-              initialValue: userNickname,
+              controller: _nicknameController,
               decoration: const InputDecoration(border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 16),
-
-            /// 버튼 섹션
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                child: const Text('비밀번호 변경'),
-              ),
+              enabled: !updateState.isLoading && !profileState.isLoading,
             ),
             const SizedBox(height: 16),
 
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
-                child: const Text('회원탈퇴'),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                child: const Text('저장하기'),
+                onPressed: (updateState.isLoading || profileState.isLoading)
+                    ? null
+                    : () {
+                        ref
+                            .read(updateProfileControllerProvider.notifier)
+                            .updateProfile(_nicknameController.text);
+                      },
+                child: updateState.isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('저장하기'),
               ),
             ),
           ],
