@@ -1,4 +1,3 @@
-import { GetProfileResponseDto } from '../../../shared/dto/profile/GetProfileResponse.dto.ts';
 import { UpdateProfileRequestDto } from '../../../shared/dto/profile/UpdateProfileRequest.dto.ts';
 import {
   findUserById,
@@ -7,14 +6,14 @@ import {
   deleteAuthRepo,
 } from './profileRepository.ts';
 
-export async function getProfile(userId: string): Promise<GetProfileResponseDto> {
+export async function getProfile(userId: string) {
   const user = await findUserById(userId);
 
   if (!user) {
     throw new Error('User not found');
   }
 
-  return new GetProfileResponseDto(user.email, user.displayName);
+  return user;
 }
 
 export async function updateProfile(userId: string, dto: UpdateProfileRequestDto) {

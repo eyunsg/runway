@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getProfile, updateProfile, deleteProfile } from './profileService.ts';
+import { GetProfileResponseDto } from '../../../shared/dto/profile/GetProfileResponse.dto.ts';
 import { UpdateProfileRequestDto } from '../../../shared/dto/profile/UpdateProfileRequest.dto.ts';
 
 const corsHeaders = {
@@ -41,7 +42,9 @@ export async function handleGetProfile(req: Request) {
       });
     }
 
-    const responseDto = await getProfile(user.id);
+    const profile = await getProfile(user.id);
+
+    const responseDto = new GetProfileResponseDto(profile.email, profile.displayName);
 
     return new Response(JSON.stringify(responseDto), {
       status: 200,
