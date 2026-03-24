@@ -37,7 +37,7 @@ export async function updateProfile(
   }
 
   // 3. 수정된 결과를 UpdateResponse DTO로 변환하여 반환
-  return new UpdateProfileResponseDto(updatedUser.email, updatedUser.displayName);
+  return new UpdateProfileResponseDto(updatedUser.displayName);
 }
 
 export async function deleteProfile(userId: string) {
