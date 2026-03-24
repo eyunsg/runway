@@ -1,6 +1,5 @@
 import { GetProfileResponseDto } from '../../../shared/dto/profile/GetProfileResponse.dto.ts';
 import { UpdateProfileRequestDto } from '../../../shared/dto/profile/UpdateProfileRequest.dto.ts';
-import { UpdateProfileResponseDto } from '../../../shared/dto/profile/UpdateProfileResponse.dto.ts';
 import {
   findUserById,
   updateProfileRepo,
@@ -18,26 +17,17 @@ export async function getProfile(userId: string): Promise<GetProfileResponseDto>
   return new GetProfileResponseDto(user.email, user.displayName);
 }
 
-export async function updateProfile(
-  userId: string,
-  dto: UpdateProfileRequestDto
-): Promise<UpdateProfileResponseDto> {
-  // 1. 비즈니스 검증: 닉네임은 2자 이상 20자 이하 (ERD상 display_name)
+export async function updateProfile(userId: string, dto: UpdateProfileRequestDto) {
   if (dto.displayName && (dto.displayName.length < 2 || dto.displayName.length > 20)) {
     throw new Error('VALIDATION_ERROR: 닉네임은 2자 이상 20자 이하로 입력해주세요.');
   }
 
-  // 2. Repository 호출 (DB 필드명 display_name에 맞게 매핑하여 업데이트)
-  const updatedUser = await updateProfileRepo(userId, {
+  const profileUpdated = await updateProfileRepo(userId, {
     display_name: dto.displayName,
   });
+  if (!profileUpdated) return false;
 
-  if (!updatedUser) {
-    throw new Error('UPDATE_FAILED');
-  }
-
-  // 3. 수정된 결과를 UpdateResponse DTO로 변환하여 반환
-  return new UpdateProfileResponseDto(updatedUser.displayName);
+  return true;
 }
 
 export async function deleteProfile(userId: string) {

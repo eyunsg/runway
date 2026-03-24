@@ -18,7 +18,7 @@ Deno.serve((req: Request) => {
     return handleGetProfile(req);
   }
 
-  if (req.method === 'PATCH') {
+  if (req.method === 'POST') {
     return handleUpdateProfile(req);
   }
 

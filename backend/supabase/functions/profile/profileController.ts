@@ -79,23 +79,26 @@ export async function handleUpdateProfile(req: Request) {
       return new Response('Unauthorized', { status: 401, headers: corsHeaders });
     }
 
-    // 1. 요청 바디 데이터 읽기
     const body = await req.json();
-    const requestData = body.data || body; // 클라이언트 응답 규격 대응
+    const requestData = body.data || body;
 
-    // 2. DTO 생성 (ERD에 따라 displayName만 처리)
     const dto = new UpdateProfileRequestDto(requestData.displayName);
 
-    // 3. 서비스 레이어 호출
-    const responseDto = await updateProfile(user.id, dto);
+    const result = await updateProfile(user.id, dto);
 
-    return new Response(JSON.stringify(responseDto), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!result) {
+      return new Response('Update failed', {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
     });
   } catch (err) {
     const errorMsg = String(err);
-    // 닉네임 검증 실패(VALIDATION_ERROR) 시 400 반환, 그 외 500
     const status = errorMsg.includes('VALIDATION_ERROR') ? 400 : 500;
     return new Response(errorMsg, { status: status, headers: corsHeaders });
   }

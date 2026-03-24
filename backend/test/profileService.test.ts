@@ -56,30 +56,53 @@ describe('ProfileService - 프로필 관리 테스트', () => {
   });
 
   describe('updateProfile', () => {
-    it('정상적으로 닉네임을 수정하면 업데이트된 데이터를 반환한다', async () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('정상적으로 닉네임을 수정하면 true를 반환한다', async () => {
       const userId = 'user-123';
       const newNickname = '새로운닉네임';
       const dto = new UpdateProfileRequestDto(newNickname);
-      const mockUpdatedUser = new Profile('test@example.com', newNickname);
 
-      (updateProfileRepo as jest.Mock).mockResolvedValue(mockUpdatedUser);
+      (updateProfileRepo as jest.Mock).mockResolvedValue(true);
 
       const result = await updateProfile(userId, dto);
 
-      expect(result.displayName).toBe(newNickname);
-      expect(updateProfileRepo).toHaveBeenCalled();
+      expect(result).toBe(true);
+      expect(updateProfileRepo).toHaveBeenCalledWith(userId, {
+        display_name: newNickname,
+      });
+    });
+
+    it('repo에서 실패하면 false를 반환한다', async () => {
+      const userId = 'user-123';
+      const dto = new UpdateProfileRequestDto('정상닉네임');
+
+      (updateProfileRepo as jest.Mock).mockResolvedValue(false);
+
+      const result = await updateProfile(userId, dto);
+
+      expect(result).toBe(false);
     });
 
     it('닉네임이 2자 미만일 경우 VALIDATION_ERROR를 던진다', async () => {
       const dto = new UpdateProfileRequestDto('A');
-      await expect(updateProfile('1', dto)).rejects.toThrow('VALIDATION_ERROR');
+
+      await expect(updateProfile('1', dto)).rejects.toThrow(
+        'VALIDATION_ERROR: 닉네임은 2자 이상 20자 이하로 입력해주세요.'
+      );
+
       expect(updateProfileRepo).not.toHaveBeenCalled();
     });
 
     it('닉네임이 20자를 초과할 경우 VALIDATION_ERROR를 던진다', async () => {
       const longNickname = '이것은이십자가넘는아주매우긴닉네임입니다확인용';
       const dto = new UpdateProfileRequestDto(longNickname);
-      await expect(updateProfile('1', dto)).rejects.toThrow('VALIDATION_ERROR');
+
+      await expect(updateProfile('1', dto)).rejects.toThrow(
+        'VALIDATION_ERROR: 닉네임은 2자 이상 20자 이하로 입력해주세요.'
+      );
     });
   });
 
