@@ -35,13 +35,14 @@ void main() {
 
     verify(() => mockUseCase.execute(newName)).called(1);
 
-    expect(states.length, 2);
+    // 초기 상태(0), 로딩 중(1), 완료(2)
+    expect(states.length, 3);
 
-    expect(states[0].isLoading, true);
-
-    expect(states[1].isLoading, false);
-    expect(states[1].isSuccess, true);
-    expect(states[1].error, isNull);
+    expect(states[0].isLoading, false);
+    expect(states[1].isLoading, true);
+    expect(states[2].isLoading, false);
+    expect(states[2].isSuccess, true);
+    expect(states[2].error, isNull);
   });
 
   test('프로필 수정 실패 시 loading → error 상태로 변경된다', () async {
@@ -61,14 +62,12 @@ void main() {
 
     verify(() => mockUseCase.execute('실패닉네임')).called(1);
 
-    expect(states.length, 2);
+    expect(states.length, 3);
 
-    expect(states[0].isLoading, true);
-
-    expect(states[1].isLoading, false);
-    expect(states[1].isSuccess, false);
-    expect(states[1].error, errorMsg);
+    expect(states[0].isLoading, false);
+    expect(states[1].isLoading, true);
+    expect(states[2].isLoading, false);
+    expect(states[2].isSuccess, false);
+    expect(states[2].error, errorMsg);
   });
 }
-
-// TODO: 테스트 통과하도록 수정
