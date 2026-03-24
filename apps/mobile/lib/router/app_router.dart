@@ -7,7 +7,7 @@ import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import '../features/register/page/register_temp_screen.dart';
 import 'package:runway/features/profile/page/profile_temp_screen.dart';
 import '../features/password_change/page/password_change_temp_screen.dart';
-import '../features/update_profile/page/update_profile_temp_screen.dart';
+import '../features/profile/page/update_profile_temp_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(

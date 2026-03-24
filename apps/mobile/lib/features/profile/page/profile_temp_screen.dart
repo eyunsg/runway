@@ -13,15 +13,6 @@ class ProfileTempScreen extends ConsumerStatefulWidget {
 
 class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
   @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(profileControllerProvider.notifier).fetchProfile();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     ref.listen(deleteProfileControllerProvider, (prev, next) {
       if (next.isSuccess) {

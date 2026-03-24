@@ -39,9 +39,9 @@ import '../features/password_reset/usecase/reset_password_usecase.dart';
 import '../features/password_reset/repository/reset_password_repository.dart';
 import '../features/password_reset/types/password_reset_state.dart';
 
-import '../features/update_profile/controller/update_profile_controller.dart';
-import '../features/update_profile/usecase/update_profile_usecase.dart';
-import '../features/update_profile/repository/update_profile_repository.dart';
+import '../features/profile/controller/update_profile_controller.dart';
+import '../features/profile/usecase/update_profile_usecase.dart';
+import '../features/profile/repository/update_profile_repository.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -90,14 +90,14 @@ final getProfileRepositoryProvider = Provider<GetProfileReposity>((ref) {
   return GetProfileReposity(client: client);
 });
 
-final getrofileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
+final getProfileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
   final repository = ref.read(getProfileRepositoryProvider);
   return GetProfileUseCase(repository);
 });
 
 final profileControllerProvider =
     StateNotifierProvider<GetProfileController, ProfileState>((ref) {
-      final usecase = ref.read(getrofileUsecaseProvider);
+      final usecase = ref.read(getProfileUsecaseProvider);
       return GetProfileController(useCase: usecase);
     });
 

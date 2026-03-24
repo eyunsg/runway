@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../profile/types/profile_state.dart';
+import '../types/profile_state.dart';
 import 'package:runway/core/providers.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,10 +17,36 @@ class _UpdateProfileTempScreenState
     extends ConsumerState<UpdateProfileTempScreen> {
   late final TextEditingController _nicknameController;
 
+  late final ProviderSubscription<ProfileState> _profileSub;
+  late final ProviderSubscription<ProfileState> _updateSub;
+
   @override
   void initState() {
     super.initState();
+
     _nicknameController = TextEditingController();
+
+    _profileSub = ref.listenManual<ProfileState>(profileControllerProvider, (
+      previous,
+      next,
+    ) {
+      if (!mounted) return;
+
+      final name = next.displayName;
+      if (name != null && name != _nicknameController.text) {
+        _nicknameController.text = name;
+      }
+    });
+
+    _updateSub = ref.listenManual<ProfileState>(
+      updateProfileControllerProvider,
+      (previous, next) {
+        if (previous?.isSuccess != true && next.isSuccess == true) {
+          ref.invalidate(profileControllerProvider);
+          if (mounted) context.pop();
+        }
+      },
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileControllerProvider.notifier).fetchProfile();
@@ -29,6 +55,8 @@ class _UpdateProfileTempScreenState
 
   @override
   void dispose() {
+    _profileSub.close();
+    _updateSub.close();
     _nicknameController.dispose();
     super.dispose();
   }
@@ -38,14 +66,10 @@ class _UpdateProfileTempScreenState
     final profileState = ref.watch(profileControllerProvider);
     final updateState = ref.watch(updateProfileControllerProvider);
 
-    ref.listen<ProfileState>(updateProfileControllerProvider, (previous, next) {
-      if (next.isSuccess) {
-        context.pop();
-      }
-    });
-
     return Scaffold(
+      appBar: AppBar(title: const Text('프로필 수정')),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             const Center(
@@ -54,9 +78,10 @@ class _UpdateProfileTempScreenState
                 child: Icon(Icons.person, size: 50),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            const SizedBox(width: double.infinity, child: Text('이메일')),
+            const Align(alignment: Alignment.centerLeft, child: Text('이메일')),
+            const SizedBox(height: 8),
             TextFormField(
               initialValue: profileState.email ?? "email@gmail.com",
               decoration: const InputDecoration(border: OutlineInputBorder()),
@@ -64,13 +89,14 @@ class _UpdateProfileTempScreenState
             ),
             const SizedBox(height: 16),
 
-            const SizedBox(width: double.infinity, child: Text('닉네임')),
+            const Align(alignment: Alignment.centerLeft, child: Text('닉네임')),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _nicknameController,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               enabled: !updateState.isLoading && !profileState.isLoading,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             SizedBox(
               width: double.infinity,
@@ -86,10 +112,7 @@ class _UpdateProfileTempScreenState
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Text('저장하기'),
               ),
