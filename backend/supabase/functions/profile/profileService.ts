@@ -5,14 +5,16 @@ import {
   deleteProfileRepo,
   deleteAuthRepo,
 } from './profileRepository.ts';
+import { Profile } from '../../../shared/domain/profile/Profile.ts';
 
-export async function getProfile(userId: string) {
+export async function getProfile(userId: string): Promise<Profile> {
   const user = await findUserById(userId);
 
   if (!user) {
     throw new Error('User not found');
   }
 
+  // 순수 엔티티 객체를 반환
   return user;
 }
 
