@@ -5,7 +5,9 @@ import '../types/profile_state.dart';
 class GetProfileController extends StateNotifier<ProfileState> {
   final GetProfileUseCase useCase;
 
-  GetProfileController({required this.useCase}) : super(const ProfileState());
+  GetProfileController({required this.useCase}) : super(const ProfileState()) {
+    fetchProfile();
+  }
 
   Future<void> fetchProfile() async {
     try {

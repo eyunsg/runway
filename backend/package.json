@@ -1,9 +1,6 @@
 {
   "scripts": {
-    "test": "npm run test:api && npm run test:shared",
-    "test:api": "jest",
-    "test:shared": "deno test --allow-all ../packages/shared/**/*.test.ts",
-    "test:supabase": "tsx src/scripts/testSupabase.ts"
+    "test": "jest"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

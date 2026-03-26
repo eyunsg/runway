@@ -11,7 +11,6 @@ void main() {
 
   setUp(() {
     mockUseCase = MockGetProfileUseCase();
-    controller = GetProfileController(useCase: mockUseCase);
   });
 
   test('fetchProfile 성공 시 state에 데이터가 반영되어야 한다', () async {
@@ -19,7 +18,9 @@ void main() {
 
     when(() => mockUseCase.execute()).thenAnswer((_) async => mockResponse);
 
-    await controller.fetchProfile();
+    controller = GetProfileController(useCase: mockUseCase);
+
+    await Future.delayed(Duration.zero);
 
     expect(controller.state.isLoading, false);
     expect(controller.state.error, null);
@@ -32,7 +33,9 @@ void main() {
   test('fetchProfile 실패 시 error가 설정되어야 한다', () async {
     when(() => mockUseCase.execute()).thenThrow(Exception('error'));
 
-    await controller.fetchProfile();
+    controller = GetProfileController(useCase: mockUseCase);
+
+    await Future.delayed(Duration.zero);
 
     expect(controller.state.isLoading, false);
     expect(controller.state.error, isNotNull);
