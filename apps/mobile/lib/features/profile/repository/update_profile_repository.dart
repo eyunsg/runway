@@ -3,12 +3,12 @@ import 'package:runway/core/error/failure.dart';
 import 'package:dartz/dartz.dart';
 
 class UpdateProfileRepository {
-  final SupabaseClient client;
+  final SupabaseClient _client;
 
-  UpdateProfileRepository({required this.client});
+  UpdateProfileRepository({required SupabaseClient client}) : _client = client;
 
   Future<Either<Failure, void>> updateProfile(String newDisplayName) async {
-    final response = await client.functions.invoke(
+    final response = await _client.functions.invoke(
       'profile',
       body: {'displayName': newDisplayName},
     );
