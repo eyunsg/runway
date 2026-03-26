@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:runway/domain/entities/password_reset_input.dart';
+import 'package:runway/domain/value_objects/password_reset_input.dart';
 import 'package:runway/features/password_reset/usecase/reset_password_usecase.dart';
 import 'package:runway/features/password_reset/repository/reset_password_repository.dart';
 

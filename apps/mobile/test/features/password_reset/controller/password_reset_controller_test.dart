@@ -6,7 +6,7 @@ import 'package:runway/features/password_reset/usecase/reset_password_usecase.da
 import 'package:runway/features/password_reset/controller/password_reset_controller.dart';
 import 'package:runway/features/password_reset/types/password_reset_state.dart';
 import 'package:runway/core/state/async_state.dart';
-import 'package:runway/domain/entities/password_reset_input.dart';
+import 'package:runway/domain/value_objects/password_reset_input.dart';
 
 // Mock Usecase
 class MockResetPasswordUsecase extends Mock implements ResetPasswordUsecase {}

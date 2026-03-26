@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:runway/features/login/controller/login_controller.dart';
@@ -12,7 +13,6 @@ void main() {
   late LoginController controller;
   late MockLoginUsecase mockUsecase;
 
-  // 테스트에서 사용할 fake User
   final fakeUser = User(
     id: 'test-id',
     appMetadata: const {},
@@ -32,7 +32,7 @@ void main() {
         email: any(named: "email"),
         password: any(named: "password"),
       ),
-    ).thenAnswer((_) async => fakeUser);
+    ).thenAnswer((_) async => Right(fakeUser));
 
     await controller.login(email: "test@test.com", password: "123456");
 
@@ -49,7 +49,7 @@ void main() {
         email: any(named: "email"),
         password: any(named: "password"),
       ),
-    ).thenThrow(Exception("login failed"));
+    ).thenAnswer((_) async => const Left("login failed"));
 
     await controller.login(email: "test@test.com", password: "123456");
 

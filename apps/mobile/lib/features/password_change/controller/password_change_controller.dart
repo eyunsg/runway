@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../usecase/password_change_usecase.dart';
 import '../types/password_change_state.dart';
-import '/domain/entities/password_change_input.dart';
+import '../../../domain/value_objects/password_change_input.dart';
 import '../../../core/state/async_state.dart';
 
 class PasswordChangeController extends StateNotifier<PasswordChangeState> {

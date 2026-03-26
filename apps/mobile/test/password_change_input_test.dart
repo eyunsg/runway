@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:runway/domain/entities/password_change_input.dart';
+import 'package:runway/domain/value_objects/password_change_input.dart';
 
 void main() {
   group('PasswordChangeInput 엔티티 테스트', () {

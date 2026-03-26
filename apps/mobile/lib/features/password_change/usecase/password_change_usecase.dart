@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:runway/domain/entities/password_change_input.dart';
+import 'package:runway/domain/value_objects/password_change_input.dart';
 import '../repository/password_change_repository.dart';
 
 class PasswordChangeUsecase {

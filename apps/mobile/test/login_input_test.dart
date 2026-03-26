@@ -1,28 +1,40 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:runway/domain/entities/login_input.dart';
+
+import 'package:runway/domain/value_objects/email.dart';
+import 'package:runway/domain/value_objects/password.dart';
 
 void main() {
-  group('LoginInput ValueObject', () {
-    test('정상 입력 생성', () {
-      expect(
-        () => LoginInput(
-          email: Email('test@example.com'),
-          password: Password('abc123!@#'),
-        ),
-        returnsNormally,
-      );
+  group('Email ValueObject', () {
+    test('정상 이메일 생성', () {
+      final result = Email.create('test@example.com');
+
+      expect(result.isRight(), true);
     });
 
-    test('이메일 빈값 예외', () {
-      expect(() => Email(''), throwsArgumentError);
+    test('이메일 빈값 실패', () {
+      final result = Email.create('');
+
+      expect(result.isLeft(), true);
     });
 
-    test('이메일 형식 예외', () {
-      expect(() => Email('invalid-email'), throwsArgumentError);
+    test('이메일 형식 실패', () {
+      final result = Email.create('invalid-email');
+
+      expect(result.isLeft(), true);
+    });
+  });
+
+  group('Password ValueObject', () {
+    test('정상 비밀번호 생성', () {
+      final result = Password.create('abc123');
+
+      expect(result.isRight(), true);
     });
 
-    test('비밀번호 짧음 예외', () {
-      expect(() => Password('123'), throwsArgumentError);
+    test('비밀번호 짧음 실패', () {
+      final result = Password.create('123');
+
+      expect(result.isLeft(), true);
     });
   });
 }

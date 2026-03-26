@@ -3,7 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:runway/core/state/async_state.dart';
 import 'package:runway/features/password_change/controller/password_change_controller.dart';
 import 'package:runway/features/password_change/usecase/password_change_usecase.dart';
-import 'package:runway/domain/entities/password_change_input.dart';
+import 'package:runway/domain/value_objects/password_change_input.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 

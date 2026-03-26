@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/async_state.dart';
 import '../usecase/reset_password_usecase.dart';
 import '../types/password_reset_state.dart';
-import '../../../domain/entities/password_reset_input.dart';
+import '../../../domain/value_objects/password_reset_input.dart';
 
 class PasswordResetController extends StateNotifier<PasswordResetState> {
   final ResetPasswordUsecase _usecase;

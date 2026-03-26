@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:runway/domain/entities/password_change_input.dart';
+import 'package:runway/domain/value_objects/password_change_input.dart';
 import 'package:runway/features/password_change/repository/password_change_repository.dart';
 import 'package:runway/features/password_change/usecase/password_change_usecase.dart';
 

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:runway/core/providers.dart';
 import 'package:runway/features/password_reset/types/password_reset_state.dart';
-import '../../../domain/entities/password_reset_input.dart';
+import '../../../domain/value_objects/password_reset_input.dart';
 import '../../../core/state/async_state.dart';
 
 class PasswordResetTempScreen extends ConsumerWidget {

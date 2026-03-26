@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:runway/domain/entities/signup_input.dart';
+import 'package:runway/domain/value_objects/signup_input.dart';
 
 void main() {
   group('SignUpInput ValueObject', () {
