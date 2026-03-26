@@ -1,4 +1,3 @@
-import 'package:http/http.dart';
 import 'package:runway/core/error/failure.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dartz/dartz.dart';
