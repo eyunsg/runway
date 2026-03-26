@@ -1,18 +1,14 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GetProfileReposity {
-  final SupabaseClient client;
+  final SupabaseClient _client;
 
-  GetProfileReposity({required this.client});
+  GetProfileReposity({required SupabaseClient client}) : _client = client;
 
   Future<Map<String, dynamic>> getProfile() async {
-    final session = Supabase.instance.client.auth.currentSession;
-    final accessToken = session!.accessToken;
-
-    final response = await client.functions.invoke(
+    final response = await _client.functions.invoke(
       'profile',
       method: HttpMethod.get,
-      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
     if (response.status != 200) {
