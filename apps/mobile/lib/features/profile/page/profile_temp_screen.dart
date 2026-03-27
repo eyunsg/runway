@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:runway/core/providers.dart';
+import 'package:runway/core/state/async_state.dart';
 
 class ProfileTempScreen extends ConsumerStatefulWidget {
   const ProfileTempScreen({super.key});
@@ -14,6 +15,18 @@ class ProfileTempScreen extends ConsumerStatefulWidget {
 class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
   @override
   Widget build(BuildContext context) {
+    ref.listen(logoutControllerProvider, (previous, next) {
+      if (next.status == AsyncStatus.success) {
+        context.go('/login');
+      }
+
+      if (next.status == AsyncStatus.error && next.error != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!.message)));
+      }
+    });
+
     ref.listen(deleteProfileControllerProvider, (prev, next) {
       if (next.isSuccess) {
         context.go('/login');
@@ -26,13 +39,13 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
       }
     });
 
-    final state = ref.watch(profileControllerProvider);
+    final profileState = ref.watch(profileControllerProvider);
 
     return Scaffold(
-      body: state.isLoading
+      body: profileState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : state.error != null
-          ? Center(child: Text(state.error!))
+          : profileState.error != null
+          ? Center(child: Text(profileState.error!))
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -59,11 +72,11 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
 
                   const SizedBox(height: 15),
 
-                  Text(state.displayName ?? ''),
+                  Text(profileState.displayName ?? ''),
                   const SizedBox(height: 5),
 
                   Text(
-                    state.email ?? '',
+                    profileState.email ?? '',
                     style: const TextStyle(color: Colors.grey),
                   ),
 
@@ -83,7 +96,12 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                       '로그아웃',
                       style: TextStyle(color: Colors.red),
                     ),
-                    onTap: () {},
+                    onTap: () async {
+                      final controller = ref.read(
+                        logoutControllerProvider.notifier,
+                      );
+                      await controller.logout();
+                    },
                   ),
 
                   const Divider(),
