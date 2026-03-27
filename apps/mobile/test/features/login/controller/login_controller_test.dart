@@ -27,35 +27,48 @@ void main() {
     controller = LoginController(mockUsecase);
   });
 
-  test('로그인 성공 시 success 상태', () async {
-    when(
-      () => mockUsecase.execute(
-        email: any(named: "email"),
-        password: any(named: "password"),
-      ),
-    ).thenAnswer((_) async => Right(fakeUser));
+  group('LoginController', () {
+    const testEmail = "test@test.com";
+    const testPassword = "123456";
 
-    await controller.login(email: "test@test.com", password: "123456");
+    void _mockLoginSuccess() {
+      when(
+        () => mockUsecase.execute(
+          email: any(named: "email"),
+          password: any(named: "password"),
+        ),
+      ).thenAnswer((_) async => Right(fakeUser));
+    }
 
-    expect(controller.state.status, AsyncStatus.success);
+    void _mockLoginFailure(String message) {
+      when(
+        () => mockUsecase.execute(
+          email: any(named: "email"),
+          password: any(named: "password"),
+        ),
+      ).thenAnswer((_) async => Left(AuthFailure(message)));
+    }
 
-    verify(
-      () => mockUsecase.execute(email: "test@test.com", password: "123456"),
-    ).called(1);
-  });
+    test('로그인 성공 시 success 상태', () async {
+      _mockLoginSuccess();
 
-  test('로그인 실패 시 error 상태', () async {
-    when(
-      () => mockUsecase.execute(
-        email: any(named: "email"),
-        password: any(named: "password"),
-      ),
-    ).thenAnswer((_) async => Left(AuthFailure('login failed')));
+      await controller.login(email: testEmail, password: testPassword);
 
-    await controller.login(email: "test@test.com", password: "123456");
+      expect(controller.state.status, AsyncStatus.success);
+      verify(
+        () => mockUsecase.execute(email: testEmail, password: testPassword),
+      ).called(1);
+    });
 
-    expect(controller.state.status, AsyncStatus.error);
-    expect(controller.state.error, isA<AuthFailure>());
-    expect(controller.state.error!.message, 'login failed');
+    test('로그인 실패 시 error 상태', () async {
+      const errorMessage = 'login failed';
+      _mockLoginFailure(errorMessage);
+
+      await controller.login(email: testEmail, password: testPassword);
+
+      expect(controller.state.status, AsyncStatus.error);
+      expect(controller.state.error, isA<AuthFailure>());
+      expect(controller.state.error!.message, errorMessage);
+    });
   });
 }

@@ -19,73 +19,67 @@ void main() {
     usecase = LoginUsecase(repository: mockRepository);
   });
 
-  test('정상 입력 시 Repository 호출 후 Right(User) 반환', () async {
-    final mockUser = User(
-      id: 'test-id',
-      appMetadata: {},
-      userMetadata: {},
-      aud: 'authenticated',
-      createdAt: DateTime.now().toIso8601String(),
-    );
+  group('LoginUsecase', () {
+    const testEmail = 'test@email.com';
+    const testPassword = '123456';
 
-    when(
-      () => mockRepository.login(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-      ),
-    ).thenAnswer((_) async => Right(mockUser));
+    test('정상 입력 시 Repository 호출 후 Right(User) 반환', () async {
+      final mockUser = User(
+        id: 'test-id',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: DateTime.now().toIso8601String(),
+      );
 
-    final result = await usecase.execute(
-      email: 'test@email.com',
-      password: '123456',
-    );
+      when(
+        () => mockRepository.login(email: testEmail, password: testPassword),
+      ).thenAnswer((_) async => Right(mockUser));
 
-    expect(result.isRight(), true);
+      final result = await usecase.execute(
+        email: testEmail,
+        password: testPassword,
+      );
 
-    final user = result.getOrElse(() => throw Exception());
-    expect(user.id, 'test-id');
+      expect(result.isRight(), true);
+      expect(result.getOrElse(() => throw Exception()).id, 'test-id');
+      verify(
+        () => mockRepository.login(email: testEmail, password: testPassword),
+      ).called(1);
+    });
 
-    verify(
-      () => mockRepository.login(email: 'test@email.com', password: '123456'),
-    ).called(1);
-  });
+    test('이메일 검증 실패 시 Left<EmailFailure> 반환', () async {
+      final result = await usecase.execute(email: '', password: testPassword);
 
-  test('이메일 검증 실패 시 Left<EmailFailure> 반환', () async {
-    final result = await usecase.execute(email: '', password: '123456');
+      expect(result.isLeft(), true);
+      result.fold(
+        (failure) => expect(failure, isA<EmailFailure>()),
+        (_) => fail('Should return Left'),
+      );
 
-    expect(result.isLeft(), true);
+      verifyNever(
+        () => mockRepository.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      );
+    });
 
-    result.fold(
-      (failure) => expect(failure, isA<EmailFailure>()),
-      (_) => throw Exception('테스트 실패: Left여야 함'),
-    );
+    test('비밀번호 검증 실패 시 Left<PasswordFailure> 반환', () async {
+      final result = await usecase.execute(email: testEmail, password: '123');
 
-    verifyNever(
-      () => mockRepository.login(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-      ),
-    );
-  });
+      expect(result.isLeft(), true);
+      result.fold(
+        (failure) => expect(failure, isA<PasswordFailure>()),
+        (_) => fail('Should return Left'),
+      );
 
-  test('비밀번호 검증 실패 시 Left<PasswordFailure> 반환', () async {
-    final result = await usecase.execute(
-      email: 'test@email.com',
-      password: '123',
-    );
-
-    expect(result.isLeft(), true);
-
-    result.fold(
-      (failure) => expect(failure, isA<PasswordFailure>()),
-      (_) => throw Exception('테스트 실패: Left여야 함'),
-    );
-
-    verifyNever(
-      () => mockRepository.login(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-      ),
-    );
+      verifyNever(
+        () => mockRepository.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      );
+    });
   });
 }
