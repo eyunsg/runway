@@ -1,5 +1,5 @@
 import { runMonteCarloSimulation } from '../supabase/functions/simulations/monteCarloSimulationService';
-import { AssetInputDto } from '../shared/dto/montecarlo/MonteCarloSimulationRequest.dto';
+import { AssetInputDto } from '../shared/dto/simulations/MonteCarloSimulationRequest.dto';
 
 describe('runMonteCarloSimulation - Service Logic', () => {
   // 테스트를 위한 기본 자산 데이터 (무배당 자산)
