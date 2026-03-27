@@ -1,9 +1,9 @@
 import { runMonteCarloSimulation } from './monteCarloSimulationService.ts';
-import { RunMonteCarloSimulationRequestDto } from '../../../shared/dto/montecarlo/MonteCarloSimulationRequest.dto.ts';
+import { RunMonteCarloSimulationRequestDto } from '../../../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
 import {
   MonteCarloSimulationResponseDto,
   PercentileResultDto,
-} from '../../../shared/dto/montecarlo/MonteCarloSimulationResponse.dto.ts';
+} from '../../../shared/dto/simulations/MonteCarloSimulationResponse.dto.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

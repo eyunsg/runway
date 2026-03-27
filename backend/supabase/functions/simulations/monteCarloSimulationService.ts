@@ -1,4 +1,4 @@
-import { AssetInputDto } from '../../../shared/dto/montecarlo/MonteCarloSimulationRequest.dto.ts';
+import { AssetInputDto } from '../../../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
 
 const NUM_SIMULATIONS = 10000;
 const DGR_VOLATILITY_ANNUAL = 0.02; // 모든 자산 공통 연 변동성 2%
