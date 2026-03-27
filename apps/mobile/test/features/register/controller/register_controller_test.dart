@@ -1,7 +1,7 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'package:runway/features/register/controller/register_controller.dart';
 import 'package:runway/features/register/usecase/register_usecase.dart';
 import 'package:runway/core/state/async_state.dart';
@@ -26,76 +26,78 @@ void main() {
     controller = RegisterController(mockUsecase);
   });
 
-  test('비밀번호 불일치 시 error 상태', () async {
-    when(
-      () => mockUsecase.execute(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-        passwordConfirm: any(named: 'passwordConfirm'),
-        displayName: any(named: 'displayName'),
-      ),
-    ).thenThrow(const AuthFailure('비밀번호가 일치하지 않습니다.'));
+  group('RegisterController.register', () {
+    test('비밀번호 불일치 시 error 상태', () async {
+      when(
+        () => mockUsecase.execute(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+          passwordConfirm: any(named: 'passwordConfirm'),
+          displayName: any(named: 'displayName'),
+        ),
+      ).thenAnswer((_) async => Left(const AuthFailure('비밀번호가 일치하지 않습니다.')));
 
-    await controller.register(
-      email: 'test@test.com',
-      password: '123456',
-      passwordConfirm: '1234567',
-      displayName: 'tester',
-    );
+      await controller.register(
+        email: 'test@test.com',
+        password: '123456',
+        passwordConfirm: '1234567',
+        displayName: 'tester',
+      );
 
-    expect(controller.state.status, AsyncStatus.error);
-    expect(controller.state.error, isA<AuthFailure>());
-    expect(controller.state.error?.message, '비밀번호가 일치하지 않습니다.');
-  });
+      expect(controller.state.status, AsyncStatus.error);
+      expect(controller.state.error, isA<AuthFailure>());
+      expect(controller.state.error?.message, '비밀번호가 일치하지 않습니다.');
+    });
 
-  test('회원가입 성공 시 success 상태', () async {
-    when(
-      () => mockUsecase.execute(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-        passwordConfirm: any(named: 'passwordConfirm'),
-        displayName: any(named: 'displayName'),
-      ),
-    ).thenAnswer((_) async => fakeUser);
+    test('회원가입 성공 시 success 상태', () async {
+      when(
+        () => mockUsecase.execute(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+          passwordConfirm: any(named: 'passwordConfirm'),
+          displayName: any(named: 'displayName'),
+        ),
+      ).thenAnswer((_) async => Right(fakeUser));
 
-    await controller.register(
-      email: 'test@test.com',
-      password: '123456',
-      passwordConfirm: '123456',
-      displayName: 'tester',
-    );
-
-    expect(controller.state.status, AsyncStatus.success);
-
-    verify(
-      () => mockUsecase.execute(
+      await controller.register(
         email: 'test@test.com',
         password: '123456',
         passwordConfirm: '123456',
         displayName: 'tester',
-      ),
-    ).called(1);
-  });
+      );
 
-  test('회원가입 실패 시 error 상태', () async {
-    when(
-      () => mockUsecase.execute(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-        passwordConfirm: any(named: 'passwordConfirm'),
-        displayName: any(named: 'displayName'),
-      ),
-    ).thenThrow(ServerFailure('signup failed'));
+      expect(controller.state.status, AsyncStatus.success);
 
-    await controller.register(
-      email: 'test@test.com',
-      password: '123456',
-      passwordConfirm: '123456',
-      displayName: 'tester',
-    );
+      verify(
+        () => mockUsecase.execute(
+          email: 'test@test.com',
+          password: '123456',
+          passwordConfirm: '123456',
+          displayName: 'tester',
+        ),
+      ).called(1);
+    });
 
-    expect(controller.state.status, AsyncStatus.error);
-    expect(controller.state.error, isA<ServerFailure>());
-    expect(controller.state.error?.message, 'signup failed');
+    test('회원가입 실패 시 error 상태', () async {
+      when(
+        () => mockUsecase.execute(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+          passwordConfirm: any(named: 'passwordConfirm'),
+          displayName: any(named: 'displayName'),
+        ),
+      ).thenAnswer((_) async => Left(ServerFailure('signup failed')));
+
+      await controller.register(
+        email: 'test@test.com',
+        password: '123456',
+        passwordConfirm: '123456',
+        displayName: 'tester',
+      );
+
+      expect(controller.state.status, AsyncStatus.error);
+      expect(controller.state.error, isA<ServerFailure>());
+      expect(controller.state.error?.message, 'signup failed');
+    });
   });
 }

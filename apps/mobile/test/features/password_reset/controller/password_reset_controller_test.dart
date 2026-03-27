@@ -23,7 +23,7 @@ void main() {
     controller.dispose();
   });
 
-  test('성공 시: loading → success 상태 전이', () async {
+  test('성공 시: initial → loading → success 상태 전이', () async {
     when(
       () => mockUsecase.execute(
         newPassword: any(named: 'newPassword'),
@@ -42,6 +42,7 @@ void main() {
     removeListener();
 
     expect(states.map((s) => s.status), [
+      AsyncStatus.initial,
       AsyncStatus.loading,
       AsyncStatus.success,
     ]);
@@ -49,7 +50,7 @@ void main() {
     expect(states.last.error, isNull);
   });
 
-  test('실패 시: loading → error 상태 전이', () async {
+  test('실패 시: initial → loading → error 상태 전이', () async {
     final failure = UnknownFailure('Reset failed');
 
     when(
@@ -70,6 +71,7 @@ void main() {
     removeListener();
 
     expect(states.map((s) => s.status), [
+      AsyncStatus.initial,
       AsyncStatus.loading,
       AsyncStatus.error,
     ]);

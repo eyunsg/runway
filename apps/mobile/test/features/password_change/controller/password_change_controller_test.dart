@@ -1,15 +1,14 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:runway/core/error/failure.dart';
 import 'package:runway/core/state/async_state.dart';
 import 'package:runway/features/password_change/controller/password_change_controller.dart';
 import 'package:runway/features/password_change/usecase/password_change_usecase.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 import 'package:runway/core/error/validation_failure.dart';
 
 class MockPasswordChangeUsecase extends Mock implements PasswordChangeUsecase {}
-
-class MockUserResponse extends Mock implements UserResponse {}
 
 void main() {
   late PasswordChangeController controller;
@@ -32,10 +31,10 @@ void main() {
           newPassword: any(named: 'newPassword'),
           newPasswordConfirm: any(named: 'newPasswordConfirm'),
         ),
-      ).thenAnswer((_) async => MockUserResponse());
+      ).thenAnswer((_) async => const Right(unit));
 
       await controller.changePassword(
-        currentPassword: 'currentPassword123!',
+        currentPassword: 'oldPassword123!',
         newPassword: 'newPassword123!',
         newPasswordConfirm: 'newPassword123!',
       );
@@ -51,6 +50,14 @@ void main() {
     });
 
     test('새 비밀번호와 확인값이 다를 때 Input 에러 처리 검증', () async {
+      when(
+        () => mockUsecase.execute(
+          currentPassword: any(named: 'currentPassword'),
+          newPassword: any(named: 'newPassword'),
+          newPasswordConfirm: any(named: 'newPasswordConfirm'),
+        ),
+      ).thenAnswer((_) async => Left(PasswordFailure('새 비밀번호가 일치하지 않습니다.')));
+
       await controller.changePassword(
         currentPassword: 'currentPassword123!',
         newPassword: 'newPassword123!',
@@ -62,16 +69,25 @@ void main() {
       expect(failure, isA<PasswordFailure>());
       expect((failure as PasswordFailure).message, '새 비밀번호가 일치하지 않습니다.');
 
-      verifyNever(
+      verify(
         () => mockUsecase.execute(
           currentPassword: any(named: 'currentPassword'),
           newPassword: any(named: 'newPassword'),
           newPasswordConfirm: any(named: 'newPasswordConfirm'),
         ),
-      );
+      ).called(1);
     });
-
     test('현재 비밀번호와 새 비밀번호가 같을 때 에러 처리 검증', () async {
+      when(
+        () => mockUsecase.execute(
+          currentPassword: any(named: 'currentPassword'),
+          newPassword: any(named: 'newPassword'),
+          newPasswordConfirm: any(named: 'newPasswordConfirm'),
+        ),
+      ).thenAnswer(
+        (_) async => Left(PasswordFailure('새 비밀번호는 현재 비밀번호와 다르게 설정해야 합니다.')),
+      );
+
       await controller.changePassword(
         currentPassword: 'samePassword123!',
         newPassword: 'samePassword123!',
@@ -86,24 +102,24 @@ void main() {
         '새 비밀번호는 현재 비밀번호와 다르게 설정해야 합니다.',
       );
 
-      verifyNever(
+      verify(
         () => mockUsecase.execute(
           currentPassword: any(named: 'currentPassword'),
           newPassword: any(named: 'newPassword'),
           newPasswordConfirm: any(named: 'newPasswordConfirm'),
         ),
-      );
+      ).called(1);
     });
 
     test('서버(Usecase)에서 에러 발생 시 상태 처리 검증', () async {
-      const serverMsg = '현재 비밀번호가 일치하지 않습니다.';
+      const serverMsg = '비밀번호 변경에 실패했습니다.';
       when(
         () => mockUsecase.execute(
           currentPassword: any(named: 'currentPassword'),
           newPassword: any(named: 'newPassword'),
           newPasswordConfirm: any(named: 'newPasswordConfirm'),
         ),
-      ).thenThrow(PasswordFailure(serverMsg));
+      ).thenAnswer((_) async => Left(PasswordFailure(serverMsg)));
 
       await controller.changePassword(
         currentPassword: 'wrongCurrentPassword',
@@ -126,7 +142,7 @@ void main() {
         ),
       ).thenAnswer((_) async {
         await Future.delayed(const Duration(milliseconds: 100));
-        return MockUserResponse();
+        return const Right(unit);
       });
 
       final firstCall = controller.changePassword(
@@ -153,7 +169,7 @@ void main() {
     });
 
     test('작업 시작 시 즉시 loading 상태로 변경되고, 중복 호출 방지 검증', () async {
-      final completer = Completer<UserResponse>();
+      final completer = Completer<Either<Failure, Unit>>();
       when(
         () => mockUsecase.execute(
           currentPassword: any(named: 'currentPassword'),
@@ -176,7 +192,7 @@ void main() {
         newPasswordConfirm: 'newPassword123!',
       );
 
-      completer.complete(MockUserResponse());
+      completer.complete(const Right(unit));
       await firstCall;
 
       verify(
