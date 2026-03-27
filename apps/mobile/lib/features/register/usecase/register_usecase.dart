@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:runway/domain/value_objects/display_name.dart';
 import 'package:runway/domain/value_objects/password.dart';
 import 'package:runway/domain/value_objects/email.dart';
@@ -11,57 +12,60 @@ class RegisterUsecase {
   RegisterUsecase({required RegisterRepository repository})
     : _repository = repository;
 
-  Future<User> execute({
+  Future<Either<Failure, User>> execute({
     required String email,
     required String password,
     required String passwordConfirm,
     required String displayName,
   }) async {
-    // email validation
-    final emailOrFailure = Email.create(email);
-    final emailValue = emailOrFailure.fold(
-      (failure) => throw failure,
-      (email) => email.value,
+    final emailResult = Email.create(email);
+    final displayNameResult = DisplayName.create(displayName);
+    final passwordResult = Password.create(password);
+    final passwordConfirmResult = Password.create(passwordConfirm);
+
+    return emailResult.fold(
+      (failure) => Left(failure),
+      (validEmail) => displayNameResult.fold(
+        (failure) => Left(failure),
+        (validDisplayName) => passwordResult.fold(
+          (failure) => Left(failure),
+          (validPassword) => passwordConfirmResult.fold(
+            (failure) => Left(failure),
+            (validPasswordConfirm) {
+              final matchResult = validPassword.validateMatches(
+                validPasswordConfirm,
+              );
+
+              return matchResult.fold((failure) => Left(failure), (_) async {
+                final result = await _repository.signUp(
+                  email: validEmail.value,
+                  password: validPassword.value,
+                  displayName: validDisplayName.value,
+                );
+
+                return result.fold(
+                  (failure) => Left(_mapFailure(failure)),
+                  (user) => Right(user),
+                );
+              });
+            },
+          ),
+        ),
+      ),
     );
+  }
 
-    // displayName validation
-    final displayNameOrFailure = DisplayName.create(displayName);
-    final displayNameValue = displayNameOrFailure.fold(
-      (failure) => throw failure,
-      (dn) => dn.value,
-    );
+  Failure _mapFailure(Failure failure) {
+    if (failure is AuthFailure) {
+      final message = failure.message.toLowerCase();
 
-    // password validation
-    final passwordOrFailure = Password.create(password);
-    final passwordConfirmOrFailure = Password.create(passwordConfirm);
+      if (message.contains('already registered')) {
+        return AuthFailure('이미 가입된 이메일입니다.');
+      }
 
-    final passwordValue = passwordOrFailure.fold(
-      (failure) => throw failure,
-      (p) => p,
-    );
-    final passwordConfirmValue = passwordConfirmOrFailure.fold(
-      (failure) => throw failure,
-      (p) => p,
-    );
-
-    // 도메인 객체에서 비밀번호 확인 일치 여부와 현재/새 비밀번호 차이 검증
-    passwordValue
-        .validateMatches(passwordConfirmValue)
-        .fold((failure) => throw failure, (_) => null);
-
-    try {
-      final user = await _repository.signUp(
-        email: emailValue,
-        password: passwordValue.value,
-        displayName: displayNameValue,
-      );
-      return user;
-    } on AuthException catch (e) {
-      throw AuthFailure(e.message);
-    } on PostgrestException catch (e) {
-      throw ServerFailure(e.message);
-    } catch (e) {
-      throw UnknownFailure('알 수 없는 오류가 발생했습니다: ${e.toString()}');
+      return AuthFailure('회원가입에 실패했습니다.');
     }
+
+    return failure;
   }
 }

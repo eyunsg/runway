@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../usecase/register_usecase.dart';
 import '../types/register_state.dart';
 import '../../../core/state/async_state.dart';
-import '../../../core/error/failure.dart';
 
 class RegisterController extends StateNotifier<RegisterState> {
   final RegisterUsecase _usecase;
@@ -15,23 +14,20 @@ class RegisterController extends StateNotifier<RegisterState> {
     required String passwordConfirm,
     required String displayName,
   }) async {
-    state = state.copyWith(status: AsyncStatus.loading);
+    if (state.status == AsyncStatus.loading) return;
 
-    try {
-      await _usecase.execute(
-        email: email,
-        password: password,
-        passwordConfirm: passwordConfirm,
-        displayName: displayName,
-      );
+    state = state.copyWith(status: AsyncStatus.loading, error: null);
 
-      state = state.copyWith(status: AsyncStatus.success);
-    } catch (e) {
-      final failure = e is Failure
-          ? e
-          : UnknownFailure('알 수 없는 오류가 발생했습니다: ${e.toString()}');
+    final result = await _usecase.execute(
+      email: email,
+      password: password,
+      passwordConfirm: passwordConfirm,
+      displayName: displayName,
+    );
 
-      state = state.copyWith(status: AsyncStatus.error, error: failure);
-    }
+    state = result.fold(
+      (failure) => state.copyWith(status: AsyncStatus.error, error: failure),
+      (_) => state.copyWith(status: AsyncStatus.success),
+    );
   }
 }
