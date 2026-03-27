@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../usecase/logout_usecase.dart';
 import '../types/logout_state.dart';
 import '../../../core/state/async_state.dart';
+import '../../../core/error/failure.dart';
 
 class LogoutController extends StateNotifier<LogoutState> {
   final LogoutUsecase _usecase;
@@ -16,11 +17,11 @@ class LogoutController extends StateNotifier<LogoutState> {
 
       state = state.copyWith(status: AsyncStatus.success);
     } catch (e) {
-      final errorMessage = e is Exception
-          ? e.toString().replaceFirst('Exception: ', '')
-          : e.toString();
+      final failure = e is Failure
+          ? e
+          : UnknownFailure('알 수 없는 오류가 발생했습니다: ${e.toString()}');
 
-      state = state.copyWith(status: AsyncStatus.error, error: errorMessage);
+      state = state.copyWith(status: AsyncStatus.error, error: failure);
     }
   }
 }
