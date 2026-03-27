@@ -20,18 +20,14 @@ class LoginRepository {
       final user = response.user;
 
       if (user == null) {
-        return Left(AuthFailure('로그인에 실패했습니다.'));
+        return Left(AuthFailure('LOGIN_FAILED'));
       }
 
       return Right(user);
     } on AuthApiException catch (e) {
-      if (e.message.toLowerCase().contains('email not confirmed')) {
-        return Left(AuthFailure('이메일 인증을 완료한 후 로그인해주세요.'));
-      } else {
-        return Left(AuthFailure(e.message));
-      }
-    } catch (e) {
-      return Left(ServerFailure('서버 오류가 발생했습니다.'));
+      return Left(AuthFailure(e.message));
+    } catch (_) {
+      return Left(ServerFailure('SERVER_ERROR'));
     }
   }
 }

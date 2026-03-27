@@ -17,25 +17,41 @@ class LoginUsecase {
     required String password,
   }) async {
     final emailResult = Email.create(email);
-    if (emailResult.isLeft()) {
-      return Left(
-        emailResult.fold((failure) => failure, (_) => throw Exception()),
-      );
-    }
-
     final passwordResult = Password.create(password);
-    if (passwordResult.isLeft()) {
-      return Left(
-        passwordResult.fold((failure) => failure, (_) => throw Exception()),
-      );
+
+    return emailResult.fold(
+      (failure) => Left(failure),
+      (validEmail) => passwordResult.fold((failure) => Left(failure), (
+        validPassword,
+      ) async {
+        final result = await _repository.login(
+          email: validEmail.value,
+          password: validPassword.value,
+        );
+
+        return result.fold(
+          (failure) => Left(_mapFailure(failure)),
+          (user) => Right(user),
+        );
+      }),
+    );
+  }
+
+  Failure _mapFailure(Failure failure) {
+    if (failure is AuthFailure) {
+      final message = failure.message.toLowerCase();
+
+      if (message.contains('email not confirmed')) {
+        return AuthFailure('이메일 인증을 완료한 후 로그인해주세요.');
+      }
+
+      if (message.contains('invalid login credentials')) {
+        return AuthFailure('이메일 또는 비밀번호가 올바르지 않습니다.');
+      }
+
+      return AuthFailure('로그인에 실패했습니다.');
     }
 
-    final validEmail = emailResult.getOrElse(() => throw Exception());
-    final validPassword = passwordResult.getOrElse(() => throw Exception());
-
-    return await _repository.login(
-      email: validEmail.value,
-      password: validPassword.value,
-    );
+    return failure;
   }
 }
