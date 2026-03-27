@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:runway/core/providers.dart';
 import 'package:runway/features/password_reset/types/password_reset_state.dart';
-import '../../../domain/value_objects/password_reset_input.dart';
 import '../../../core/state/async_state.dart';
 
 class PasswordResetTempScreen extends ConsumerWidget {
@@ -25,9 +24,9 @@ class PasswordResetTempScreen extends ConsumerWidget {
       if (next.status == AsyncStatus.success) {
         context.go('/login');
       } else if (next.status == AsyncStatus.error) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.error ?? '오류가 발생했습니다.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error?.message ?? '오류가 발생했습니다.')),
+        );
       }
     });
 
@@ -68,14 +67,10 @@ class PasswordResetTempScreen extends ConsumerWidget {
                           return;
                         }
 
-                        final input = PasswordResetInput(
-                          password: Password(passwordController.text),
-                          passwordConfirm: PasswordConfirm(
-                            confirmPasswordController.text,
-                          ),
+                        controller.resetPassword(
+                          newPassword: passwordController.text,
+                          passwordConfirm: confirmPasswordController.text,
                         );
-
-                        controller.resetPassword(input: input);
                       },
                 child: state.status == AsyncStatus.loading
                     ? const CircularProgressIndicator()

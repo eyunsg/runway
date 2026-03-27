@@ -1,21 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:runway/features/password_reset/types/request_password_reset_state.dart';
+import 'package:runway/features/password_reset/types/password_reset_state.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/state/async_state.dart';
 
-class RequestPasswordResetTempScreen extends ConsumerWidget {
+class RequestPasswordResetTempScreen extends ConsumerStatefulWidget {
   const RequestPasswordResetTempScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RequestPasswordResetTempScreen> createState() =>
+      _RequestPasswordResetTempScreenState();
+}
+
+class _RequestPasswordResetTempScreenState
+    extends ConsumerState<RequestPasswordResetTempScreen> {
+  late final TextEditingController emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final controller = ref.read(
       requestPasswordResetControllerProvider.notifier,
     );
     final state = ref.watch(requestPasswordResetControllerProvider);
-
-    final emailController = TextEditingController();
 
     ref.listen<RequestPasswordResetState>(
       requestPasswordResetControllerProvider,
@@ -25,9 +44,9 @@ class RequestPasswordResetTempScreen extends ConsumerWidget {
             context,
           ).showSnackBar(const SnackBar(content: Text('인증 메일이 발송되었습니다.')));
         } else if (next.status == AsyncStatus.error) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(next.error ?? '오류가 발생했습니다.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(next.error?.message ?? '오류가 발생했습니다.')),
+          );
         }
       },
     );
@@ -54,7 +73,11 @@ class RequestPasswordResetTempScreen extends ConsumerWidget {
                         controller.requestReset(email: emailController.text);
                       },
                 child: state.status == AsyncStatus.loading
-                    ? const CircularProgressIndicator()
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('인증 메일 보내기'),
               ),
             ),
