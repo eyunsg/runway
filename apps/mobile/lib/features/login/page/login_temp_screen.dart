@@ -21,9 +21,11 @@ class LoginTempScreen extends ConsumerWidget {
       }
 
       if (next.status == AsyncStatus.error && next.error != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.error!)));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(next.error.toString())));
+        });
       }
     });
 

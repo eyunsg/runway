@@ -9,17 +9,13 @@ class LoginController extends StateNotifier<LoginState> {
   LoginController(this._usecase) : super(const LoginState());
 
   Future<void> login({required String email, required String password}) async {
-    state = state.copyWith(status: AsyncStatus.loading);
+    state = state.copyWith(status: AsyncStatus.loading, error: null);
 
     final result = await _usecase.execute(email: email, password: password);
 
-    result.fold(
-      (failure) {
-        state = state.copyWith(status: AsyncStatus.error, error: failure);
-      },
-      (user) {
-        state = state.copyWith(status: AsyncStatus.success);
-      },
+    state = result.fold(
+      (failure) => state.copyWith(status: AsyncStatus.error, error: failure),
+      (user) => state.copyWith(status: AsyncStatus.success),
     );
   }
 }

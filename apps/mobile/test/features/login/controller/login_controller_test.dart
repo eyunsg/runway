@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:runway/features/login/controller/login_controller.dart';
 import 'package:runway/features/login/usecase/login_usecase.dart';
+import 'package:runway/core/error/failure.dart';
 import 'package:runway/core/state/async_state.dart';
 
 class MockLoginUsecase extends Mock implements LoginUsecase {}
@@ -49,10 +50,12 @@ void main() {
         email: any(named: "email"),
         password: any(named: "password"),
       ),
-    ).thenAnswer((_) async => const Left("login failed"));
+    ).thenAnswer((_) async => Left(AuthFailure('login failed')));
 
     await controller.login(email: "test@test.com", password: "123456");
 
     expect(controller.state.status, AsyncStatus.error);
+    expect(controller.state.error, isA<AuthFailure>());
+    expect(controller.state.error!.message, 'login failed');
   });
 }
