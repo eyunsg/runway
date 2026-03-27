@@ -1,4 +1,6 @@
+import 'package:runway/domain/value_objects/display_name.dart';
 import 'package:runway/domain/value_objects/password.dart';
+import 'package:runway/domain/value_objects/email.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../repository/register_repository.dart';
 import '../../../core/error/failure.dart';
@@ -15,22 +17,43 @@ class RegisterUsecase {
     required String passwordConfirm,
     required String displayName,
   }) async {
+    // email validation
+    final emailOrFailure = Email.create(email);
+    final emailValue = emailOrFailure.fold(
+      (failure) => throw failure,
+      (email) => email.value,
+    );
+
+    // displayName validation
+    final displayNameOrFailure = DisplayName.create(displayName);
+    final displayNameValue = displayNameOrFailure.fold(
+      (failure) => throw failure,
+      (dn) => dn.value,
+    );
+
+    // password validation
     final passwordOrFailure = Password.create(password);
     final passwordConfirmOrFailure = Password.create(passwordConfirm);
 
-    passwordOrFailure.fold((failure) => throw failure, (_) {});
+    final passwordValue = passwordOrFailure.fold(
+      (failure) => throw failure,
+      (p) => p,
+    );
+    final passwordConfirmValue = passwordConfirmOrFailure.fold(
+      (failure) => throw failure,
+      (p) => p,
+    );
 
-    passwordConfirmOrFailure.fold((failure) => throw failure, (_) {});
-
-    if (password != passwordConfirm) {
-      throw const AuthFailure('비밀번호가 일치하지 않습니다.');
-    }
+    // 도메인 객체에서 비밀번호 확인 일치 여부와 현재/새 비밀번호 차이 검증
+    passwordValue
+        .validateMatches(passwordConfirmValue)
+        .fold((failure) => throw failure, (_) => null);
 
     try {
       final user = await _repository.signUp(
-        email: email,
-        password: password,
-        displayName: displayName,
+        email: emailValue,
+        password: passwordValue.value,
+        displayName: displayNameValue,
       );
       return user;
     } on AuthException catch (e) {
