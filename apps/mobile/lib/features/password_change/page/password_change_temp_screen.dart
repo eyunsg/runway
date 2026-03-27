@@ -42,7 +42,7 @@ class _PasswordChangePageState extends ConsumerState<PasswordChangePage> {
       if (next.status == AsyncStatus.error && next.error != null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(next.error!)));
+        ).showSnackBar(SnackBar(content: Text(next.error!.message)));
       }
     });
 
