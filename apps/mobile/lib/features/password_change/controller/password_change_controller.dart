@@ -15,7 +15,11 @@ class PasswordChangeController extends StateNotifier<PasswordChangeState> {
   }) async {
     if (state.status == AsyncStatus.loading) return;
 
-    state = state.copyWith(status: AsyncStatus.loading, error: null);
+    state = state.copyWith(
+      status: AsyncStatus.loading,
+      error: null,
+      message: null,
+    );
 
     final result = await _usecase.execute(
       currentPassword: currentPassword,
@@ -24,8 +28,15 @@ class PasswordChangeController extends StateNotifier<PasswordChangeState> {
     );
 
     state = result.fold(
-      (failure) => state.copyWith(status: AsyncStatus.error, error: failure),
-      (_) => state.copyWith(status: AsyncStatus.success),
+      (failure) => state.copyWith(
+        status: AsyncStatus.error,
+        error: failure,
+        message: failure.message,
+      ),
+      (_) => state.copyWith(
+        status: AsyncStatus.success,
+        message: '비밀번호가 성공적으로 변경되었습니다.',
+      ),
     );
   }
 }
