@@ -17,7 +17,6 @@ class _UpdateProfileTempScreenState
     extends ConsumerState<UpdateProfileTempScreen> {
   late final TextEditingController _nicknameController;
 
-  late final ProviderSubscription<ProfileState> _profileSub;
   late final ProviderSubscription<ProfileState> _updateSub;
 
   @override
@@ -26,36 +25,35 @@ class _UpdateProfileTempScreenState
 
     _nicknameController = TextEditingController();
 
-    _profileSub = ref.listenManual<ProfileState>(profileControllerProvider, (
-      previous,
-      next,
-    ) {
-      if (!mounted) return;
-
-      final name = next.displayName;
-      if (name != null && name != _nicknameController.text) {
-        _nicknameController.text = name;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(profileControllerProvider.notifier).fetchProfile();
+      final profileState = ref.read(profileControllerProvider);
+      if (profileState.displayName != null) {
+        _nicknameController.text = profileState.displayName!;
       }
     });
 
     _updateSub = ref.listenManual<ProfileState>(
       updateProfileControllerProvider,
       (previous, next) {
+        if (!mounted) return;
+
         if (previous?.isSuccess != true && next.isSuccess == true) {
           ref.invalidate(profileControllerProvider);
-          if (mounted) context.pop();
+          context.pop();
+        }
+
+        if (next.error != null && next.error!.isNotEmpty) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(next.error!)));
         }
       },
     );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(profileControllerProvider.notifier).fetchProfile();
-    });
   }
 
   @override
   void dispose() {
-    _profileSub.close();
     _updateSub.close();
     _nicknameController.dispose();
     super.dispose();

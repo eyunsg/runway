@@ -30,10 +30,6 @@ import '../features/logout/types/logout_state.dart';
 import '../features/logout/usecase/logout_usecase.dart';
 import '../features/logout/repository/logout_repository.dart';
 
-import '../features/password_reset/controller/request_password_reset_controller.dart';
-import '../features/password_reset/usecase/request_password_reset_usecase.dart';
-import '../features/password_reset/repository/request_password_reset_repository.dart.dart';
-
 import '../features/password_reset/controller/password_reset_controller.dart';
 import '../features/password_reset/usecase/reset_password_usecase.dart';
 import '../features/password_reset/repository/reset_password_repository.dart';
@@ -85,9 +81,9 @@ final loginControllerProvider =
 
 /// ---------------- GET PROFILE ----------------
 
-final getProfileRepositoryProvider = Provider<GetProfileReposity>((ref) {
+final getProfileRepositoryProvider = Provider<GetProfileRepository>((ref) {
   final client = ref.read(supabaseClientProvider);
-  return GetProfileReposity(client: client);
+  return GetProfileRepository(client: client);
 });
 
 final getProfileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
@@ -155,9 +151,10 @@ final requestPasswordResetUsecaseProvider =
     });
 
 final requestPasswordResetControllerProvider =
-    StateNotifierProvider<RequestPasswordResetController, PasswordResetState>((
-      ref,
-    ) {
+    StateNotifierProvider<
+      RequestPasswordResetController,
+      RequestPasswordResetState
+    >((ref) {
       final usecase = ref.read(requestPasswordResetUsecaseProvider);
       return RequestPasswordResetController(usecase);
     });

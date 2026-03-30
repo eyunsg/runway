@@ -16,6 +16,15 @@ class RegisterTempScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(registerControllerProvider);
 
+    ref.listen(registerControllerProvider, (prev, next) {
+      if (next.status == AsyncStatus.error && next.error != null) {
+        final errorMsg = next.error!.message;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMsg)));
+      }
+    });
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -55,10 +64,8 @@ class RegisterTempScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-
             if (state.status == AsyncStatus.loading)
               const CircularProgressIndicator(),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
