@@ -39,14 +39,13 @@ class _RequestPasswordResetTempScreenState
     ref.listen<RequestPasswordResetState>(
       requestPasswordResetControllerProvider,
       (previous, next) {
-        if (next.status == AsyncStatus.success) {
+        final msg = ref
+            .read(requestPasswordResetControllerProvider.notifier)
+            .message;
+        if (msg != null) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('인증 메일이 발송되었습니다.')));
-        } else if (next.status == AsyncStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(next.error?.message ?? '오류가 발생했습니다.')),
-          );
+          ).showSnackBar(SnackBar(content: Text(msg)));
         }
       },
     );

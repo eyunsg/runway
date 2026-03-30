@@ -6,29 +6,50 @@ import 'package:runway/core/providers.dart';
 import 'package:runway/features/password_reset/types/password_reset_state.dart';
 import '../../../core/state/async_state.dart';
 
-class PasswordResetTempScreen extends ConsumerWidget {
+class PasswordResetTempScreen extends ConsumerStatefulWidget {
   const PasswordResetTempScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.read(resetPasswordControllerProvider.notifier);
-    final state = ref.watch(resetPasswordControllerProvider);
+  ConsumerState<PasswordResetTempScreen> createState() =>
+      _PasswordResetTempScreenState();
+}
 
-    final passwordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
+class _PasswordResetTempScreenState
+    extends ConsumerState<PasswordResetTempScreen> {
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
 
     ref.listen<PasswordResetState>(resetPasswordControllerProvider, (
       previous,
       next,
     ) {
+      if (!mounted) return;
+
       if (next.status == AsyncStatus.success) {
         context.go('/login');
-      } else if (next.status == AsyncStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error?.message ?? '오류가 발생했습니다.')),
-        );
+      } else if (next.status == AsyncStatus.error && next.error != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!.message)));
       }
     });
+  }
+
+  @override
+  void dispose() {
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = ref.read(resetPasswordControllerProvider.notifier);
+    final state = ref.watch(resetPasswordControllerProvider);
 
     return Scaffold(
       body: Padding(
@@ -38,7 +59,7 @@ class PasswordResetTempScreen extends ConsumerWidget {
             TextField(
               controller: passwordController,
               decoration: const InputDecoration(
-                labelText: '비밀번호',
+                labelText: '새 비밀번호',
                 border: OutlineInputBorder(),
               ),
               obscureText: true,
@@ -58,16 +79,8 @@ class PasswordResetTempScreen extends ConsumerWidget {
               child: ElevatedButton(
                 onPressed: state.status == AsyncStatus.loading
                     ? null
-                    : () {
-                        if (passwordController.text !=
-                            confirmPasswordController.text) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
-                          );
-                          return;
-                        }
-
-                        controller.resetPassword(
+                    : () async {
+                        await controller.resetPassword(
                           newPassword: passwordController.text,
                           passwordConfirm: confirmPasswordController.text,
                         );
