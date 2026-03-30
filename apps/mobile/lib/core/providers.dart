@@ -81,9 +81,9 @@ final loginControllerProvider =
 
 /// ---------------- GET PROFILE ----------------
 
-final getProfileRepositoryProvider = Provider<GetProfileReposity>((ref) {
+final getProfileRepositoryProvider = Provider<GetProfileRepository>((ref) {
   final client = ref.read(supabaseClientProvider);
-  return GetProfileReposity(client: client);
+  return GetProfileRepository(client: client);
 });
 
 final getProfileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
