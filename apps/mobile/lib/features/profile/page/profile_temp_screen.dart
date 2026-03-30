@@ -16,23 +16,23 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen(logoutControllerProvider, (previous, next) {
+      if (!mounted) return;
+
       if (next.status == AsyncStatus.success) {
         context.go('/login');
-      }
-
-      if (next.status == AsyncStatus.error && next.error != null) {
+      } else if (next.status == AsyncStatus.error && next.error != null) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(next.error!.message)));
       }
     });
 
-    ref.listen(deleteProfileControllerProvider, (prev, next) {
+    ref.listen(deleteProfileControllerProvider, (previous, next) {
+      if (!mounted) return;
+
       if (next.isSuccess) {
         context.go('/login');
-      }
-
-      if (next.error != null) {
+      } else if (next.error != null) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(next.error!)));
@@ -47,7 +47,7 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
           : profileState.error != null
           ? Center(child: Text(profileState.error!))
           : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
                   const SizedBox(height: 30),
