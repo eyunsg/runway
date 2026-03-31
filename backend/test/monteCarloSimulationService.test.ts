@@ -1,8 +1,6 @@
 import { runMonteCarloSimulation } from '../supabase/functions/simulations/monteCarloSimulationService.ts';
-import {
-  AssetInputDto,
-  AssetType,
-} from '../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
+import { AssetInputDto } from '../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
+import { AssetType } from '../shared/domain/AssetType.ts';
 
 describe('runMonteCarloSimulation - Service Logic', () => {
   const mockBaseAsset: AssetInputDto = {
@@ -15,7 +13,7 @@ describe('runMonteCarloSimulation - Service Logic', () => {
     isDividendAsset: false,
     dividendPerShare: 0,
     expectedAnnualDividendGrowthRate: 0,
-    dividendFrequencyPerYear: 12,
+    dividendFrequency: 12,
     isReinvestDividends: false,
   };
 
@@ -54,7 +52,7 @@ describe('runMonteCarloSimulation - Service Logic', () => {
       isDividendAsset: true,
       dividendPerShare: 500,
       expectedAnnualDividendGrowthRate: 5,
-      dividendFrequencyPerYear: 12,
+      dividendFrequency: 12,
     };
 
     const reinvestOnResult = runMonteCarloSimulation(investmentPeriodMonths, [
@@ -75,7 +73,7 @@ describe('runMonteCarloSimulation - Service Logic', () => {
       isDividendAsset: true,
       dividendPerShare: 1000,
       expectedAnnualDividendGrowthRate: 500, // 500% 성장률 입력
-      dividendFrequencyPerYear: 1,
+      dividendFrequency: 1,
     };
 
     const result = runMonteCarloSimulation(24, [extremeAsset]);

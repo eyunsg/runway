@@ -1,7 +1,5 @@
-import {
-  AssetInputDto,
-  AssetType,
-} from '../../../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
+import { AssetType } from '../../../shared/domain/AssetType.ts';
+import { AssetInputDto } from '../../../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
 
 const numSimulations = 10000;
 const annualDividendGrowthRateVolatility = 0.02; // 모든 자산 공통 연 변동성 2%
@@ -82,7 +80,7 @@ function simulateTrajectory(
   let accumulatedDividendIncomeAmount = 0;
 
   const monthlyReturnRate = Math.pow(1 + asset.expectedAnnualPriceGrowthRate / 100, 1 / 12) - 1;
-  const annualVolatility = volatilityMap[asset.assetType] || 0.05;
+  const annualVolatility = volatilityMap[asset.assetType as AssetType] || 0.05;
   const monthlyVolatility = annualVolatility / Math.sqrt(12);
 
   for (let m = 1; m <= investmentPeriodMonths; m++) {
@@ -96,15 +94,15 @@ function simulateTrajectory(
 
       let monthlyInvestmentPoolAmount = asset.monthlyContributionAmount + cashBalanceAmount;
 
-      if (asset.isDividendAsset && m % (12 / asset.dividendFrequencyPerYear) === 0) {
+      if (asset.isDividendAsset && m % (12 / asset.dividendFrequency) === 0) {
         const rawDividendGrowthRate = calculatePeriodDividendGrowthRate(
           asset.expectedAnnualDividendGrowthRate,
-          asset.dividendFrequencyPerYear,
+          asset.dividendFrequency,
           getNextRandom
         );
         const growthRate = calculateClampedDividendGrowthRate(
           rawDividendGrowthRate,
-          asset.dividendFrequencyPerYear
+          asset.dividendFrequency
         );
 
         dividendPerShareAmount *= 1 + growthRate;
