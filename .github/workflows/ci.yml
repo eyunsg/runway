@@ -24,10 +24,24 @@ jobs:
         run: |
           cd apps/mobile
           flutter pub get
-      - name: Run tests
+      - name: Run unit tests
         run: |
           cd apps/mobile
           flutter test
+
+      - name: Setup Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          emulator-options: '-no-window -no-audio -gpu swiftshader_indirect'
+          script: |
+            cd apps/mobile
+            flutter pub get
+            flutter test integration_test/ -d emulator-5554 \
+              --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
+              --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }}
 
   supabase-test:
     name: Backend (Supabase) Tests
@@ -50,21 +64,7 @@ jobs:
           cd backend
           npm install
 
-      - name: Run unit tests
+      - name: Run tests
         run: |
           cd backend
           npm test
-
-      - name: Setup Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: google_apis
-          arch: x86_64
-          emulator-options: '-no-window -no-audio -gpu swiftshader_indirect'
-          script: |
-            cd apps/mobile
-            flutter pub get
-            flutter test integration_test/ -d emulator-5554 \
-              --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
-              --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }}
