@@ -35,33 +35,12 @@ jobs:
           cd apps/mobile
           flutter test
 
-      - name: Run integration tests (Android Emulator)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          target: google_apis
-          arch: x86_64
-          profile: Nexus 6
-          emulator-options: '-no-window -no-audio -gpu swiftshader_indirect -no-snapshot -no-boot-anim'
-          disable-animations: true
-          script: |
-            adb kill-server
-            adb start-server
-            adb wait-for-device
-
-            echo "⏳ Waiting for emulator boot..."
-            until adb shell getprop sys.boot_completed | grep -m 1 '1'; do
-              sleep 2
-            done
-
-            echo "✅ Emulator boot completed"
-
-            cd apps/mobile
-            flutter pub get
-
-            flutter test integration_test/ -d emulator-5554 \
-              --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
-              --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }}
+      - name: Run integration tests
+        run: |
+          cd apps/mobile
+          flutter test integration_test/ \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
+            --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }}
 
   supabase-test:
     name: Backend (Supabase) Tests
