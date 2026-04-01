@@ -10,35 +10,55 @@ jobs:
   flutter-test:
     name: Frontend (Flutter) Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.2'
+
       - name: Create env file
         run: |
           mkdir -p apps/mobile/assets/env
           cp apps/mobile/.env.example apps/mobile/assets/env/.env
+
       - name: Install dependencies
         run: |
           cd apps/mobile
           flutter pub get
+
       - name: Run unit tests
         run: |
           cd apps/mobile
           flutter test
 
-      - name: Setup Android Emulator
+      - name: Run integration tests (Android Emulator)
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
+          api-level: 30
           target: google_apis
           arch: x86_64
-          emulator-options: '-no-window -no-audio -gpu swiftshader_indirect'
+          profile: Nexus 6
+          emulator-options: '-no-window -no-audio -gpu swiftshader_indirect -no-snapshot -no-boot-anim'
+          disable-animations: true
           script: |
+            adb kill-server
+            adb start-server
+            adb wait-for-device
+
+            echo "⏳ Waiting for emulator boot..."
+            until adb shell getprop sys.boot_completed | grep -m 1 '1'; do
+              sleep 2
+            done
+
+            echo "✅ Emulator boot completed"
+
             cd apps/mobile
             flutter pub get
+
             flutter test integration_test/ -d emulator-5554 \
               --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
               --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }}
@@ -46,6 +66,7 @@ jobs:
   supabase-test:
     name: Backend (Supabase) Tests
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
