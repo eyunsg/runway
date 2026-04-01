@@ -38,8 +38,8 @@ jobs:
       - name: Run integration tests
         run: |
           cd apps/mobile
-          -d linux \
           flutter test integration_test/ \
+            -d linux \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
             --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }}
 
