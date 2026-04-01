@@ -43,10 +43,13 @@ jobs:
       - name: Run integration tests
         run: |
           cd apps/mobile
-          xvfb-run --auto-servernum flutter test integration_test/ \
-            -d linux \
-            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
-            --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }}
+          for test_file in integration_test/**/*_test.dart; do
+            echo "Running $test_file..."
+            xvfb-run --auto-servernum flutter test "$test_file" \
+              -d linux \
+              --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
+              --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }} || exit 1
+          done
 
   supabase-test:
     name: Backend (Supabase) Tests
