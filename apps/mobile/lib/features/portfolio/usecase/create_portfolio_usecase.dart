@@ -3,7 +3,8 @@ import 'package:runway/core/error/failure.dart';
 import 'package:runway/core/error/validation_failure.dart';
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 import 'package:runway/features/portfolio/repository/create_portfolio_repository.dart';
-import 'package:runway/features/portfolio/dto/create_portfolio_request_dto.dart';
+import 'package:runway/features/portfolio/dto/create_portfolio_request_dto.dart'
+    as dto;
 
 class CreatePortfolioUseCase {
   final CreatePortfolioRepository repository;
@@ -13,7 +14,7 @@ class CreatePortfolioUseCase {
   Future<Either<Failure, void>> execute(CreatePortfolioInput input) async {
     // 검증
     if (input.simulationInput.assets.isEmpty) {
-      return const Left(EmptyAssetsFailure());
+      return Left(EmptyAssetsFailure('assets must not be empty'));
     }
 
     // 배당 자산 검증
@@ -37,11 +38,11 @@ class CreatePortfolioUseCase {
     return await repository.createPortfolio(dto);
   }
 
-  CreatePortfolioRequestDto _toDto(CreatePortfolioInput input) {
-    return CreatePortfolioRequestDto(
+  dto.CreatePortfolioRequestDto _toDto(CreatePortfolioInput input) {
+    return dto.CreatePortfolioRequestDto(
       name: input.name,
-      simulationInput: SimulationInput(
-        goal: Goal(
+      simulationInput: dto.SimulationInput(
+        goal: dto.Goal(
           investmentPeriodMonths:
               input.simulationInput.goal.investmentPeriodMonths,
           targetPortfolioValue: input.simulationInput.goal.targetPortfolioValue,
@@ -49,7 +50,7 @@ class CreatePortfolioUseCase {
               input.simulationInput.goal.targetMonthlyDividend,
         ),
         assets: input.simulationInput.assets.map((a) {
-          return Asset(
+          return dto.Asset(
             assetName: a.assetName,
             assetType: a.assetType,
             initialPrice: a.initialPrice,
@@ -65,28 +66,28 @@ class CreatePortfolioUseCase {
           );
         }).toList(),
       ),
-      simulationResult: SimulationResult(
-        percentiles: Percentiles(
-          portfolioValue: PortfolioValue(
+      simulationResult: dto.SimulationResult(
+        percentiles: dto.Percentiles(
+          portfolioValue: dto.PortfolioValue(
             p10: input.simulationResult.percentiles.portfolioValue.p10,
             p50: input.simulationResult.percentiles.portfolioValue.p50,
             p90: input.simulationResult.percentiles.portfolioValue.p90,
           ),
-          monthlyDividend: MonthlyDividend(
+          monthlyDividend: dto.MonthlyDividend(
             p10: input.simulationResult.percentiles.monthlyDividend.p10,
             p50: input.simulationResult.percentiles.monthlyDividend.p50,
             p90: input.simulationResult.percentiles.monthlyDividend.p90,
           ),
         ),
-        goalAnalysis: GoalAnalysis(
-          portfolioValueGoal: PortfolioValueGoal(
+        goalAnalysis: dto.GoalAnalysis(
+          portfolioValueGoal: dto.PortfolioValueGoal(
             expectedMonthsToTarget: input
                 .simulationResult
                 .goalAnalysis
                 .portfolioValueGoal
                 .expectedMonthsToTarget,
           ),
-          monthlyDividendGoal: MonthlyDividendGoal(
+          monthlyDividendGoal: dto.MonthlyDividendGoal(
             expectedMonthsToTarget: input
                 .simulationResult
                 .goalAnalysis

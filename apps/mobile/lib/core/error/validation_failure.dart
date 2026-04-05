@@ -21,7 +21,7 @@ class PortfolioValidationFailure extends ValidationFailure {
 }
 
 class EmptyAssetsFailure extends PortfolioValidationFailure {
-  const EmptyAssetsFailure() : super('assets must not be empty');
+  const EmptyAssetsFailure(super.message);
 }
 
 class InvalidAssetFailure extends PortfolioValidationFailure {
