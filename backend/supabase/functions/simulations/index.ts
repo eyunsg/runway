@@ -1,4 +1,5 @@
 import { handleSimulation } from './monteCarloSimulationController.ts';
+import { handleGoalAnalysis } from './goalAnalysisSimulationController.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +22,8 @@ function errorResponse(message: string, status: number) {
 }
 
 Deno.serve(async (req: Request) => {
+  const url = new URL(req.url);
+
   // CORS 프리플라이트 처리
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -28,7 +31,11 @@ Deno.serve(async (req: Request) => {
 
   try {
     if (req.method === 'POST') {
-      // 기본 몬테카를로 시뮬레이션 엔드포인트 호출
+      if (url.pathname.endsWith('/goal-analysis')) {
+        return await handleGoalAnalysis(req);
+      }
+
+      // 그 외 기본 POST 요청은 몬테카를로 시뮬레이션 핸들러 호출
       return await handleSimulation(req);
     }
 
