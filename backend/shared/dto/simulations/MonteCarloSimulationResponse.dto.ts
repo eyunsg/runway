@@ -6,14 +6,14 @@ export interface PercentileResultDto {
 
 export class MonteCarloSimulationResponseDto {
   public percentiles: {
-    portfolioValue: PercentileResultDto;
-    monthlyDividend: PercentileResultDto;
+    portfolioAmount: PercentileResultDto;
+    monthlyDividendAmount: PercentileResultDto;
   };
 
-  constructor(portfolioValue: PercentileResultDto, monthlyDividend: PercentileResultDto) {
+  constructor(portfolioAmount: PercentileResultDto, monthlyDividendAmount: PercentileResultDto) {
     this.percentiles = {
-      portfolioValue: portfolioValue,
-      monthlyDividend: monthlyDividend,
+      portfolioAmount: portfolioAmount,
+      monthlyDividendAmount: monthlyDividendAmount,
     };
   }
 }
