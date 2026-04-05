@@ -6,26 +6,46 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
-  }
-
-  if (req.method === 'POST') {
-    return await handleSimulation(req);
-  }
-
+//에러 응답 표준 포맷터
+function errorResponse(message: string, status: number) {
   return new Response(
     JSON.stringify({
       data: null,
-      error: { message: 'Method not allowed or endpoint not found' },
+      error: { message },
     }),
     {
-      status: 405,
+      status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     }
   );
+}
+
+Deno.serve(async (req: Request) => {
+  // CORS 프리플라이트 처리
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  try {
+    if (req.method === 'POST') {
+      // 기본 몬테카를로 시뮬레이션 엔드포인트 호출
+      return await handleSimulation(req);
+    }
+
+    return errorResponse('Method not allowed or endpoint not found', 405);
+  } catch (err: unknown) {
+    // 검증 실패, 통계 오류 등 모든 에러를 여기서 중앙 집중 처리
+    const message = err instanceof Error ? err.message : 'Internal Server Error';
+
+    // 에러 메시지 키워드를 통해 클라이언트 에러(400)와 서버 에러(500)를 구분
+    const isClientError =
+      message.includes('must') ||
+      message.includes('invalid') ||
+      message.includes('required') ||
+      message.includes('Statistical') ||
+      message.includes('누락') ||
+      message.includes('VALIDATION_ERROR');
+
+    return errorResponse(message, isClientError ? 400 : 500);
+  }
 });

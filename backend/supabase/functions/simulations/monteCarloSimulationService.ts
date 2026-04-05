@@ -1,8 +1,11 @@
 import { AssetType } from '../../../shared/domain/AssetType.ts';
-import { AssetInputDto } from '../../../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
+import {
+  RunMonteCarloSimulationRequestDto,
+  AssetInputDto,
+} from '../../../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
 
 const numSimulations = 10000;
-const annualDividendGrowthRateVolatility = 0.02; // 모든 자산 공통 연 변동성 2%
+const annualDividendGrowthRateVolatility = 0.02;
 
 const volatilityMap: Record<AssetType, number> = {
   [AssetType.STOCK]: 0.08,
@@ -12,24 +15,91 @@ const volatilityMap: Record<AssetType, number> = {
   [AssetType.GOLD]: 0.02,
 };
 
+// 통계적 무결성 검증 로직
+function validateStatisticalConsistency(
+  label: string,
+  p: { p10: number; p50: number; p90: number }
+): void {
+  if (p.p10 > p.p50 || p.p50 > p.p90) {
+    throw new Error(
+      `Statistical Validity Error [${label}]: p10 <= p50 <= p90 조건을 위반했습니다.`
+    );
+  }
+}
+
+// 서비스는 DTO 인스턴스를 직접 인자로 받음
+export function runMonteCarloSimulation(dto: RunMonteCarloSimulationRequestDto) {
+  const { investmentPeriodMonths, assets } = dto;
+  const portfolioValueResults = new Float64Array(numSimulations);
+  const monthlyDividendResults = new Float64Array(numSimulations);
+
+  for (let i = 0; i < numSimulations; i++) {
+    let iterationPortfolioTotalAmount = 0;
+    let iterationDividendTotalAmount = 0;
+
+    for (const asset of assets) {
+      const getNextRandom = createRandomGenerator();
+
+      // 데이터 보정 로직
+      const simulationAsset = { ...asset };
+      if (!simulationAsset.isDividendAsset) {
+        simulationAsset.dividendPerShare = 0;
+        simulationAsset.expectedAnnualDividendGrowthRate = 0;
+        simulationAsset.dividendFrequencyPerYear = 0;
+      }
+
+      const { finalValue, totalDividendIncome } = simulateTrajectory(
+        investmentPeriodMonths,
+        simulationAsset,
+        getNextRandom
+      );
+
+      iterationPortfolioTotalAmount += finalValue;
+      iterationDividendTotalAmount += totalDividendIncome;
+    }
+
+    portfolioValueResults[i] = iterationPortfolioTotalAmount;
+    monthlyDividendResults[i] = iterationDividendTotalAmount / investmentPeriodMonths;
+  }
+
+  // 결과 생성 (피드백 반영된 네이밍 적용)
+  const results = {
+    portfolioAmount: calculatePercentiles(portfolioValueResults),
+    monthlyDividendAmount: calculatePercentiles(monthlyDividendResults),
+  };
+
+  // 반환 전 통계적 타당성 검증 수행
+  validateStatisticalConsistency('Portfolio Amount', results.portfolioAmount);
+  validateStatisticalConsistency('Monthly Dividend Amount', results.monthlyDividendAmount);
+
+  return results;
+}
+
+// --- Helper Functions ---
+
+function calculatePercentiles(results: Float64Array) {
+  results.sort();
+  return {
+    p10: Math.round(results[1000]),
+    p50: Math.round(results[5000]),
+    p90: Math.round(results[9000]),
+  };
+}
+
 function createRandomGenerator() {
   let spare: number | null = null;
-  function generatePair(): number[] {
-    const u = 1 - Math.random();
-    const v = 1 - Math.random();
-    const r = Math.sqrt(-2.0 * Math.log(u));
-    const theta = 2.0 * Math.PI * v;
-    return [r * Math.cos(theta), r * Math.sin(theta)];
-  }
   return function getNextRandom(): number {
     if (spare !== null) {
-      const value = spare;
+      const v = spare;
       spare = null;
-      return value;
+      return v;
     }
-    const [z1, z2] = generatePair();
-    spare = z2;
-    return z1;
+    const u = 1 - Math.random(),
+      v = 1 - Math.random();
+    const r = Math.sqrt(-2.0 * Math.log(u)),
+      theta = 2.0 * Math.PI * v;
+    spare = r * Math.sin(theta);
+    return r * Math.cos(theta);
   };
 }
 
@@ -49,25 +119,6 @@ function calculatePeriodDividendGrowthRate(
   return periodGrowthRate + periodVolatility * getNextRandom();
 }
 
-function calculateNextPrice(
-  currentPrice: number,
-  monthlyReturnRate: number,
-  monthlyVolatility: number,
-  z: number
-): number {
-  return currentPrice * (1 + (monthlyReturnRate + monthlyVolatility * z));
-}
-
-function executeMonthlyTrade(
-  investPoolAmount: number,
-  price: number
-): { shares: number; balance: number } {
-  return {
-    shares: Math.floor(investPoolAmount / price),
-    balance: investPoolAmount % price,
-  };
-}
-
 function simulateTrajectory(
   investmentPeriodMonths: number,
   asset: AssetInputDto,
@@ -80,32 +131,31 @@ function simulateTrajectory(
   let accumulatedDividendIncomeAmount = 0;
 
   const monthlyReturnRate = Math.pow(1 + asset.expectedAnnualPriceGrowthRate / 100, 1 / 12) - 1;
-  const annualVolatility = volatilityMap[asset.assetType as AssetType] || 0.05;
+  const annualVolatility = volatilityMap[asset.assetType] || 0.05;
   const monthlyVolatility = annualVolatility / Math.sqrt(12);
 
   for (let m = 1; m <= investmentPeriodMonths; m++) {
     if (m === 1) {
-      const trade = executeMonthlyTrade(asset.initialInvestmentAmount, currentPrice);
-      sharesCount = trade.shares;
-      cashBalanceAmount = trade.balance;
+      sharesCount = Math.floor(asset.initialInvestmentAmount / currentPrice);
+      cashBalanceAmount = asset.initialInvestmentAmount % currentPrice;
     } else {
       const z = getNextRandom();
-      currentPrice = calculateNextPrice(currentPrice, monthlyReturnRate, monthlyVolatility, z);
+      currentPrice *= 1 + (monthlyReturnRate + monthlyVolatility * z);
 
       let monthlyInvestmentPoolAmount = asset.monthlyContributionAmount + cashBalanceAmount;
 
-      if (asset.isDividendAsset && m % (12 / asset.dividendFrequency) === 0) {
-        const rawDividendGrowthRate = calculatePeriodDividendGrowthRate(
+      if (asset.isDividendAsset && m % (12 / asset.dividendFrequencyPerYear) === 0) {
+        const rawGrowth = calculatePeriodDividendGrowthRate(
           asset.expectedAnnualDividendGrowthRate,
-          asset.dividendFrequency,
+          asset.dividendFrequencyPerYear,
           getNextRandom
         );
-        const growthRate = calculateClampedDividendGrowthRate(
-          rawDividendGrowthRate,
-          asset.dividendFrequency
+        const clampedGrowth = calculateClampedDividendGrowthRate(
+          rawGrowth,
+          asset.dividendFrequencyPerYear
         );
 
-        dividendPerShareAmount *= 1 + growthRate;
+        dividendPerShareAmount *= 1 + clampedGrowth;
         const dividendCashAmount = sharesCount * dividendPerShareAmount;
 
         if (asset.isReinvestDividends) {
@@ -115,54 +165,14 @@ function simulateTrajectory(
         }
       }
 
-      const trade = executeMonthlyTrade(monthlyInvestmentPoolAmount, currentPrice);
-      sharesCount += trade.shares;
-      cashBalanceAmount = trade.balance;
+      const buyableShares = Math.floor(monthlyInvestmentPoolAmount / currentPrice);
+      sharesCount += buyableShares;
+      cashBalanceAmount = monthlyInvestmentPoolAmount % currentPrice;
     }
   }
 
   return {
     finalValue: currentPrice * sharesCount + accumulatedDividendIncomeAmount + cashBalanceAmount,
     totalDividendIncome: accumulatedDividendIncomeAmount,
-  };
-}
-
-export function runMonteCarloSimulation(investmentPeriodMonths: number, assets: AssetInputDto[]) {
-  const portfolioValueResults = new Float64Array(numSimulations);
-  const monthlyDividendResults = new Float64Array(numSimulations);
-
-  for (let i = 0; i < numSimulations; i++) {
-    let iterationPortfolioTotalAmount = 0;
-    let iterationDividendTotalAmount = 0;
-
-    for (const asset of assets) {
-      const getNextRandom = createRandomGenerator();
-      const { finalValue, totalDividendIncome } = simulateTrajectory(
-        investmentPeriodMonths,
-        asset,
-        getNextRandom
-      );
-
-      iterationPortfolioTotalAmount += finalValue;
-      iterationDividendTotalAmount += totalDividendIncome;
-    }
-
-    portfolioValueResults[i] = iterationPortfolioTotalAmount;
-    monthlyDividendResults[i] = iterationDividendTotalAmount / investmentPeriodMonths;
-  }
-
-  return {
-    portfolioValue: calculatePercentiles(portfolioValueResults),
-    monthlyDividend: calculatePercentiles(monthlyDividendResults),
-  };
-}
-
-function calculatePercentiles(results: Float64Array) {
-  results.sort();
-
-  return {
-    p10: Math.round(results[Math.floor(numSimulations * 0.1)]),
-    p50: Math.round(results[Math.floor(numSimulations * 0.5)]),
-    p90: Math.round(results[Math.floor(numSimulations * 0.9)]),
   };
 }

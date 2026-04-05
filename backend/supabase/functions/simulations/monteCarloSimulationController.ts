@@ -1,9 +1,6 @@
 import { runMonteCarloSimulation } from './monteCarloSimulationService.ts';
 import { RunMonteCarloSimulationRequestDto } from '../../../shared/dto/simulations/MonteCarloSimulationRequest.dto.ts';
-import {
-  MonteCarloSimulationResponseDto,
-  PercentileResultDto,
-} from '../../../shared/dto/simulations/MonteCarloSimulationResponse.dto.ts';
+import { MonteCarloSimulationResponseDto } from '../../../shared/dto/simulations/MonteCarloSimulationResponse.dto.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,61 +8,31 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-function validateStatisticalConsistency(
-  metricLabel: string,
-  percentileResult: PercentileResultDto
-): void {
-  if (percentileResult.p10 > percentileResult.p50 || percentileResult.p50 > percentileResult.p90) {
-    throw new Error(
-      `Statistical Validity Error [${metricLabel}]: p10 <= p50 <= p90 조건을 위반했습니다.`
-    );
-  }
-}
-
+// 컨트롤러는 요청 수신 및 응답 반환 역할에만 집중합니다.
 export async function handleSimulation(req: Request) {
-  try {
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders });
+  const requestBody = await req.json();
+  const requestData = requestBody.data || requestBody;
+
+  // 1. DTO 인스턴스 생성 (이 시점에 DTO 내부 검증 로직이 작동하여 유효하지 않으면 에러를 던짐)
+  const requestDto = new RunMonteCarloSimulationRequestDto(requestData);
+
+  // 2. 서비스 레이어 호출
+  const simulationResult = runMonteCarloSimulation(requestDto);
+
+  // 3. 결과 데이터를 응답 DTO에 매핑
+  const responseDto = new MonteCarloSimulationResponseDto(
+    simulationResult.portfolioAmount,
+    simulationResult.monthlyDividendAmount
+  );
+
+  return new Response(
+    JSON.stringify({
+      data: responseDto,
+      error: null,
+    }),
+    {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     }
-
-    const requestBody = await req.json();
-    const requestDto = new RunMonteCarloSimulationRequestDto(requestBody.data);
-
-    const simulationResult = runMonteCarloSimulation(
-      requestDto.investmentPeriodMonths,
-      requestDto.assets
-    );
-
-    validateStatisticalConsistency('Portfolio Value', simulationResult.portfolioValue);
-    validateStatisticalConsistency('Monthly Dividend', simulationResult.monthlyDividend);
-
-    const simulationResponseDto = new MonteCarloSimulationResponseDto(
-      simulationResult.portfolioValue,
-      simulationResult.monthlyDividend
-    );
-
-    return new Response(
-      JSON.stringify({
-        data: {
-          ...simulationResponseDto,
-        },
-        error: null,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (err) {
-    return new Response(
-      JSON.stringify({
-        data: null,
-        error: { message: String(err).replace('Error: ', '') },
-      }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  }
+  );
 }
