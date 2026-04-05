@@ -12,10 +12,6 @@ interface AssetState {
 }
 
 export class GoalAnalysisSimulationService {
-  /**
-   * [API-SIM-001] 목표 달성 분석 서비스
-   * 명확한 변수명(Amount, Month 등)을 사용하여 비즈니스 로직의 가독성을 높였습니다.
-   */
   public analyzeGoalAchievement(assets: AssetInputDto[], goal: SimulationGoalDto) {
     // 1. 각 자산별 상태 초기화
     const states: AssetState[] = assets.map((a) => ({
@@ -60,7 +56,7 @@ export class GoalAnalysisSimulationService {
           if (asset.isReinvestDividends) {
             investPool += receivedDiv;
           } else {
-            // [에러 방지] 재투자하지 않는 배당금은 별도 자산으로 누적하여 전체 가치에 포함시킵니다.
+            // 재투자하지 않는 배당금은 별도 자산으로 누적하여 전체 가치에 포함시킵니다.
             state.accumulatedDividends += receivedDiv;
           }
         }

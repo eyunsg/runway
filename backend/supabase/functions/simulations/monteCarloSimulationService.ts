@@ -15,9 +15,6 @@ const volatilityMap: Record<AssetType, number> = {
   [AssetType.GOLD]: 0.02,
 };
 
-/**
- * [피드백 반영] 통계적 무결성 검증 로직
- */
 function validateStatisticalConsistency(
   label: string,
   p: { p10: number; p50: number; p90: number }
@@ -29,9 +26,6 @@ function validateStatisticalConsistency(
   }
 }
 
-/**
- * [피드백 반영] 서비스는 DTO 인스턴스를 직접 인자로 받으며 데이터 보정 책임을 가집니다.
- */
 export function runMonteCarloSimulation(dto: RunMonteCarloSimulationRequestDto) {
   const { investmentPeriodMonths, assets } = dto;
   const portfolioValueResults = new Float64Array(numSimulations);
@@ -44,7 +38,7 @@ export function runMonteCarloSimulation(dto: RunMonteCarloSimulationRequestDto) 
     for (const asset of assets) {
       const getNextRandom = createRandomGenerator();
 
-      // [피드백 반영] 데이터 보정 (Data Correction) 로직 - Service 레이어에서 수행
+      // 데이터 보정 (Data Correction) 로직 - Service 레이어에서 수행
       const simulationAsset = { ...asset };
       if (!simulationAsset.isDividendAsset) {
         simulationAsset.dividendPerShare = 0;
@@ -72,7 +66,7 @@ export function runMonteCarloSimulation(dto: RunMonteCarloSimulationRequestDto) 
     monthlyDividendAmount: calculatePercentiles(monthlyDividendResults),
   };
 
-  // [피드백 반영] 반환 전 최종 통계적 타당성 검증
+  // 반환 전 최종 통계적 타당성 검증
   validateStatisticalConsistency('Portfolio Amount', results.portfolioAmount);
   validateStatisticalConsistency('Monthly Dividend Amount', results.monthlyDividendAmount);
 
