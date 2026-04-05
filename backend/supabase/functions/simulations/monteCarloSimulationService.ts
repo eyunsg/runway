@@ -15,7 +15,9 @@ const volatilityMap: Record<AssetType, number> = {
   [AssetType.GOLD]: 0.02,
 };
 
-// 통계적 무결성 검증 로직
+/**
+ * [피드백 반영] 통계적 무결성 검증 로직
+ */
 function validateStatisticalConsistency(
   label: string,
   p: { p10: number; p50: number; p90: number }
@@ -27,7 +29,9 @@ function validateStatisticalConsistency(
   }
 }
 
-// 서비스는 DTO 인스턴스를 직접 인자로 받음
+/**
+ * [피드백 반영] 서비스는 DTO 인스턴스를 직접 인자로 받으며 데이터 보정 책임을 가집니다.
+ */
 export function runMonteCarloSimulation(dto: RunMonteCarloSimulationRequestDto) {
   const { investmentPeriodMonths, assets } = dto;
   const portfolioValueResults = new Float64Array(numSimulations);
@@ -40,7 +44,7 @@ export function runMonteCarloSimulation(dto: RunMonteCarloSimulationRequestDto) 
     for (const asset of assets) {
       const getNextRandom = createRandomGenerator();
 
-      // 데이터 보정 로직
+      // [피드백 반영] 데이터 보정 (Data Correction) 로직 - Service 레이어에서 수행
       const simulationAsset = { ...asset };
       if (!simulationAsset.isDividendAsset) {
         simulationAsset.dividendPerShare = 0;
@@ -62,13 +66,13 @@ export function runMonteCarloSimulation(dto: RunMonteCarloSimulationRequestDto) 
     monthlyDividendResults[i] = iterationDividendTotalAmount / investmentPeriodMonths;
   }
 
-  // 결과 생성 (피드백 반영된 네이밍 적용)
+  // 결과 생성
   const results = {
     portfolioAmount: calculatePercentiles(portfolioValueResults),
     monthlyDividendAmount: calculatePercentiles(monthlyDividendResults),
   };
 
-  // 반환 전 통계적 타당성 검증 수행
+  // [피드백 반영] 반환 전 최종 통계적 타당성 검증
   validateStatisticalConsistency('Portfolio Amount', results.portfolioAmount);
   validateStatisticalConsistency('Monthly Dividend Amount', results.monthlyDividendAmount);
 
@@ -131,7 +135,7 @@ function simulateTrajectory(
   let accumulatedDividendIncomeAmount = 0;
 
   const monthlyReturnRate = Math.pow(1 + asset.expectedAnnualPriceGrowthRate / 100, 1 / 12) - 1;
-  const annualVolatility = volatilityMap[asset.assetType] || 0.05;
+  const annualVolatility = volatilityMap[asset.assetType as AssetType] || 0.05;
   const monthlyVolatility = annualVolatility / Math.sqrt(12);
 
   for (let m = 1; m <= investmentPeriodMonths; m++) {
@@ -144,6 +148,7 @@ function simulateTrajectory(
 
       let monthlyInvestmentPoolAmount = asset.monthlyContributionAmount + cashBalanceAmount;
 
+      // [피드백 반영] dividendFrequencyPerYear 네이밍 사용
       if (asset.isDividendAsset && m % (12 / asset.dividendFrequencyPerYear) === 0) {
         const rawGrowth = calculatePeriodDividendGrowthRate(
           asset.expectedAnnualDividendGrowthRate,

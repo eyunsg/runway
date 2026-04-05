@@ -146,7 +146,6 @@ describe('runMonteCarloSimulation - Service Logic', () => {
 
     const result = runMonteCarloSimulation(dto);
 
-    // 에러 수정: portfolioAmountPercentiles -> portfolioAmount
     expect(result.portfolioAmount.p50).toBeGreaterThan(1000000 * 2);
   });
 

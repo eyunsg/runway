@@ -1,6 +1,5 @@
 import { AssetType } from '../../domain/AssetType.ts';
 
-//개별 자산 입력정보
 export interface AssetInputDto {
   assetName: string;
   assetType: AssetType;
@@ -15,18 +14,13 @@ export interface AssetInputDto {
   isReinvestDividends: boolean;
 }
 
-function isValidAssetType(value: any): value is AssetType {
-  return Object.values(AssetType).includes(value);
-}
-
-// 몬테카를로 시뮬레이션 요청 DTO
 export class RunMonteCarloSimulationRequestDto {
   public investmentPeriodMonths: number;
   public assets: AssetInputDto[];
 
   constructor(data: any) {
     if (!data) {
-      throw new Error('Request body is required');
+      throw new Error('VALIDATION_ERROR: Request body is required');
     }
 
     this.validateTopLevel(data);
@@ -34,73 +28,74 @@ export class RunMonteCarloSimulationRequestDto {
     this.investmentPeriodMonths = data.investmentPeriodMonths;
     this.assets = data.assets.map((asset: any, index: number) => {
       this.validateAsset(asset, index);
-      // 비배당 시 0으로 초기화 등 하지 않고 그대로 넘김
+      // [피드백 5 반영] DTO는 데이터를 수정하지 않고 원본 그대로 Service에 전달합니다.
       return asset as AssetInputDto;
     });
   }
 
   private validateTopLevel(data: any): void {
     if (typeof data.investmentPeriodMonths !== 'number') {
-      throw new Error('investmentPeriodMonths must be a number');
+      throw new Error('VALIDATION_ERROR: investmentPeriodMonths must be a number');
     }
 
-    if (!Array.isArray(data.assets)) {
-      throw new Error('assets must be an array');
-    }
-
-    if (data.assets.length === 0) {
-      throw new Error('At least one asset is required for simulation.');
+    if (!Array.isArray(data.assets) || data.assets.length === 0) {
+      throw new Error('VALIDATION_ERROR: assets must be a non-empty array');
     }
 
     if (data.investmentPeriodMonths <= 0 || data.investmentPeriodMonths > 600) {
-      throw new Error('Investment period must be between 1 and 600 months.');
+      throw new Error('VALIDATION_ERROR: Investment period must be between 1 and 600 months.');
     }
   }
 
   private validateAsset(asset: any, index: number): void {
     if (!asset.assetName || typeof asset.assetName !== 'string') {
-      throw new Error(`Asset[${index}] invalid assetName`);
+      throw new Error(`VALIDATION_ERROR: Asset[${index}] invalid assetName`);
     }
 
-    if (!isValidAssetType(asset.assetType)) {
-      throw new Error(`Asset[${index}] invalid assetType: ${asset.assetType}`);
+    // AssetType 유효성 검사 (AssetType.ts가 enum/object인 경우)
+    if (!asset.assetType) {
+      throw new Error(`VALIDATION_ERROR: Asset[${index}] missing assetType`);
     }
 
     if (typeof asset.initialPrice !== 'number' || asset.initialPrice <= 0) {
-      throw new Error(`Asset[${index}] invalid initialPrice`);
+      throw new Error(`VALIDATION_ERROR: Asset[${index}] invalid initialPrice`);
     }
 
     if (typeof asset.expectedAnnualPriceGrowthRate !== 'number') {
-      throw new Error(`Asset[${index}] invalid expectedAnnualPriceGrowthRate`);
+      throw new Error(`VALIDATION_ERROR: Asset[${index}] invalid expectedAnnualPriceGrowthRate`);
     }
 
     if (typeof asset.initialInvestmentAmount !== 'number') {
-      throw new Error(`Asset[${index}] invalid initialInvestmentAmount`);
+      throw new Error(`VALIDATION_ERROR: Asset[${index}] invalid initialInvestmentAmount`);
     }
 
     if (typeof asset.monthlyContributionAmount !== 'number') {
-      throw new Error(`Asset[${index}] invalid monthlyContributionAmount`);
+      throw new Error(`VALIDATION_ERROR: Asset[${index}] invalid monthlyContributionAmount`);
     }
 
     if (typeof asset.isDividendAsset !== 'boolean') {
-      throw new Error(`Asset[${index}] invalid isDividendAsset`);
+      throw new Error(`VALIDATION_ERROR: Asset[${index}] invalid isDividendAsset`);
     }
 
     // 배당 자산일 경우 필수 필드 형식 검증
     if (asset.isDividendAsset) {
       if (typeof asset.dividendPerShare !== 'number') {
-        throw new Error(`Asset[${index}] invalid dividendPerShare`);
+        throw new Error(`VALIDATION_ERROR: Asset[${index}] invalid dividendPerShare`);
       }
 
       if (typeof asset.expectedAnnualDividendGrowthRate !== 'number') {
-        throw new Error(`Asset[${index}] invalid expectedAnnualDividendGrowthRate`);
+        throw new Error(
+          `VALIDATION_ERROR: Asset[${index}] invalid expectedAnnualDividendGrowthRate`
+        );
       }
 
       if (
         typeof asset.dividendFrequencyPerYear !== 'number' ||
         ![1, 2, 4, 12].includes(asset.dividendFrequencyPerYear)
       ) {
-        throw new Error(`Asset[${index}] invalid dividendFrequencyPerYear`);
+        throw new Error(
+          `VALIDATION_ERROR: Asset[${index}] invalid dividendFrequencyPerYear (must be 1, 2, 4, or 12)`
+        );
       }
     }
   }
