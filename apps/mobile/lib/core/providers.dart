@@ -49,6 +49,10 @@ import '../features/simulation/controller/simulation_controller.dart';
 import '../features/simulation/usecase/simulation_usecase.dart';
 import '../features/simulation/repository/simulation_repository.dart';
 import '../features/simulation/types/simulation_state.dart';
+import 'package:runway/features/portfolio/controller/create_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/create_portfolio_repository.dart';
+import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
 
 import 'package:runway/features/portfolio/repository/get_portfolio_repository.dart';
 import 'package:runway/features/portfolio/controller/get_portfolio_controller.dart';
@@ -269,6 +273,24 @@ final simulationControllerProvider =
     StateNotifierProvider<SimulationController, SimulationState>((ref) {
       final useCase = ref.read(simulationUseCaseProvider);
       return SimulationController(useCase: useCase);
+/// ---------------- CREATE PORTFOLIO ----------------
+
+final createPortfolioRepositoryProvider = Provider<CreatePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return CreatePortfolioRepository(client: client);
+});
+
+final createPortfolioUsecaseProvider = Provider<CreatePortfolioUseCase>((ref) {
+  final repository = ref.read(createPortfolioRepositoryProvider);
+  return CreatePortfolioUseCase(repository);
+});
+
+final createPortfolioControllerProvider =
+    StateNotifierProvider<CreatePortfolioController, PortfolioState>((ref) {
+      final usecase = ref.read(createPortfolioUsecaseProvider);
+      return CreatePortfolioController(useCase: usecase);
     });
 
 /// ---------------- GET PORTFOLIO ----------------
