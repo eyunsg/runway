@@ -58,6 +58,7 @@ import 'package:runway/features/portfolio/repository/get_portfolio_repository.da
 import 'package:runway/features/portfolio/controller/get_portfolio_controller.dart';
 import 'package:runway/features/portfolio/types/get_portfolio_state.dart';
 import 'package:runway/features/portfolio/usecase/get_portfolio_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
