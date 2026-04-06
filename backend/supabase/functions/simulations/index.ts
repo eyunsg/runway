@@ -10,8 +10,10 @@ const corsHeaders = {
 function errorResponse(message: string, status: number) {
   return new Response(
     JSON.stringify({
-      message,
-      code: status >= 500 ? 'INTERNAL_SERVER_ERROR' : 'BAD_REQUEST',
+      error: {
+        code: 'METHOD_NOT_ALLOWED',
+        message: 'POST 또는 OPTIONS 요청만 허용됩니다.',
+      },
     }),
     {
       status,
