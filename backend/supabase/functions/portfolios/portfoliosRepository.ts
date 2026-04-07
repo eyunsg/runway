@@ -1,111 +1,63 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { Portfolio } from '../domain/portfolios/portfolios.ts';
+import { Portfolio } from '../../../shared/domain/portfolios/Portfolios.ts';
 
 function createAdminClient() {
   return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 }
 
-function mapToEntity(data: any): Portfolio {
-  return new Portfolio(
-    data.id,
-    data.user_id,
-    data.name,
-    data.simulation_input,
-    data.simulation_result,
-    new Date(data.created_at),
-    new Date(data.updated_at),
-    data.deleted_at ? new Date(data.deleted_at) : null
-  );
-}
-
-export async function createPortfolioRepo(
-  userId: string,
-  data: {
-    name: string;
-    simulation_input: any;
-    simulation_result: any;
-  }
-): Promise<string> {
+export async function savePortfolioRepo(portfolio: Portfolio): Promise<string | null> {
   const client = createAdminClient();
 
-  const { data: insertedData, error } = await client
+  const { data, error } = await client
     .from('portfolios')
     .insert({
-      user_id: userId,
-      name: data.name,
-      simulation_input: data.simulation_input,
-      simulation_result: data.simulation_result,
+      user_id: portfolio.userId,
+      name: portfolio.name,
+      simulation_input: {
+        goal: {
+          investment_period_months: portfolio.simulationInput.goal.investmentPeriodMonths,
+          target_portfolio_value: portfolio.simulationInput.goal.targetPortfolioValue,
+          target_monthly_dividend: portfolio.simulationInput.goal.targetMonthlyDividend,
+        },
+        assets: portfolio.simulationInput.assets.map((asset) => ({
+          asset_name: asset.assetName,
+          asset_type: asset.assetType,
+          initial_price: asset.initialPrice,
+          expected_annual_price_growth_rate: asset.expectedAnnualPriceGrowthRate,
+          initial_investment_amount: asset.initialInvestmentAmount,
+          monthly_contribution_amount: asset.monthlyContributionAmount,
+          is_dividend_asset: asset.isDividendAsset,
+          dividend_per_share: asset.dividendPerShare,
+          expected_annual_dividend_growth_rate: asset.expectedAnnualDividendGrowthRate,
+          dividend_frequency: asset.dividendFrequency,
+          is_reinvest_dividends: asset.isReinvestDividends,
+        })),
+      },
+      simulation_result: {
+        percentiles: {
+          portfolio_value: portfolio.simulationResult.percentiles.portfolioValue,
+          monthly_dividend: portfolio.simulationResult.percentiles.monthlyDividend,
+        },
+        goal_analysis: {
+          // 내부 필드인 expectedMonthsToTarget까지 snake_case로 매핑하여 DB 일관성 유지
+          portfolio_value_goal: {
+            expected_months_to_target:
+              portfolio.simulationResult.goalAnalysis.portfolioValueGoal.expectedMonthsToTarget,
+          },
+          monthly_dividend_goal: {
+            expected_months_to_target:
+              portfolio.simulationResult.goalAnalysis.monthlyDividendGoal.expectedMonthsToTarget,
+          },
+        },
+      },
     })
     .select('id')
     .single();
 
-  if (error) {
-    throw new Error(`DATABASE_ERROR: ${error.message}`);
+  if (error || !data) {
+    console.error(`[PortfolioRepo Error]: ${error?.message}`);
+    return null;
   }
 
-  return insertedData.id;
-}
-
-export async function findPortfolioByIdRepo(portfolioId: string): Promise<Portfolio | null> {
-  const client = createAdminClient();
-
-  const { data, error } = await client
-    .from('portfolios')
-    .select('*')
-    .eq('id', portfolioId)
-    .single();
-
-  if (error || !data) return null;
-
-  return mapToEntity(data);
-}
-
-export async function findPortfoliosByUserIdRepo(userId: string): Promise<Portfolio[]> {
-  const client = createAdminClient();
-
-  const { data, error } = await client
-    .from('portfolios')
-    .select('*')
-    .eq('user_id', userId)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false });
-
-  if (error || !data) return [];
-
-  return data.map(mapToEntity);
-}
-
-export async function updatePortfolioRepo(
-  portfolioId: string,
-  updateData: {
-    name?: string;
-    simulation_input?: any;
-    simulation_result?: any;
-  }
-) {
-  const client = createAdminClient();
-
-  const { error } = await client
-    .from('portfolios')
-    .update({
-      ...updateData,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', portfolioId);
-
-  return !error;
-}
-
-export async function deletePortfolioRepo(portfolioId: string) {
-  const client = createAdminClient();
-
-  const { error } = await client
-    .from('portfolios')
-    .update({
-      deleted_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', portfolioId);
-
-  return !error;
+  return data.id;
 }

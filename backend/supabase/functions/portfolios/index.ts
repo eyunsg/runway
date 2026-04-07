@@ -1,66 +1,74 @@
-import {
-  handleCreatePortfolio,
-  handleGetPortfolios,
-  handleGetPortfolioDetail,
-  handleUpdatePortfolio,
-  handleDeletePortfolio,
-} from './portfolioController.ts';
+import { handleAddPortfolio, UnauthorizedError, ValidationError } from './portfoliosController.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-Deno.serve(async (req: Request) => {
-  const { method } = req;
-  const url = new URL(req.url);
-  const pathSegments = url.pathname.split('/').filter(Boolean);
+function errorResponse(message: string, status: number) {
+  const codeMap: Record<number, string> = {
+    400: 'BAD_REQUEST',
+    401: 'UNAUTHORIZED',
+    405: 'METHOD_NOT_ALLOWED',
+    500: 'INTERNAL_SERVER_ERROR',
+  };
 
-  // CORS Preflight 요청 처리
-  if (method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: codeMap[status] || 'UNKNOWN_ERROR',
+        message: message,
+      },
+    }),
+    {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    }
+  );
+}
+
+Deno.serve(async (req: Request) => {
+  // 1. CORS Preflight 요청 처리
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
-    // GET 요청 처리: 목록 조회 vs 상세 조회
-    if (method === 'GET') {
-      // 경로가 /portfolios 이면 전체 목록 조회 (API-PORT-002)
-      // 경로에 ID가 포함되어 있으면 상세 조회 (API-PORT-003)
-      if (pathSegments.length > 1) {
-        return await handleGetPortfolioDetail(req);
+    // 2. POST 요청 라우팅
+    if (req.method === 'POST') {
+      return await handleAddPortfolio(req);
+    }
+
+    // 3. 허용되지 않은 메서드 처리
+    return errorResponse('POST 또는 OPTIONS 요청만 허용됩니다.', 405);
+  } catch (err: unknown) {
+    // 4. 전역 에러 핸들링
+    let status = 500;
+    let message = '알 수 없는 서버 에러가 발생했습니다.';
+
+    if (err instanceof ValidationError) {
+      // 컨트롤러/DTO에서 명시적으로 던진 검증 에러
+      status = 400;
+      message = err.message;
+    } else if (err instanceof UnauthorizedError) {
+      // 인증 실패 에러
+      status = 401;
+      message = err.message;
+    } else if (err instanceof Error) {
+      // DTO, 도메인, 서비스에서 던진 일반 에러 처리
+      if (err.message.includes('VALIDATION_ERROR')) {
+        status = 400;
+        message = err.message.replace('VALIDATION_ERROR: ', '');
+      } else if (err.message.includes('DATABASE_ERROR')) {
+        status = 500;
+        message = '데이터 저장 중 오류가 발생했습니다.';
+      } else {
+        message = err.message;
       }
-      return await handleGetPortfolios(req);
     }
 
-    // POST 요청 처리: 신규 생성 (API-PORT-001)
-    if (method === 'POST') {
-      return await handleCreatePortfolio(req);
-    }
-
-    // PATCH 요청 처리: 정보 수정 (API-PORT-005)
-    if (method === 'PATCH') {
-      return await handleUpdatePortfolio(req);
-    }
-
-    // DELETE 요청 처리: 소프트 삭제 (API-PORT-006)
-    if (method === 'DELETE') {
-      return await handleDeletePortfolio(req);
-    }
-
-    // 정의되지 않은 메서드 처리
-    return new Response(JSON.stringify({ error: { message: 'Method Not Allowed' } }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (err) {
-    // 예기치 못한 서버 에러 처리
-    return new Response(JSON.stringify({ error: { message: String(err) } }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error(`[Global Error Log]: ${message}`);
+    return errorResponse(message, status);
   }
 });
