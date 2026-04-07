@@ -1,5 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { addPortfolioService, getPortfoliosService } from './portfoliosService.ts';
+import {
+  addPortfolioService,
+  getPortfoliosService,
+  getPortfolioDetailService,
+} from './portfoliosService.ts';
 import { AddPortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 
 const corsHeaders = {
@@ -65,7 +69,35 @@ export async function handleGetPortfolios(req: Request) {
   const result = await getPortfoliosService(user.id);
 
   // 3. 성공 응답 반환 (200 OK)
-  // 설계 원칙: { data: { ... } } 구조가 아닌 result 객체를 바로 JSON화하여 반환합니다.
+  return new Response(JSON.stringify(result), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+export async function handleGetPortfolioDetail(req: Request, portfolioId: string) {
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: {
+      headers: { Authorization: req.headers.get('authorization') ?? '' },
+    },
+  });
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new UnauthorizedError('인증에 실패했습니다. 다시 로그인해주세요.');
+  }
+
+  // 서비스 레이어 호출
+  const result = await getPortfolioDetailService(user.id, portfolioId);
+
+  // 결과 객체를 직접 반환
   return new Response(JSON.stringify(result), {
     status: 200,
     headers: {
