@@ -14,26 +14,20 @@ class RegisterController extends StateNotifier<RegisterState> {
     required String passwordConfirm,
     required String displayName,
   }) async {
-    if (password != passwordConfirm) {
-      state = state.copyWith(
-        status: AsyncStatus.error,
-        error: '비밀번호가 일치하지 않습니다.',
-      );
-      return;
-    }
+    if (state.status == AsyncStatus.loading) return;
 
-    state = state.copyWith(status: AsyncStatus.loading);
+    state = state.copyWith(status: AsyncStatus.loading, error: null);
 
-    try {
-      await _usecase.execute(
-        email: email,
-        password: password,
-        displayName: displayName,
-      );
+    final result = await _usecase.execute(
+      email: email,
+      password: password,
+      passwordConfirm: passwordConfirm,
+      displayName: displayName,
+    );
 
-      state = state.copyWith(status: AsyncStatus.success);
-    } catch (e) {
-      state = state.copyWith(status: AsyncStatus.error, error: e.toString());
-    }
+    state = result.fold(
+      (failure) => state.copyWith(status: AsyncStatus.error, error: failure),
+      (_) => state.copyWith(status: AsyncStatus.success),
+    );
   }
 }

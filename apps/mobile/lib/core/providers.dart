@@ -30,14 +30,19 @@ import '../features/logout/types/logout_state.dart';
 import '../features/logout/usecase/logout_usecase.dart';
 import '../features/logout/repository/logout_repository.dart';
 
-import '../features/password_reset/controller/request_password_reset_controller.dart';
-import '../features/password_reset/usecase/request_password_reset_usecase.dart';
-import '../features/password_reset/repository/request_password_reset_repository.dart.dart';
-
 import '../features/password_reset/controller/password_reset_controller.dart';
 import '../features/password_reset/usecase/reset_password_usecase.dart';
 import '../features/password_reset/repository/reset_password_repository.dart';
 import '../features/password_reset/types/password_reset_state.dart';
+
+import '../features/profile/controller/update_profile_controller.dart';
+import '../features/profile/usecase/update_profile_usecase.dart';
+import '../features/profile/repository/update_profile_repository.dart';
+
+import '../features/simulation/controller/simulation_controller.dart';
+import '../features/simulation/usecase/simulation_usecase.dart';
+import '../features/simulation/repository/simulation_repository.dart';
+import '../features/simulation/types/simulation_state.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -81,19 +86,19 @@ final loginControllerProvider =
 
 /// ---------------- GET PROFILE ----------------
 
-final getProfileRepositoryProvider = Provider<GetProfileReposity>((ref) {
+final getProfileRepositoryProvider = Provider<GetProfileRepository>((ref) {
   final client = ref.read(supabaseClientProvider);
-  return GetProfileReposity(client: client);
+  return GetProfileRepository(client: client);
 });
 
-final getrofileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
+final getProfileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
   final repository = ref.read(getProfileRepositoryProvider);
   return GetProfileUseCase(repository);
 });
 
 final profileControllerProvider =
     StateNotifierProvider<GetProfileController, ProfileState>((ref) {
-      final usecase = ref.read(getrofileUsecaseProvider);
+      final usecase = ref.read(getProfileUsecaseProvider);
       return GetProfileController(useCase: usecase);
     });
 
@@ -151,9 +156,10 @@ final requestPasswordResetUsecaseProvider =
     });
 
 final requestPasswordResetControllerProvider =
-    StateNotifierProvider<RequestPasswordResetController, PasswordResetState>((
-      ref,
-    ) {
+    StateNotifierProvider<
+      RequestPasswordResetController,
+      RequestPasswordResetState
+    >((ref) {
       final usecase = ref.read(requestPasswordResetUsecaseProvider);
       return RequestPasswordResetController(usecase);
     });
@@ -195,4 +201,42 @@ final deleteProfileControllerProvider =
     StateNotifierProvider<DeleteProfileController, DeleteProfileState>((ref) {
       final usecase = ref.read(deleteProfileUsecaseProvider);
       return DeleteProfileController(deleteProfileUseCase: usecase);
+    });
+
+/// ---------------- UPDATE PROFILE ----------------
+
+final updateProfileRepositoryProvider = Provider<UpdateProfileRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return UpdateProfileRepository(client: client);
+});
+
+final updateProfileUsecaseProvider = Provider<UpdateProfileUseCase>((ref) {
+  final repository = ref.read(updateProfileRepositoryProvider);
+  return UpdateProfileUseCase(repository: repository);
+});
+
+final updateProfileControllerProvider =
+    StateNotifierProvider<UpdateProfileController, ProfileState>((ref) {
+      final usecase = ref.read(updateProfileUsecaseProvider);
+      return UpdateProfileController(useCase: usecase);
+    });
+
+/// ---------------- SIMULATION ----------------
+
+final simulationRepositoryProvider = Provider<SimulationRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return SimulationRepositoryImpl(client: client);
+});
+
+final simulationUseCaseProvider = Provider<SimulationUseCase>((ref) {
+  final repository = ref.read(simulationRepositoryProvider);
+  return SimulationUseCase(repository);
+});
+
+final simulationControllerProvider =
+    StateNotifierProvider<SimulationController, SimulationState>((ref) {
+      final useCase = ref.read(simulationUseCaseProvider);
+      return SimulationController(useCase: useCase);
     });

@@ -1,4 +1,4 @@
-import { handleGetProfile, handleDeleteProfile } from './profileController.ts';
+import { handleGetProfile, handleUpdateProfile, handleDeleteProfile } from './profileController.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,6 +16,10 @@ Deno.serve((req: Request) => {
 
   if (req.method === 'GET') {
     return handleGetProfile(req);
+  }
+
+  if (req.method === 'POST') {
+    return handleUpdateProfile(req);
   }
 
   if (req.method === 'DELETE') {

@@ -23,6 +23,13 @@ export async function findUserById(userId: string): Promise<Profile | null> {
   return new Profile(authData.user.email, profileData.display_name);
 }
 
+export async function updateProfileRepo(userId: string, updateData: { display_name?: string }) {
+  const client = createAdminClient();
+
+  const { error } = await client.from('profiles').update(updateData).eq('id', userId);
+  return !error;
+}
+
 export async function deleteProfileRepo(userId: string) {
   const client = createAdminClient();
 

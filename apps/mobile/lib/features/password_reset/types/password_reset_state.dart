@@ -1,3 +1,5 @@
+import 'package:runway/core/error/failure.dart';
 import '../../../core/state/async_state.dart';
 
-typedef PasswordResetState = AsyncState<void>;
+typedef RequestPasswordResetState = AsyncState<void, Failure>;
+typedef PasswordResetState = AsyncState<void, Failure>;

@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:runway/features/password_reset/usecase/request_password_reset_usecase.dart';
-import 'package:runway/features/password_reset/controller/request_password_reset_controller.dart';
-import 'package:runway/features/password_reset/types/request_password_reset_state.dart';
+import 'package:dartz/dartz.dart';
 import 'package:runway/core/state/async_state.dart';
+import 'package:runway/core/error/failure.dart';
+import 'package:runway/features/password_reset/controller/password_reset_controller.dart';
+import 'package:runway/features/password_reset/types/password_reset_state.dart';
+import 'package:runway/features/password_reset/usecase/reset_password_usecase.dart';
 
-// Mock Usecase 정의
 class MockRequestPasswordResetUsecase extends Mock
     implements RequestPasswordResetUsecase {}
 
@@ -18,41 +19,49 @@ void main() {
     controller = RequestPasswordResetController(mockUsecase);
   });
 
-  test('requestReset sets status to loading then success on success', () async {
-    when(
-      () => mockUsecase.execute(email: any(named: 'email')),
-    ).thenAnswer((_) async {});
+  group('RequestPasswordResetController 상태 흐름 테스트', () {
+    test('Usecase 성공 → 상태: initial → loading → success', () async {
+      when(
+        () => mockUsecase.execute(emailInput: any(named: 'emailInput')),
+      ).thenAnswer((_) async => const Right(unit));
 
-    final states = <RequestPasswordResetState>[];
-    controller.addListener((state) => states.add(state));
+      final states = <RequestPasswordResetState>[];
 
-    await controller.requestReset(email: 'test@example.com');
+      final removeListener = controller.addListener(states.add);
 
-    // 초기 상태 제외
-    final changedStates = states.skip(1).toList();
+      await controller.requestReset(email: 'success@example.com');
 
-    expect(changedStates.length, 2);
-    expect(changedStates[0].status, AsyncStatus.loading);
-    expect(changedStates[1].status, AsyncStatus.success);
-    expect(changedStates[1].error, isNull);
-  });
+      removeListener();
 
-  test('requestReset sets status to error on failure', () async {
-    when(
-      () => mockUsecase.execute(email: any(named: 'email')),
-    ).thenThrow(Exception('Failed to send email'));
+      expect(states.map((s) => s.status).toList(), [
+        AsyncStatus.initial,
+        AsyncStatus.loading,
+        AsyncStatus.success,
+      ]);
+    });
 
-    final states = <RequestPasswordResetState>[];
-    controller.addListener((state) => states.add(state));
+    test('Usecase 실패 → 상태: initial → loading → error', () async {
+      final failure = UnknownFailure('Failed to send email');
 
-    await controller.requestReset(email: 'fail@example.com');
+      when(
+        () => mockUsecase.execute(emailInput: any(named: 'emailInput')),
+      ).thenAnswer((_) async => Left(failure));
 
-    // 초기 상태 제외
-    final changedStates = states.skip(1).toList();
+      final states = <RequestPasswordResetState>[];
 
-    expect(changedStates.length, 2);
-    expect(changedStates[0].status, AsyncStatus.loading);
-    expect(changedStates[1].status, AsyncStatus.error);
-    expect(changedStates[1].error, 'Failed to send email');
+      final removeListener = controller.addListener(states.add);
+
+      await controller.requestReset(email: 'fail@example.com');
+
+      removeListener();
+
+      expect(states.map((s) => s.status).toList(), [
+        AsyncStatus.initial,
+        AsyncStatus.loading,
+        AsyncStatus.error,
+      ]);
+
+      expect(states.last.error, failure);
+    });
   });
 }

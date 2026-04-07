@@ -1,20 +1,20 @@
 abstract class Failure {
   final String message;
-  Failure(this.message);
+  const Failure(this.message);
 }
 
 class AuthFailure extends Failure {
-  AuthFailure(super.message);
+  const AuthFailure(super.message);
 }
 
 class ServerFailure extends Failure {
-  ServerFailure(super.message);
+  const ServerFailure(super.message);
 }
 
 class NetworkFailure extends Failure {
-  NetworkFailure(super.message);
+  const NetworkFailure(super.message);
 }
 
 class UnknownFailure extends Failure {
-  UnknownFailure(super.message);
+  const UnknownFailure(super.message);
 }

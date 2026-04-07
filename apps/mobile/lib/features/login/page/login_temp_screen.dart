@@ -15,7 +15,7 @@ class LoginTempScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(loginControllerProvider);
 
-    ref.listen(loginControllerProvider, (previous, next) {
+    ref.listen(loginControllerProvider, (prev, next) {
       if (next.status == AsyncStatus.success) {
         context.go('/profile');
       }
@@ -23,7 +23,7 @@ class LoginTempScreen extends ConsumerWidget {
       if (next.status == AsyncStatus.error && next.error != null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(next.error!)));
+        ).showSnackBar(SnackBar(content: Text(next.error!.message)));
       }
     });
 
@@ -40,7 +40,6 @@ class LoginTempScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-
             TextField(
               controller: passwordController,
               decoration: const InputDecoration(
@@ -49,23 +48,10 @@ class LoginTempScreen extends ConsumerWidget {
               ),
               obscureText: true,
             ),
-
             const SizedBox(height: 24),
 
             if (state.status == AsyncStatus.loading)
               const CircularProgressIndicator(),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  context.push('/reset-password');
-                },
-                child: const Text('비밀번호를 잊으셨나요?'),
-              ),
-            ),
 
             const SizedBox(height: 16),
 

@@ -1,14 +1,34 @@
-import { GetProfileResponseDto } from '../../../shared/dto/profile/GetProfileResponse.dto.ts';
-import { findUserById, deleteProfileRepo, deleteAuthRepo } from './profileRepository.ts';
+import { UpdateProfileRequestDto } from '../../../shared/dto/profile/UpdateProfileRequest.dto.ts';
+import {
+  findUserById,
+  updateProfileRepo,
+  deleteProfileRepo,
+  deleteAuthRepo,
+} from './profileRepository.ts';
+import { Profile } from '../../../shared/domain/profile/Profile.ts';
 
-export async function getProfile(userId: string): Promise<GetProfileResponseDto> {
+export async function getProfile(userId: string): Promise<Profile> {
   const user = await findUserById(userId);
 
   if (!user) {
     throw new Error('User not found');
   }
 
-  return new GetProfileResponseDto(user.email, user.displayName);
+  // 순수 엔티티 객체를 반환
+  return user;
+}
+
+export async function updateProfile(userId: string, dto: UpdateProfileRequestDto) {
+  if (dto.displayName && (dto.displayName.length < 2 || dto.displayName.length > 20)) {
+    throw new Error('VALIDATION_ERROR: 닉네임은 2자 이상 20자 이하로 입력해주세요.');
+  }
+
+  const profileUpdated = await updateProfileRepo(userId, {
+    display_name: dto.displayName,
+  });
+  if (!profileUpdated) return false;
+
+  return true;
 }
 
 export async function deleteProfile(userId: string) {

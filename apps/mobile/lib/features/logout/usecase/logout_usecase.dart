@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import '../../../core/error/failure.dart';
 import '../repository/logout_repository.dart';
 
 class LogoutUsecase {
@@ -6,7 +8,7 @@ class LogoutUsecase {
   LogoutUsecase({required LogoutRepository repository})
     : _repository = repository;
 
-  Future<void> execute() async {
+  Future<Either<Failure, Unit>> execute() async {
     return await _repository.logout();
   }
 }

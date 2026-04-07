@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:runway/core/providers.dart';
+import 'package:runway/core/state/async_state.dart';
 
 class ProfileTempScreen extends ConsumerStatefulWidget {
   const ProfileTempScreen({super.key});
@@ -13,37 +14,40 @@ class ProfileTempScreen extends ConsumerStatefulWidget {
 
 class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
   @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(profileControllerProvider.notifier).fetchProfile();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    ref.listen(deleteProfileControllerProvider, (prev, next) {
+    ref.listen(logoutControllerProvider, (previous, next) {
+      if (!mounted) return;
+
+      if (next.status == AsyncStatus.success) {
+        context.go('/login');
+      } else if (next.status == AsyncStatus.error && next.error != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!.message)));
+      }
+    });
+
+    ref.listen(deleteProfileControllerProvider, (previous, next) {
+      if (!mounted) return;
+
       if (next.isSuccess) {
         context.go('/login');
-      }
-
-      if (next.error != null) {
+      } else if (next.error != null) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(next.error!)));
       }
     });
 
-    final state = ref.watch(profileControllerProvider);
+    final profileState = ref.watch(profileControllerProvider);
 
     return Scaffold(
-      body: state.isLoading
+      body: profileState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : state.error != null
-          ? Center(child: Text(state.error!))
+          : profileState.error != null
+          ? Center(child: Text(profileState.error!))
           : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
                   const SizedBox(height: 30),
@@ -68,11 +72,11 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
 
                   const SizedBox(height: 15),
 
-                  Text(state.displayName ?? ''),
+                  Text(profileState.displayName ?? ''),
                   const SizedBox(height: 5),
 
                   Text(
-                    state.email ?? '',
+                    profileState.email ?? '',
                     style: const TextStyle(color: Colors.grey),
                   ),
 
@@ -92,7 +96,12 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                       '로그아웃',
                       style: TextStyle(color: Colors.red),
                     ),
-                    onTap: () {},
+                    onTap: () async {
+                      final controller = ref.read(
+                        logoutControllerProvider.notifier,
+                      );
+                      await controller.logout();
+                    },
                   ),
 
                   const Divider(),
@@ -106,6 +115,15 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                       ref
                           .read(deleteProfileControllerProvider.notifier)
                           .deleteProfile();
+                    },
+                  ),
+
+                  const Divider(),
+
+                  ListTile(
+                    title: const Text('회원정보 수정 (임시)'),
+                    onTap: () {
+                      context.push('/profile/update');
                     },
                   ),
                 ],
