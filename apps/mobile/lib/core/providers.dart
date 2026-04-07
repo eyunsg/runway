@@ -273,6 +273,8 @@ final simulationControllerProvider =
     StateNotifierProvider<SimulationController, SimulationState>((ref) {
       final useCase = ref.read(simulationUseCaseProvider);
       return SimulationController(useCase: useCase);
+    });
+
 /// ---------------- CREATE PORTFOLIO ----------------
 
 final createPortfolioRepositoryProvider = Provider<CreatePortfolioRepository>((
