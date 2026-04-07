@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { addPortfolioService } from './portfoliosService.ts';
+import { addPortfolioService, getPortfoliosService } from './portfoliosService.ts';
 import { AddPortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 
 const corsHeaders = {
@@ -40,5 +40,37 @@ export async function handleAddPortfolio(req: Request) {
   return new Response(null, {
     status: 201,
     headers: corsHeaders,
+  });
+}
+
+export async function handleGetPortfolios(req: Request) {
+  // Supabase 클라이언트 초기화
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: {
+      headers: { Authorization: req.headers.get('authorization') ?? '' },
+    },
+  });
+
+  // 1. 사용자 인증 확인
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new UnauthorizedError('인증에 실패했습니다. 다시 로그인해주세요.');
+  }
+
+  // 2. 서비스 레이어 호출 (목록 조회 비즈니스 로직 수행)
+  const result = await getPortfoliosService(user.id);
+
+  // 3. 성공 응답 반환 (200 OK)
+  // 설계 원칙: { data: { ... } } 구조가 아닌 result 객체를 바로 JSON화하여 반환합니다.
+  return new Response(JSON.stringify(result), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
   });
 }

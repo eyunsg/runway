@@ -1,11 +1,22 @@
-import { addPortfolioService } from '../supabase/functions/portfolios/portfoliosService.ts';
-import { savePortfolioRepo } from '../supabase/functions/portfolios/portfoliosRepository.ts';
+import {
+  addPortfolioService,
+  getPortfoliosService,
+} from '../supabase/functions/portfolios/portfoliosService.ts';
+import {
+  savePortfolioRepo,
+  getPortfoliosRepo,
+} from '../supabase/functions/portfolios/portfoliosRepository.ts';
 import { AddPortfolioRequestDto } from '../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 import { AssetType } from '../shared/domain/AssetType.ts';
+import {
+  PortfolioSummaryDto,
+  GetPortfoliosResponseDto,
+} from '../shared/dto/portfolios/GetPortfoliosResponse.dto.ts';
 
 // 리포지토리 모킹
 jest.mock('../supabase/functions/portfolios/portfoliosRepository.ts', () => ({
   savePortfolioRepo: jest.fn(),
+  getPortfoliosRepo: jest.fn(),
 }));
 
 describe('PortfolioService - 포트폴리오 생성 테스트', () => {
@@ -113,6 +124,86 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       const dto = new AddPortfolioRequestDto(validRawData);
       // @ts-ignore: 테스트를 위해 유도된 타입 에러
       await expect(addPortfolioService(undefined, dto)).rejects.toThrow();
+    });
+  });
+
+  /// ---------------- API-PORT-002: 목록 조회 테스트 ----------------
+
+  describe('getPortfoliosService', () => {
+    it('사용자의 포트폴리오 목록을 성공적으로 조회하고 DTO로 변환한다', async () => {
+      // 1. 리포지토리 응답 모킹 (DB의 snake_case 구조 반영)
+      const mockDbData = [
+        {
+          id: 'port-1',
+          name: '메인 포트폴리오',
+          simulation_input: {
+            goal: { investment_period_months: 60 },
+            assets: [{}, {}], // 자산 2개
+          },
+          updated_at: '2023-10-27T10:00:00Z',
+        },
+        {
+          id: 'port-2',
+          name: '배당주 포트폴리오',
+          simulation_input: {
+            goal: { investment_period_months: 120 },
+            assets: [{}, {}, {}], // 자산 3개
+          },
+          updated_at: '2023-10-26T15:00:00Z',
+        },
+      ];
+      (getPortfoliosRepo as jest.Mock).mockResolvedValue(mockDbData);
+
+      // 2. 서비스 호출
+      const result = await getPortfoliosService(mockUserId);
+
+      // 3. 검증
+      expect(result).toBeInstanceOf(GetPortfoliosResponseDto);
+      expect(result.portfolios).toHaveLength(2);
+
+      // 첫 번째 포트폴리오 매핑 확인
+      const first = result.portfolios[0];
+      expect(first).toBeInstanceOf(PortfolioSummaryDto);
+      expect(first.portfolioId).toBe('port-1');
+      expect(first.assetCount).toBe(2);
+      expect(first.investmentPeriodMonths).toBe(60);
+      expect(first.updatedAt).toBe('2023-10-27T10:00:00Z');
+
+      expect(getPortfoliosRepo).toHaveBeenCalledWith(mockUserId);
+    });
+
+    it('포트폴리오가 없을 경우 빈 목록을 포함한 DTO를 반환한다', async () => {
+      (getPortfoliosRepo as jest.Mock).mockResolvedValue([]);
+
+      const result = await getPortfoliosService(mockUserId);
+
+      expect(result.portfolios).toEqual([]);
+      expect(result.portfolios).toHaveLength(0);
+    });
+
+    it('리포지토리에서 null이 반환될 경우 DATABASE_ERROR를 던진다', async () => {
+      (getPortfoliosRepo as jest.Mock).mockResolvedValue(null);
+
+      await expect(getPortfoliosService(mockUserId)).rejects.toThrow(
+        'DATABASE_ERROR: 포트폴리오 목록 조회 실패'
+      );
+    });
+
+    it('DB 데이터에 simulation_input이 비어있어도 기본값을 사용하여 에러 없이 반환한다', async () => {
+      const incompleteData = [
+        {
+          id: 'port-incomplete',
+          name: '데이터 누락 포트폴리오',
+          simulation_input: null,
+          updated_at: '2023-10-27T10:00:00Z',
+        },
+      ];
+      (getPortfoliosRepo as jest.Mock).mockResolvedValue(incompleteData);
+
+      const result = await getPortfoliosService(mockUserId);
+
+      expect(result.portfolios[0].assetCount).toBe(0);
+      expect(result.portfolios[0].investmentPeriodMonths).toBe(0);
     });
   });
 });
