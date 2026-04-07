@@ -1,8 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:runway/features/profile/controller/delete_profile_controller.dart';
-import 'package:runway/features/profile/repository/delete_profile_repository.dart';
-import 'package:runway/features/profile/types/delete_profile_state.dart';
-import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/register/controller/register_controller.dart';
@@ -35,9 +31,24 @@ import '../features/password_reset/usecase/reset_password_usecase.dart';
 import '../features/password_reset/repository/reset_password_repository.dart';
 import '../features/password_reset/types/password_reset_state.dart';
 
+import 'package:runway/features/profile/controller/delete_profile_controller.dart';
+import 'package:runway/features/profile/repository/delete_profile_repository.dart';
+import 'package:runway/features/profile/types/delete_profile_state.dart';
+import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
+
 import '../features/profile/controller/update_profile_controller.dart';
 import '../features/profile/usecase/update_profile_usecase.dart';
 import '../features/profile/repository/update_profile_repository.dart';
+
+import 'package:runway/features/portfolio/controller/create_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/create_portfolio_repository.dart';
+import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
+
+import 'package:runway/features/portfolio/repository/get_portfolio_repository.dart';
+import 'package:runway/features/portfolio/controller/get_portfolio_controller.dart';
+import 'package:runway/features/portfolio/types/get_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/get_portfolio_usecase.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -216,4 +227,42 @@ final updateProfileControllerProvider =
     StateNotifierProvider<UpdateProfileController, ProfileState>((ref) {
       final usecase = ref.read(updateProfileUsecaseProvider);
       return UpdateProfileController(useCase: usecase);
+    });
+
+/// ---------------- CREATE PORTFOLIO ----------------
+
+final createPortfolioRepositoryProvider = Provider<CreatePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return CreatePortfolioRepository(client: client);
+});
+
+final createPortfolioUsecaseProvider = Provider<CreatePortfolioUseCase>((ref) {
+  final repository = ref.read(createPortfolioRepositoryProvider);
+  return CreatePortfolioUseCase(repository);
+});
+
+final createPortfolioControllerProvider =
+    StateNotifierProvider<CreatePortfolioController, PortfolioState>((ref) {
+      final usecase = ref.read(createPortfolioUsecaseProvider);
+      return CreatePortfolioController(useCase: usecase);
+    });
+
+/// ---------------- GET PORTFOLIO ----------------
+
+final getPortfolioRepositoryProvider = Provider<GetPortfolioRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPortfolioRepository(client: client);
+});
+
+final getPortfolioUsecaseProvider = Provider<GetPortfolioUseCase>((ref) {
+  final repository = ref.read(getPortfolioRepositoryProvider);
+  return GetPortfolioUseCase(repository);
+});
+
+final getPortfolioControllerProvider =
+    StateNotifierProvider<GetPortfolioController, GetPortfolioState>((ref) {
+      final usecase = ref.read(getPortfolioUsecaseProvider);
+      return GetPortfolioController(useCase: usecase);
     });
