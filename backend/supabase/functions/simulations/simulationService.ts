@@ -194,7 +194,7 @@ export class SimulationService {
     let accumulatedDiv = 0;
 
     const mGrowth = Math.pow(1 + asset.expectedAnnualPriceGrowthRate, 1 / 12) - 1;
-    const monthlyVolatility = monthlyVolatilityMap[asset.assetType] || 0.05;
+    const monthlyVolatility = monthlyVolatilityMap[asset.assetType];
 
     for (let m = 1; m <= months; m++) {
       if (m === 1) {

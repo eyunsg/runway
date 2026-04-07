@@ -52,6 +52,7 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
       assetType: '',
       price: 0.0,
       amount: 0.0,
+      monthlyContributionAmount: 0.0,
       yield: 0.0,
       isDividendAsset: false,
       dividendAmount: 0.0,
@@ -79,6 +80,7 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
         'assetType': asset.assetType.trim(),
         'price': asset.price,
         'amount': asset.amount,
+        'monthlyContributionAmount': asset.monthlyContributionAmount,
         'yield': asset.yield,
         'isDividendAsset': asset.isDividendAsset,
         'dividendAmount': asset.dividendAmount,
@@ -189,6 +191,7 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
           assetType: '',
           price: 0.0,
           amount: 0.0,
+          monthlyContributionAmount: 0.0,
           yield: 0.0,
           isDividendAsset: false,
           dividendAmount: 0.0,
@@ -364,17 +367,19 @@ class _AssetCardState extends State<_AssetCard> {
   late TextEditingController _assetNameController;
   late TextEditingController _priceController;
   late TextEditingController _amountController;
+  late TextEditingController _monthlyContributionController; // 새 컨트롤러
   late TextEditingController _yieldController;
   String? _selectedAssetType;
   late bool _isDividendAsset;
 
-  late TextEditingController _dividendAmountController; // 주당 배당금 (₩)
-  late TextEditingController _dividendGrowthController; // 배당 성장률 (%)
-  String? _selectedDividendPeriod; // 배당 주기 (월/분기)
-  late bool _isDividendReinvest; // 배당 재투자 여부
+  late TextEditingController _dividendAmountController;
+  late TextEditingController _dividendGrowthController;
+  String? _selectedDividendPeriod;
+  late bool _isDividendReinvest;
 
   late FocusNode _priceFocusNode;
   late FocusNode _amountFocusNode;
+  late FocusNode _monthlyContributionFocusNode; // 새 FocusNode
   late FocusNode _dividendAmountFocusNode;
 
   @override
@@ -387,10 +392,15 @@ class _AssetCardState extends State<_AssetCard> {
     _amountController = TextEditingController(
       text: widget.asset.amount == 0 ? '' : widget.asset.amount.toString(),
     );
+    _monthlyContributionController = TextEditingController(
+      text: widget.asset.monthlyContributionAmount == 0
+          ? ''
+          : widget.asset.monthlyContributionAmount.toString(),
+    );
     _yieldController = TextEditingController(
       text: widget.asset.yield == 0 ? '' : widget.asset.yield.toString(),
     );
-    _selectedAssetType = (widget.asset.assetType.isEmpty)
+    _selectedAssetType = widget.asset.assetType.isEmpty
         ? null
         : widget.asset.assetType;
     _isDividendAsset = widget.asset.isDividendAsset;
@@ -405,16 +415,17 @@ class _AssetCardState extends State<_AssetCard> {
           ? ''
           : widget.asset.dividendGrowth.toString(),
     );
-    _selectedDividendPeriod = (widget.asset.dividendPeriod.isEmpty)
+    _selectedDividendPeriod = widget.asset.dividendPeriod.isEmpty
         ? null
         : widget.asset.dividendPeriod;
     _isDividendReinvest = widget.asset.isDividendReinvest;
 
     _priceFocusNode = FocusNode();
     _amountFocusNode = FocusNode();
+    _monthlyContributionFocusNode = FocusNode();
     _dividendAmountFocusNode = FocusNode();
 
-    // focus 변경 리스너 등록
+    // Focus 리스너 등록
     _priceFocusNode.addListener(() {
       if (_priceFocusNode.hasFocus) {
         _priceController.text = unformatCurrency(_priceController.text);
@@ -428,6 +439,18 @@ class _AssetCardState extends State<_AssetCard> {
         _amountController.text = unformatCurrency(_amountController.text);
       } else {
         _amountController.text = formatCurrency(_amountController.text);
+      }
+    });
+
+    _monthlyContributionFocusNode.addListener(() {
+      if (_monthlyContributionFocusNode.hasFocus) {
+        _monthlyContributionController.text = unformatCurrency(
+          _monthlyContributionController.text,
+        );
+      } else {
+        _monthlyContributionController.text = formatCurrency(
+          _monthlyContributionController.text,
+        );
       }
     });
 
@@ -449,18 +472,18 @@ class _AssetCardState extends State<_AssetCard> {
     _assetNameController.dispose();
     _priceController.dispose();
     _amountController.dispose();
+    _monthlyContributionController.dispose();
     _yieldController.dispose();
     _dividendAmountController.dispose();
     _dividendGrowthController.dispose();
     _priceFocusNode.dispose();
     _amountFocusNode.dispose();
+    _monthlyContributionFocusNode.dispose();
     _dividendAmountFocusNode.dispose();
     super.dispose();
   }
 
   void _notifyParent() {
-    // TextField나 스위치가 변경될 때마다 호출해서
-    // 부모가 _assets[index]를 최신 값으로 유지하도록 한다.
     widget.onChanged(
       SimulationAsset(
         id: widget.asset.id,
@@ -469,6 +492,11 @@ class _AssetCardState extends State<_AssetCard> {
         price: double.tryParse(unformatCurrency(_priceController.text)) ?? 0.0,
         amount:
             double.tryParse(unformatCurrency(_amountController.text)) ?? 0.0,
+        monthlyContributionAmount:
+            double.tryParse(
+              unformatCurrency(_monthlyContributionController.text),
+            ) ??
+            0.0,
         yield: double.tryParse(_yieldController.text.trim()) ?? 0.0,
         isDividendAsset: _isDividendAsset,
         dividendAmount:
@@ -485,7 +513,6 @@ class _AssetCardState extends State<_AssetCard> {
     );
   }
 
-  // 배당 관련 필드 초기화 함수
   void _resetDividendFields() {
     _dividendAmountController.clear();
     _dividendGrowthController.clear();
@@ -520,7 +547,7 @@ class _AssetCardState extends State<_AssetCard> {
                 DropdownMenuItem(value: 'STOCK', child: Text('개별 주식')),
                 DropdownMenuItem(value: 'CRYPTO', child: Text('암호화폐')),
                 DropdownMenuItem(
-                  value: 'INDEX_ASSET',
+                  value: 'INDEX',
                   child: Text('인덱스형 자산(ETF, 지수펀드)'),
                 ),
                 DropdownMenuItem(value: 'COMMODITY', child: Text('원자재')),
@@ -558,6 +585,19 @@ class _AssetCardState extends State<_AssetCard> {
                 prefixText: '₩',
                 border: OutlineInputBorder(),
                 hintText: '초기 투자금 (₩)',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _monthlyContributionController,
+              focusNode: _monthlyContributionFocusNode,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (_) => _notifyParent(),
+              decoration: const InputDecoration(
+                prefixText: '₩',
+                border: OutlineInputBorder(),
+                hintText: '월 투자금 (₩)',
               ),
             ),
             const SizedBox(height: 12),

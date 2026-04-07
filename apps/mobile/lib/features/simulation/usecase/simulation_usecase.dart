@@ -104,7 +104,7 @@ class SimulationUseCase {
     const volatilityMap = {
       'STOCK': 8.0,
       'CRYPTO': 20.0,
-      'INDEX_ASSET': 3.5,
+      'INDEX': 3.5,
       'COMMODITY': 6.0,
       'GOLD': 2.0,
     };

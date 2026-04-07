@@ -7,6 +7,7 @@ class SimulationAsset {
     required this.assetType,
     required this.price,
     required this.amount,
+    required this.monthlyContributionAmount,
     required this.yield,
     required this.isDividendAsset,
     required this.dividendAmount,
@@ -21,6 +22,7 @@ class SimulationAsset {
   final String assetType;
   final double price;
   final double amount;
+  final double monthlyContributionAmount;
   final double yield;
   final bool isDividendAsset;
   final double dividendAmount;
