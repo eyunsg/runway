@@ -45,6 +45,11 @@ import 'package:runway/features/portfolio/repository/create_portfolio_repository
 import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
 import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
 
+import 'package:runway/features/portfolio/repository/get_portfolio_repository.dart';
+import 'package:runway/features/portfolio/controller/get_portfolio_controller.dart';
+import 'package:runway/features/portfolio/types/get_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/get_portfolio_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -242,4 +247,22 @@ final createPortfolioControllerProvider =
     StateNotifierProvider<CreatePortfolioController, PortfolioState>((ref) {
       final usecase = ref.read(createPortfolioUsecaseProvider);
       return CreatePortfolioController(useCase: usecase);
+    });
+
+/// ---------------- GET PORTFOLIO ----------------
+
+final getPortfolioRepositoryProvider = Provider<GetPortfolioRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPortfolioRepository(client: client);
+});
+
+final getPortfolioUsecaseProvider = Provider<GetPortfolioUseCase>((ref) {
+  final repository = ref.read(getPortfolioRepositoryProvider);
+  return GetPortfolioUseCase(repository);
+});
+
+final getPortfolioControllerProvider =
+    StateNotifierProvider<GetPortfolioController, GetPortfolioState>((ref) {
+      final usecase = ref.read(getPortfolioUsecaseProvider);
+      return GetPortfolioController(useCase: usecase);
     });
