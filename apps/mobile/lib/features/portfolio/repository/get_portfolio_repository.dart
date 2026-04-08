@@ -9,13 +9,10 @@ class GetPortfolioRepository {
 
   GetPortfolioRepository({required SupabaseClient client}) : _client = client;
 
-  Future<Either<Failure, List<Portfolio>>> getPortfolio({
-    required int limit,
-    required int offset,
-  }) async {
+  Future<Either<Failure, List<Portfolio>>> getPortfolio() async {
     try {
       final response = await _client.functions.invoke(
-        'portfolios?limit=$limit&offset=$offset',
+        'portfolios',
         method: HttpMethod.get,
       );
 
