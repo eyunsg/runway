@@ -8,11 +8,8 @@ class GetPortfolioUseCase {
 
   GetPortfolioUseCase(this.repository);
 
-  Future<Either<Failure, List<Portfolio>>> execute({
-    required int limit,
-    required int offset,
-  }) async {
-    final result = await repository.getPortfolio(limit: limit, offset: offset);
+  Future<Either<Failure, List<Portfolio>>> execute() async {
+    final result = await repository.getPortfolio();
 
     return result;
   }
