@@ -34,12 +34,12 @@ void main() {
       final dummyList = List.generate(10, createDummyPortfolio);
 
       when(
-        () => mockRepository.getPortfolio(limit: 10, offset: 0),
+        () => mockRepository.getPortfolio(),
       ).thenAnswer((_) async => Right(dummyList));
 
-      final result = await usecase.execute(limit: 10, offset: 0);
+      final result = await usecase.execute();
 
-      verify(() => mockRepository.getPortfolio(limit: 10, offset: 0)).called(1);
+      verify(() => mockRepository.getPortfolio()).called(1);
 
       expect(result.isRight(), true);
 
@@ -53,10 +53,10 @@ void main() {
       const errorMsg = 'server error';
 
       when(
-        () => mockRepository.getPortfolio(limit: 10, offset: 0),
+        () => mockRepository.getPortfolio(),
       ).thenAnswer((_) async => Left(ServerFailure(errorMsg)));
 
-      final result = await usecase.execute(limit: 10, offset: 0);
+      final result = await usecase.execute();
 
       expect(result.isLeft(), true);
 
