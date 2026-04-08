@@ -278,7 +278,7 @@ final getPortfolioControllerProvider =
     });
 
 /// ---------------- GET PORTFOLIO DETAIL ----------------
-///
+
 final getPortfolioDetailRepositoryProvider =
     Provider<GetPortfolioDetailRepository>((ref) {
       final client = ref.read(supabaseClientProvider);
