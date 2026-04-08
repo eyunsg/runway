@@ -1,18 +1,21 @@
-import 'package:runway/domain/entity/portfolio.dart';
-import 'package:runway/features/portfolio/dto/portfolio_response_dto.dart';
+import 'package:runway/domain/entity/portfolio_detail.dart';
+import 'package:runway/features/portfolio/dto/portfolio_detail_response_dto.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:runway/core/error/failure.dart';
 import 'package:dartz/dartz.dart';
 
-class GetPortfolioRepository {
+class GetPortfolioDetailRepository {
   final SupabaseClient _client;
 
-  GetPortfolioRepository({required SupabaseClient client}) : _client = client;
+  GetPortfolioDetailRepository({required SupabaseClient client})
+    : _client = client;
 
-  Future<Either<Failure, List<Portfolio>>> getPortfolio() async {
+  Future<Either<Failure, PortfolioDetail>> getPortfolioDetail(
+    String portfolioId,
+  ) async {
     try {
       final response = await _client.functions.invoke(
-        'portfolios',
+        'portfolios/$portfolioId',
         method: HttpMethod.get,
       );
 
@@ -20,13 +23,13 @@ class GetPortfolioRepository {
         return Left(ServerFailure('조회 실패'));
       }
 
-      final portfoliosJson = response.data['portfolios'] as List;
+      final portfolioDetailJson = response.data as Map<String, dynamic>;
 
-      final portfolios = portfoliosJson
-          .map((e) => PortfolioResponseDto.fromJson(e).toModel())
-          .toList();
+      final portfolioDetail = PortfolioDetailResponseDto.fromJson(
+        portfolioDetailJson,
+      ).toModel();
 
-      return Right(portfolios);
+      return Right(portfolioDetail);
     } on AuthException catch (e) {
       return Left(AuthFailure(e.message));
     } on PostgrestException catch (e) {
