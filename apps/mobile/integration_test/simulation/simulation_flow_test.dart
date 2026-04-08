@@ -83,9 +83,10 @@ void main() {
     final req = baseRequest();
     req['goal']['investmentPeriodMonths'] = -1;
 
-    final res = await client.functions.invoke('simulations', body: req);
-
-    expect(res.status, isNot(200));
+    expect(
+      () async => await client.functions.invoke('simulations', body: req),
+      throwsA(isA<FunctionException>()),
+    );
   });
 
   /// -------------------------------
@@ -95,9 +96,10 @@ void main() {
     final req = baseRequest();
     req['assets'] = [];
 
-    final res = await client.functions.invoke('simulations', body: req);
-
-    expect(res.status, isNot(200));
+    expect(
+      () async => await client.functions.invoke('simulations', body: req),
+      throwsA(isA<FunctionException>()),
+    );
   });
 
   /// -------------------------------
