@@ -194,6 +194,7 @@ export class SimulationService {
     let balance = 0;
     let dps = asset.dividendPerShare;
     let accumulatedDiv = 0;
+    let totalGeneratedDividend = 0;
 
     const annualPriceGrowthRateDecimal = asset.expectedAnnualPriceGrowthRate / 100;
     const mGrowth = Math.pow(1 + annualPriceGrowthRateDecimal, 1 / 12) - 1;
@@ -219,6 +220,7 @@ export class SimulationService {
           dps *= 1 + this.checkClampRange(rawG, asset.dividendFrequency);
 
           const divCash = shares * dps;
+          totalGeneratedDividend += divCash;
           if (asset.isReinvestDividends) pool += divCash;
           else accumulatedDiv += divCash;
         }
@@ -230,7 +232,7 @@ export class SimulationService {
 
     return {
       finalValue: price * shares + balance + accumulatedDiv,
-      totalDividendIncome: accumulatedDiv,
+      totalDividendIncome: totalGeneratedDividend,
     };
   }
 
