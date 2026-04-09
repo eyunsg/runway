@@ -13,4 +13,13 @@ class GetPortfolioUseCase {
 
     return result;
   }
+
+  // Future<Either<Failure, List<Portfolio>>> execute({
+  //   required int limit,
+  //   required int offset,
+  // }) async {
+  //   final result = await repository.getPortfolio(limit: limit, offset: offset);
+
+  //   return result;
+  // }
 }
