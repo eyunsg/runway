@@ -194,16 +194,10 @@ export class SimulationService {
     let balance = 0;
     let dps = asset.dividendPerShare;
     let accumulatedDiv = 0;
-
-<<<<<<< HEAD
     let totalGeneratedDividend = 0;
-
-=======
->>>>>>> 356ef35a0c3f81f50d9fdc85383433857272218e
     const annualPriceGrowthRateDecimal = asset.expectedAnnualPriceGrowthRate / 100;
     const mGrowth = Math.pow(1 + annualPriceGrowthRateDecimal, 1 / 12) - 1;
     const monthlyVolatility = monthlyVolatilityMap[asset.assetType];
-
     for (let m = 1; m <= months; m++) {
       if (m === 1) {
         shares = Math.floor(asset.initialInvestmentAmount / price);
