@@ -13,7 +13,7 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
     assetName: '테스트 지수',
     assetType: AssetType.INDEX,
     initialPrice: 10000,
-    expectedAnnualPriceGrowthRate: 0.05,
+    expectedAnnualPriceGrowthRate: 5, // 5%의미
     initialInvestmentAmount: 1000000,
     monthlyContributionAmount: 100000,
     isDividendAsset: false,
@@ -81,6 +81,27 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
       expect(onResult.percentiles.portfolioValue.p50).toBeGreaterThan(
         offResult.percentiles.portfolioValue.p50
       );
+    });
+
+    it('시나리오 4: 배당 재투자 설정 시에도 결과 데이터의 월 배당금(monthlyDividend)이 0보다 커야 한다', () => {
+      const dividendAsset = {
+        ...mockBaseAsset,
+        isDividendAsset: true,
+        dividendPerShare: 1000,
+        dividendFrequency: 4,
+        isReinvestDividends: true, // [중요] 재투자 설정
+      };
+
+      const requestBody = {
+        goal: { investmentPeriodMonths: 24, targetPortfolioValue: 0, targetMonthlyDividend: 0 },
+        assets: [dividendAsset],
+      };
+
+      const dto = new SimulationRequestDto(requestBody);
+      const { percentiles } = service.runSimulation(dto);
+
+      // 버그 수정 전에는 재투자 시 이 값이 0으로 나왔으나, 이제는 0보다 커야 함
+      expect(percentiles.monthlyDividend.p50).toBeGreaterThan(0);
     });
   });
 
@@ -171,13 +192,14 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
             isDividendAsset: true,
             dividendPerShare: 100,
             dividendFrequency: 12,
-            expectedAnnualDividendGrowthRate: 0.2,
+            expectedAnnualDividendGrowthRate: 20, // 20% 의미
           },
         ],
       };
       const dto = new SimulationRequestDto(requestBody);
       const { goalAnalysis } = service.runSimulation(dto);
 
+      expect(goalAnalysis.monthlyDividendGoal.expectedMonthsToTarget).not.toBeNull();
       expect(goalAnalysis.monthlyDividendGoal.expectedMonthsToTarget).toBeGreaterThan(1);
     });
   });
