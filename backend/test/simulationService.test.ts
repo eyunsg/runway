@@ -13,7 +13,7 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
     assetName: '테스트 지수',
     assetType: AssetType.INDEX,
     initialPrice: 10000,
-    expectedAnnualPriceGrowthRate: 5, // 5%의미
+    expectedAnnualPriceGrowthRate: 0.05,
     initialInvestmentAmount: 1000000,
     monthlyContributionAmount: 100000,
     isDividendAsset: false,
@@ -171,7 +171,7 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
             isDividendAsset: true,
             dividendPerShare: 100,
             dividendFrequency: 12,
-            expectedAnnualDividendGrowthRate: 20, // 20% 의미
+            expectedAnnualDividendGrowthRate: 0.2,
           },
         ],
       };
