@@ -9,6 +9,7 @@ import 'package:runway/features/profile/page/profile_temp_screen.dart';
 import '../features/password_change/page/password_change_temp_screen.dart';
 import '../features/profile/page/update_profile_temp_screen.dart';
 import '../features/simulation/page/simulation_temp_screen.dart';
+import '../features/portfolio/page/get_portfolio_temp_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -43,6 +44,10 @@ class AppRouter {
       GoRoute(
         path: '/simulation',
         builder: (context, state) => SimulationTempScreen(),
+      ),
+      GoRoute(
+        path: '/portfolio/get',
+        builder: (context, state) => const GetPortfolioTempScreen(),
       ),
     ],
   );
