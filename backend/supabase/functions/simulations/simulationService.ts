@@ -98,11 +98,9 @@ export class SimulationService {
         const state = states[i];
 
         if (m > 1) {
-          const annualPriceGrowthRateDecimal = asset.expectedAnnualPriceGrowthRate / 100;
-          const annualDivGrowthRateDecimal = asset.expectedAnnualDividendGrowthRate / 100;
           // 기대 성장률 반영
-          const mPriceReturn = Math.pow(1 + annualPriceGrowthRateDecimal, 1 / 12) - 1;
-          const mDivGrowth = Math.pow(1 + annualDivGrowthRateDecimal, 1 / 12) - 1;
+          const mPriceReturn = Math.pow(1 + asset.expectedAnnualPriceGrowthRate, 1 / 12) - 1;
+          const mDivGrowth = Math.pow(1 + asset.expectedAnnualDividendGrowthRate, 1 / 12) - 1;
           state.currentPrice *= 1 + mPriceReturn;
           state.currentDps *= 1 + mDivGrowth;
         }
@@ -195,8 +193,7 @@ export class SimulationService {
     let dps = asset.dividendPerShare;
     let accumulatedDiv = 0;
 
-    const annualPriceGrowthRateDecimal = asset.expectedAnnualPriceGrowthRate / 100;
-    const mGrowth = Math.pow(1 + annualPriceGrowthRateDecimal, 1 / 12) - 1;
+    const mGrowth = Math.pow(1 + asset.expectedAnnualPriceGrowthRate, 1 / 12) - 1;
     const monthlyVolatility = monthlyVolatilityMap[asset.assetType];
 
     for (let m = 1; m <= months; m++) {
@@ -213,7 +210,7 @@ export class SimulationService {
           // 배당 성장 시뮬레이션 및 Clamp 적용
           const rawG = this.calculatePeriodG(
             asset.dividendFrequency,
-            asset.expectedAnnualDividendGrowthRate / 100,
+            asset.expectedAnnualDividendGrowthRate,
             getNextRandom
           );
           dps *= 1 + this.checkClampRange(rawG, asset.dividendFrequency);
