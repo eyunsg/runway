@@ -257,4 +257,61 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
       expect(goalAnalysis.portfolioValueGoal.expectedMonthsToTarget).toBeNull();
     });
   });
+  describe('Part 4: Seeded Deterministic Analysis (결정론적 검증)', () => {
+    const seededRequestBody = {
+      goal: {
+        investmentPeriodMonths: 60,
+        targetPortfolioValue: 5000000,
+        targetMonthlyDividend: 20000,
+      },
+      assets: [
+        {
+          ...mockBaseAsset,
+          assetType: AssetType.STOCK,
+          expectedAnnualPriceGrowthRate: 7,
+          isDividendAsset: true,
+          dividendPerShare: 250,
+          dividendFrequency: 4,
+          expectedAnnualDividendGrowthRate: 5,
+          isReinvestDividends: true,
+        },
+      ],
+    };
+
+    it('시드 주입 시 결과가 100% 동일하게 재현되어야 한다', () => {
+      const testSeed = 'RUNWAY-402-DETERMINISTIC-TEST';
+      const dto1 = new SimulationRequestDto({ ...seededRequestBody, seed: testSeed });
+      const dto2 = new SimulationRequestDto({ ...seededRequestBody, seed: testSeed });
+
+      const result1 = service.runSimulation(dto1);
+      const result2 = service.runSimulation(dto2);
+
+      // 객체 비교를 통해 모든 분위수 값이 소수점까지 일치하는지 확인
+      expect(result1.percentiles).toEqual(result2.percentiles);
+      expect(result1.percentiles.portfolioValue.p50).toBe(result2.percentiles.portfolioValue.p50);
+    });
+
+    it('시드가 주입되지 않으면 무작위성에 의해 매번 다른 결과가 나와야 한다', () => {
+      const dto1 = new SimulationRequestDto({ ...seededRequestBody });
+      const dto2 = new SimulationRequestDto({ ...seededRequestBody });
+
+      const result1 = service.runSimulation(dto1);
+      const result2 = service.runSimulation(dto2);
+
+      // 시드가 없으므로 중위값이 다를 확률이 지배적임
+      expect(result1.percentiles.portfolioValue.p50).not.toBe(
+        result2.percentiles.portfolioValue.p50
+      );
+    });
+
+    it('고정된 시드에 대해 통계적 유효성 및 기댓값 범위를 유지해야 한다', () => {
+      const fixedSeed = 'SNAPSHOT_VERIFICATION';
+      const dto = new SimulationRequestDto({ ...seededRequestBody, seed: fixedSeed });
+      const { percentiles } = service.runSimulation(dto);
+
+      expect(percentiles.portfolioValue.p50).toBeGreaterThan(0);
+      expect(percentiles.portfolioValue.p10).toBeLessThanOrEqual(percentiles.portfolioValue.p50);
+      expect(percentiles.portfolioValue.p50).toBeLessThanOrEqual(percentiles.portfolioValue.p90);
+    });
+  });
 });
