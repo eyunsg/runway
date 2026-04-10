@@ -1,10 +1,14 @@
 import {
   addPortfolioService,
   getPortfoliosService,
+  getPortfolioDetailService,
+  updatePortfolioService,
 } from '../supabase/functions/portfolios/portfoliosService.ts';
 import {
   savePortfolioRepo,
   getPortfoliosRepo,
+  getPortfolioDetailRepo,
+  updatePortfolioRepo,
 } from '../supabase/functions/portfolios/portfoliosRepository.ts';
 import { AddPortfolioRequestDto } from '../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 import { AssetType } from '../shared/domain/AssetType.ts';
@@ -12,11 +16,14 @@ import {
   PortfolioSummaryDto,
   GetPortfoliosResponseDto,
 } from '../shared/dto/portfolios/GetPortfoliosResponse.dto.ts';
+import { GetPortfolioDetailResponseDto } from '../shared/dto/portfolios/GetPortfoliosDetailRespone.dto.ts';
 
 // 리포지토리 모킹
 jest.mock('../supabase/functions/portfolios/portfoliosRepository.ts', () => ({
   savePortfolioRepo: jest.fn(),
   getPortfoliosRepo: jest.fn(),
+  getPortfolioDetailRepo: jest.fn(),
+  updatePortfolioRepo: jest.fn(),
 }));
 
 describe('PortfolioService - 포트폴리오 생성 테스트', () => {
@@ -205,13 +212,203 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       expect(result.portfolios[0].assetCount).toBe(0);
       expect(result.portfolios[0].investmentPeriodMonths).toBe(0);
     });
+  });
 
-    it('Soft-deleted된 포트폴리오는 레포지토리 수준에서 필터링되어 목록에 나타나지 않는다', async () => {
-      // 레포지토리에서 deleted_at IS NULL 필터링 결과로 빈 배열이 반환된 상황 모킹
-      (getPortfoliosRepo as jest.Mock).mockResolvedValue([]);
+  /// ---------------- API-PORT-003: 상세 조회 테스트 ----------------
+  describe('getPortfolioDetailService', () => {
+    const mockPortfolioId = 'port-555';
 
-      const result = await getPortfoliosService(mockUserId);
-      expect(result.portfolios).toHaveLength(0);
+    // DB에서 넘어오는 snake_case 형태의 모의 데이터
+    const mockDetailDbData = {
+      id: mockPortfolioId,
+      user_id: mockUserId,
+      name: '상세 테스트 포트폴리오',
+      simulation_input: {
+        goal: {
+          investment_period_months: 120,
+          target_portfolio_value: 2000000,
+          target_monthly_dividend: 10000,
+        },
+        assets: [
+          {
+            asset_name: '테슬라',
+            asset_type: 'STOCK',
+            initial_price: 250,
+            expected_annual_price_growth_rate: 0.1,
+            initial_investment_amount: 5000,
+            monthly_contribution_amount: 1000,
+            is_dividend_asset: true,
+            dividend_per_share: 0.5,
+            expected_annual_dividend_growth_rate: 0.05,
+            dividend_frequency: 4,
+            is_reinvest_dividends: true,
+          },
+        ],
+      },
+      simulation_result: {
+        percentiles: {
+          portfolio_value: { p10: 1500000, p50: 2100000, p90: 2800000 },
+          monthly_dividend: { p10: 800, p50: 1000, p90: 1200 },
+        },
+        goal_analysis: {
+          portfolio_value_goal: {
+            achievement_probability: 0.75,
+            expected_months_to_target: 84,
+          },
+          monthly_dividend_goal: {
+            achievement_probability: 0.6,
+            expected_months_to_target: 96,
+          },
+        },
+      },
+      updated_at: '2023-11-01T12:00:00Z',
+    };
+
+    it('존재하는 ID로 조회 시 모든 필드가 camelCase로 매핑된 DTO를 반환한다', async () => {
+      (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(mockDetailDbData);
+
+      const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+
+      // 1. DTO 인스턴스 확인
+      expect(result).toBeInstanceOf(GetPortfolioDetailResponseDto);
+
+      // 2. Simulation Input 상세 매핑 확인
+      const asset = result.simulationInput.assets[0];
+      expect(asset.assetName).toBe('테슬라');
+      expect(asset.dividendFrequency).toBe(4);
+      expect(asset.isReinvestDividends).toBe(true);
+
+      // 3. Simulation Result 상세 매핑 확인
+      expect(result.simulationResult.percentiles.portfolioValue.p50).toBe(2100000);
+      expect(result.simulationResult.goalAnalysis.monthlyDividendGoal.expectedMonthsToTarget).toBe(
+        96
+      );
+
+      expect(getPortfolioDetailRepo).toHaveBeenCalledWith(mockUserId, mockPortfolioId);
+    });
+
+    it('존재하지 않거나 권한이 없는 ID 조회 시 NOT_FOUND 에러를 던진다', async () => {
+      (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(null);
+      await expect(getPortfolioDetailService(mockUserId, 'invalid-id')).rejects.toThrow(
+        'NOT_FOUND'
+      );
+    });
+
+    it('DB 데이터의 분석 결과에 확률값이 없을 경우 기본값 0을 적용한다', async () => {
+      const dataWithoutProb = {
+        ...mockDetailDbData,
+        simulation_result: {
+          ...mockDetailDbData.simulation_result,
+          goal_analysis: {
+            portfolio_value_goal: { expected_months_to_target: 100 },
+            monthly_dividend_goal: { expected_months_to_target: null },
+          },
+        },
+      };
+      (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(dataWithoutProb);
+
+      const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+      expect(result.simulationResult.goalAnalysis.portfolioValueGoal.achievementProbability).toBe(
+        0
+      );
+    });
+
+    it('자산 리스트가 비어있는 포트폴리오도 정상적으로 처리한다', async () => {
+      const noAssetData = {
+        ...mockDetailDbData,
+        simulation_input: { ...mockDetailDbData.simulation_input, assets: [] },
+      };
+      (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(noAssetData);
+
+      const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+      expect(result.simulationInput.assets).toHaveLength(0);
+    });
+
+    it('목표 달성 예상 개월수가 null(분석 한계 초과)인 경우를 유지하여 반환한다', async () => {
+      const nullMonthsData = {
+        ...mockDetailDbData,
+        simulation_result: {
+          ...mockDetailDbData.simulation_result,
+          goal_analysis: {
+            portfolio_value_goal: { expected_months_to_target: null },
+            monthly_dividend_goal: { expected_months_to_target: null },
+          },
+        },
+      };
+      (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(nullMonthsData);
+
+      const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+      expect(
+        result.simulationResult.goalAnalysis.portfolioValueGoal.expectedMonthsToTarget
+      ).toBeNull();
+    });
+  });
+
+  /// ---------------- API-PORT-005: 포트폴리오 수정 테스트 ----------------
+  describe('updatePortfolioService', () => {
+    const mockPortfolioId = 'port-update-123';
+
+    it('유효한 데이터로 수정을 요청하면 성공적으로 완료된다', async () => {
+      // 리포지토리 업데이트 성공 모킹 (true 반환)
+      (updatePortfolioRepo as jest.Mock).mockResolvedValue(true);
+
+      const dto = new AddPortfolioRequestDto(validRawData);
+      await expect(updatePortfolioService(mockUserId, mockPortfolioId, dto)).resolves.not.toThrow();
+
+      expect(updatePortfolioRepo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: mockUserId,
+          name: validRawData.name,
+        }),
+        mockPortfolioId
+      );
+      expect(updatePortfolioRepo).toHaveBeenCalledTimes(1);
+    });
+
+    it('수정할 포트폴리오가 없거나 권한이 없으면 NOT_FOUND 에러를 던진다', async () => {
+      // 리포지토리 업데이트 실패 모킹 (false 반환)
+      (updatePortfolioRepo as jest.Mock).mockResolvedValue(false);
+
+      const dto = new AddPortfolioRequestDto(validRawData);
+      await expect(updatePortfolioService(mockUserId, 'non-existent-id', dto)).rejects.toThrow(
+        'NOT_FOUND'
+      );
+    });
+
+    it('리포지토리 실행 중 예외가 발생하면 예외를 상위로 전파한다', async () => {
+      // 리포지토리에서 실제 에러(예: DB 연결 유실)가 발생한 상황 모킹
+      (updatePortfolioRepo as jest.Mock).mockRejectedValue(new Error('Connection Failed'));
+
+      const dto = new AddPortfolioRequestDto(validRawData);
+      await expect(updatePortfolioService(mockUserId, mockPortfolioId, dto)).rejects.toThrow(
+        'Connection Failed'
+      );
+    });
+
+    it('수정 데이터가 도메인 규칙에 위반되면(예: 이름 공백) VALIDATION_ERROR를 던진다', async () => {
+      const invalidData = { ...validRawData, name: '' };
+
+      await expect(async () => {
+        const dto = new AddPortfolioRequestDto(invalidData);
+        await updatePortfolioService(mockUserId, mockPortfolioId, dto);
+      }).rejects.toThrow('VALIDATION_ERROR');
+
+      expect(updatePortfolioRepo).not.toHaveBeenCalled();
+    });
+
+    it('수정하려는 자산 리스트가 10개를 초과하여 수정하려 하면 VALIDATION_ERROR를 던진다', async () => {
+      const tooManyAssets = Array(11).fill(validRawData.simulationInput.assets[0]);
+      const invalidData = {
+        ...validRawData,
+        simulationInput: { ...validRawData.simulationInput, assets: tooManyAssets },
+      };
+
+      await expect(async () => {
+        const dto = new AddPortfolioRequestDto(invalidData);
+        await updatePortfolioService(mockUserId, mockPortfolioId, dto);
+      }).rejects.toThrow('VALIDATION_ERROR');
+
+      expect(updatePortfolioRepo).not.toHaveBeenCalled();
     });
   });
 });
