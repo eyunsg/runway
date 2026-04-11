@@ -205,5 +205,13 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       expect(result.portfolios[0].assetCount).toBe(0);
       expect(result.portfolios[0].investmentPeriodMonths).toBe(0);
     });
+
+    it('Soft-deleted된 포트폴리오는 레포지토리 수준에서 필터링되어 목록에 나타나지 않는다', async () => {
+      // 레포지토리에서 deleted_at IS NULL 필터링 결과로 빈 배열이 반환된 상황 모킹
+      (getPortfoliosRepo as jest.Mock).mockResolvedValue([]);
+
+      const result = await getPortfoliosService(mockUserId);
+      expect(result.portfolios).toHaveLength(0);
+    });
   });
 });

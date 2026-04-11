@@ -70,6 +70,7 @@ export async function getPortfoliosRepo(userId: string) {
     .from('portfolios')
     .select('id, name, simulation_input, updated_at')
     .eq('user_id', userId)
+    .is('deleted_at', null)
     .order('updated_at', { ascending: false });
 
   if (error) {
