@@ -1,5 +1,5 @@
 import { Portfolio } from '../../../shared/domain/portfolios/Portfolios.ts';
-import { AddPortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
+import { SavePortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 import {
   savePortfolioRepo,
   getPortfoliosRepo,
@@ -57,11 +57,11 @@ interface RawPortfolioDetailRecord {
     goal_analysis: {
       portfolio_value_goal: {
         achievement_probability?: number;
-        expected_months_to_target: number;
+        expected_months_to_target: number | null;
       };
       monthly_dividend_goal: {
         achievement_probability?: number;
-        expected_months_to_target: number;
+        expected_months_to_target: number | null;
       };
     };
   };
@@ -71,7 +71,7 @@ interface RawPortfolioDetailRecord {
 
 export async function addPortfolioService(
   userId: string,
-  dto: AddPortfolioRequestDto
+  dto: SavePortfolioRequestDto
 ): Promise<string> {
   // 1. DTO 데이터를 도메인 모델로 변환
   // 이 과정에서 Portfolio 클래스 내부의 validate()가 호출되어 이름, 자산 개수 등 검증
@@ -91,7 +91,7 @@ export async function addPortfolioService(
 export async function updatePortfolioService(
   userId: string,
   portfolioId: string,
-  dto: AddPortfolioRequestDto
+  dto: SavePortfolioRequestDto
 ): Promise<void> {
   // 1. DTO 데이터를 도메인 모델로 변환 (데이터 유효성 검증 포함)
   const portfolio = new Portfolio(userId, dto.name, dto.simulationInput, dto.simulationResult);
