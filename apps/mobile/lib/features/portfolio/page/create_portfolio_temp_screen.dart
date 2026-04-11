@@ -37,12 +37,12 @@ class _CreatePortfolioTempScreenState
       }
     });
 
-    // [추가] screen 에서 사용할 렌더링 전용 데이터 참조
+    // 렌더링 전용 데이터 참조
     final createPortfolioInput = widget.createPortfolioInput;
     final simulationInput = createPortfolioInput.simulationInput;
     final simulationResult = createPortfolioInput.simulationResult;
 
-    // [추가] 상단 요약/슬라이더/목표 분석에 필요한 값 추출
+    // 상단 요약/슬라이더/목표 분석에 필요한 값 추출
     final investmentPeriodYears =
         (simulationInput.goal.investmentPeriodMonths / 12).floor();
 
@@ -59,7 +59,7 @@ class _CreatePortfolioTempScreenState
         .monthlyDividendGoal
         .expectedMonthsToTarget;
 
-    // [추가] 상단 카드 대표값은 중위값(p50) 기준으로 표시
+    // 상단 카드 대표값 중위값 기준
     final portfolioValueMedianText = _formatKrwAmount(
       portfolioValuePercentiles.p50,
     );
@@ -67,11 +67,10 @@ class _CreatePortfolioTempScreenState
       monthlyDividendPercentiles.p50,
     );
 
-    // [추가] 목표 분석 문구 생성
+    // 목표 분석 문구 생성
     final portfolioGoalSummaryText =
         '자산 ${_formatKrwAmount(simulationInput.goal.targetPortfolioValue)}까지';
 
-    // [수정] GoalInput.targetMonthlyDividend 는 non-nullable num 이므로 null 체크 제거
     final monthlyDividendGoalSummaryText =
         '배당 ${_formatKrwAmount(simulationInput.goal.targetMonthlyDividend)}까지';
 
@@ -102,7 +101,6 @@ class _CreatePortfolioTempScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // [수정] placeholder -> 실제 simulation 결과 렌더링
                     _ResultSummaryCard(
                       investmentPeriodYears: investmentPeriodYears,
                       portfolioValueText: portfolioValueMedianText,
@@ -110,7 +108,6 @@ class _CreatePortfolioTempScreenState
                     ),
                     SizedBox(height: 16),
 
-                    // [수정] placeholder -> 실제 목표 데이터 렌더링
                     _GoalAnalysisCard(
                       portfolioGoalSummaryText: portfolioGoalSummaryText,
                       portfolioGoalMonthsText: portfolioGoalMonthsText,
@@ -124,7 +121,6 @@ class _CreatePortfolioTempScreenState
                     _CenteredSectionTitle(title: '평가금액'),
                     SizedBox(height: 8),
 
-                    // [수정] 실제 평가금액 percentile 렌더링
                     _PercentileSliderCard(
                       description: '80% 확률로 이 범위 안의 평가금액 달성됩니다.',
                       leftLabel: _formatKrwAmount(
@@ -142,7 +138,6 @@ class _CreatePortfolioTempScreenState
                     _CenteredSectionTitle(title: '배당금액'),
                     SizedBox(height: 8),
 
-                    // [수정] 실제 배당금액 percentile 렌더링
                     _PercentileSliderCard(
                       description: '80% 확률로 이 범위 안의 배당금액 달성됩니다.',
                       leftLabel: _formatKrwAmount(
@@ -162,7 +157,7 @@ class _CreatePortfolioTempScreenState
     );
   }
 
-  // [추가] null 목표 도달 개월 처리 포함 텍스트 포맷
+  // 목표 도달 개월 처리 포함 텍스트 포맷
   String _formatExpectedMonthsToTarget(int? months) {
     if (months == null) {
       return '목표 도달 불가';
@@ -182,7 +177,7 @@ class _CreatePortfolioTempScreenState
     return '$years년 $remainingMonths개월';
   }
 
-  // [추가] 화면 표시용 원화 포맷
+  // 원화 포맷
   String _formatKrwAmount(num value) {
     final roundedValue = value.round();
 
@@ -206,7 +201,6 @@ class _CreatePortfolioTempScreenState
   }
 }
 
-// [수정] 결과 placeholder 전용 카드 -> 실제 값 표시 카드로 변경
 class _ResultSummaryCard extends StatelessWidget {
   final int investmentPeriodYears;
   final String portfolioValueText;
@@ -242,7 +236,6 @@ class _ResultSummaryCard extends StatelessWidget {
   }
 }
 
-// [수정] 목표 placeholder 전용 카드 -> 실제 값 표시 카드로 변경
 class _GoalAnalysisCard extends StatelessWidget {
   final String portfolioGoalSummaryText;
   final String portfolioGoalMonthsText;
@@ -327,7 +320,6 @@ class _CenteredSectionTitle extends StatelessWidget {
   }
 }
 
-// [수정] 고정 placeholder 값 -> 전달받은 percentile 값 표시 카드로 변경
 class _PercentileSliderCard extends StatelessWidget {
   final String description;
   final String leftLabel;
@@ -357,11 +349,25 @@ class _PercentileSliderCard extends StatelessWidget {
         const SizedBox(height: 8),
 
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _BottomValueBox(label: leftLabel),
-            _BottomValueBox(label: centerLabel),
-            _BottomValueBox(label: rightLabel),
+            Expanded(
+              child: _BottomValueBox(
+                label: leftLabel,
+                textAlign: TextAlign.left,
+              ),
+            ),
+            Expanded(
+              child: _BottomValueBox(
+                label: centerLabel,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Expanded(
+              child: _BottomValueBox(
+                label: rightLabel,
+                textAlign: TextAlign.right,
+              ),
+            ),
           ],
         ),
       ],
@@ -370,15 +376,19 @@ class _PercentileSliderCard extends StatelessWidget {
 }
 
 class _BottomValueBox extends StatelessWidget {
-  const _BottomValueBox({required this.label});
+  const _BottomValueBox({
+    required this.label,
+    this.textAlign = TextAlign.center,
+  });
 
   final String label;
+  final TextAlign textAlign;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Text(label),
+      child: Text(label, textAlign: textAlign, overflow: TextOverflow.ellipsis),
     );
   }
 }
