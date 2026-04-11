@@ -49,6 +49,9 @@ import 'package:runway/features/portfolio/controller/create_portfolio_controller
 import 'package:runway/features/portfolio/repository/create_portfolio_repository.dart';
 import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
 import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
+import 'package:runway/features/portfolio/controller/update_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/update_portfolio_repository.dart';
+import 'package:runway/features/portfolio/usecase/update_portfolio_usecase.dart';
 
 import '../features/simulation/controller/simulation_controller.dart';
 import '../features/simulation/usecase/simulation_usecase.dart';
@@ -270,6 +273,26 @@ final createPortfolioControllerProvider =
     StateNotifierProvider<CreatePortfolioController, PortfolioState>((ref) {
       final usecase = ref.read(createPortfolioUsecaseProvider);
       return CreatePortfolioController(useCase: usecase);
+    });
+
+/// ---------------- UPDATE PORTFOLIO ----------------
+
+final updatePortfolioRepositoryProvider = Provider<UpdatePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return UpdatePortfolioRepository(client: client);
+});
+
+final updatePortfolioUsecaseProvider = Provider<UpdatePortfolioUseCase>((ref) {
+  final repository = ref.read(updatePortfolioRepositoryProvider);
+  return UpdatePortfolioUseCase(repository);
+});
+
+final updatePortfolioControllerProvider =
+    StateNotifierProvider<UpdatePortfolioController, PortfolioState>((ref) {
+      final usecase = ref.read(updatePortfolioUsecaseProvider);
+      return UpdatePortfolioController(useCase: usecase);
     });
 
 /// ---------------- SIMULATION ----------------
