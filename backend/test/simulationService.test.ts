@@ -103,6 +103,23 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
       // 버그 수정 전에는 재투자 시 이 값이 0으로 나왔으나, 이제는 0보다 커야 함
       expect(percentiles.monthlyDividend.p50).toBeGreaterThan(0);
     });
+
+    it('시나리오 5: 극단적 음의 변동성에서도 near-zero 가격으로 수량이 폭증하지 않아야 한다', () => {
+      const result = (service as any).simulateStochasticTrajectory(
+        24,
+        {
+          ...mockBaseAsset,
+          initialPrice: 40000,
+          initialInvestmentAmount: 20000000,
+          monthlyContributionAmount: 1000000,
+        },
+        () => -100
+      );
+
+      expect(result.finalValue).toBeGreaterThanOrEqual(0);
+      expect(Number.isFinite(result.finalValue)).toBe(true);
+      expect(result.finalValue).toBeLessThan(1e15);
+    });
   });
 
   describe('Part 2: Goal Analysis (결정론적 분석 - 정밀 로직 검증)', () => {
