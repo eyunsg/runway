@@ -294,21 +294,3 @@ final updatePortfolioControllerProvider =
       final usecase = ref.read(updatePortfolioUsecaseProvider);
       return UpdatePortfolioController(useCase: usecase);
     });
-
-/// ---------------- SIMULATION ----------------
-
-final simulationRepositoryProvider = Provider<SimulationRepository>((ref) {
-  final client = ref.read(supabaseClientProvider);
-  return SimulationRepositoryImpl(client: client);
-});
-
-final simulationUseCaseProvider = Provider<SimulationUseCase>((ref) {
-  final repository = ref.read(simulationRepositoryProvider);
-  return SimulationUseCase(repository);
-});
-
-final simulationControllerProvider =
-    StateNotifierProvider<SimulationController, SimulationState>((ref) {
-      final useCase = ref.read(simulationUseCaseProvider);
-      return SimulationController(useCase: useCase);
-    });
