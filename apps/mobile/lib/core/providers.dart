@@ -45,6 +45,11 @@ import 'package:runway/features/portfolio/repository/create_portfolio_repository
 import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
 import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
 
+import '../features/simulation/controller/simulation_controller.dart';
+import '../features/simulation/usecase/simulation_usecase.dart';
+import '../features/simulation/repository/simulation_repository.dart';
+import '../features/simulation/types/simulation_state.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -242,4 +247,22 @@ final createPortfolioControllerProvider =
     StateNotifierProvider<CreatePortfolioController, PortfolioState>((ref) {
       final usecase = ref.read(createPortfolioUsecaseProvider);
       return CreatePortfolioController(useCase: usecase);
+    });
+
+/// ---------------- SIMULATION ----------------
+
+final simulationRepositoryProvider = Provider<SimulationRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return SimulationRepositoryImpl(client: client);
+});
+
+final simulationUseCaseProvider = Provider<SimulationUseCase>((ref) {
+  final repository = ref.read(simulationRepositoryProvider);
+  return SimulationUseCase(repository);
+});
+
+final simulationControllerProvider =
+    StateNotifierProvider<SimulationController, SimulationState>((ref) {
+      final useCase = ref.read(simulationUseCaseProvider);
+      return SimulationController(useCase: useCase);
     });

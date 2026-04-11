@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "test": "jest"
+    "test": "npm run test:api",
+    "test:api": "jest",
+    "test:supabase": "tsx src/scripts/testSupabase.ts"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
