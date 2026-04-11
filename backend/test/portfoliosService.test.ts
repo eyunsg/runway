@@ -2,11 +2,15 @@ import {
   addPortfolioService,
   getPortfoliosService,
   getPortfolioDetailService,
+  updatePortfolioService,
+  deletePortfolioService,
 } from '../supabase/functions/portfolios/portfoliosService.ts';
 import {
   savePortfolioRepo,
   getPortfoliosRepo,
   getPortfolioDetailRepo,
+  updatePortfolioRepo,
+  deletePortfolioRepo,
 } from '../supabase/functions/portfolios/portfoliosRepository.ts';
 import { AddPortfolioRequestDto } from '../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 import { AssetType } from '../shared/domain/AssetType.ts';
@@ -21,6 +25,8 @@ jest.mock('../supabase/functions/portfolios/portfoliosRepository.ts', () => ({
   savePortfolioRepo: jest.fn(),
   getPortfoliosRepo: jest.fn(),
   getPortfolioDetailRepo: jest.fn(),
+  updatePortfolioRepo: jest.fn(),
+  deletePortfolioRepo: jest.fn(),
 }));
 
 describe('PortfolioService - 포트폴리오 생성 테스트', () => {

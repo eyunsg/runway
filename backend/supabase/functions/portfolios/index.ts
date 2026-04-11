@@ -2,6 +2,8 @@ import {
   handleAddPortfolio,
   handleGetPortfolios,
   handleGetPortfolioDetail,
+  handleUpdatePortfolio,
+  handleDeletePortfolio,
   UnauthorizedError,
   ValidationError,
 } from './portfoliosController.ts';
@@ -9,13 +11,14 @@ import {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
 function errorResponse(message: string, status: number) {
   const codeMap: Record<number, string> = {
     400: 'BAD_REQUEST',
     401: 'UNAUTHORIZED',
+    404: 'NOT_FOUND',
     405: 'METHOD_NOT_ALLOWED',
     500: 'INTERNAL_SERVER_ERROR',
   };
@@ -54,15 +57,31 @@ Deno.serve(async (req: Request) => {
       return await handleGetPortfolios(req);
     }
 
-    // 2. POST 요청 라우팅
+    // 3. POST 요청 라우팅
     if (req.method === 'POST') {
       return await handleAddPortfolio(req);
     }
 
-    // 3. 허용되지 않은 메서드 처리
-    return errorResponse('GET, POST 또는 OPTIONS 요청만 허용됩니다.', 405);
+    // 4. PATCH 요청 라우팅 (수정)
+    if (req.method === 'PATCH') {
+      if (pathParts.length > 1) {
+        return await handleUpdatePortfolio(req, pathParts[1]);
+      }
+      return errorResponse('포트폴리오 ID가 필요합니다.', 400);
+    }
+
+    // 5. DELETE 요청 라우팅
+    if (req.method === 'DELETE') {
+      if (pathParts.length > 1) {
+        return await handleDeletePortfolio(req, pathParts[1]);
+      }
+      return errorResponse('삭제할 포트폴리오 ID가 필요합니다.', 400);
+    }
+
+    // 6. 허용되지 않은 메서드 처리
+    return errorResponse('GET, POST, PATCH, DELETE 또는 OPTIONS 요청만 허용됩니다.', 405);
   } catch (err: unknown) {
-    // 4. 전역 에러 핸들링
+    // 6. 전역 에러 핸들링
     let status = 500;
     let message = '알 수 없는 서버 에러가 발생했습니다.';
 
@@ -79,6 +98,10 @@ Deno.serve(async (req: Request) => {
       if (err.message.includes('VALIDATION_ERROR')) {
         status = 400;
         message = err.message.replace('VALIDATION_ERROR: ', '');
+      } else if (err.message.includes('NOT_FOUND')) {
+        // 4. 리소스 없음 에러 처리 (404)
+        status = 404;
+        message = err.message.replace('NOT_FOUND: ', '');
       } else if (err.message.includes('DATABASE_ERROR')) {
         status = 500;
         message = '데이터 저장 중 오류가 발생했습니다.';
