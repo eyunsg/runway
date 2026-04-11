@@ -24,6 +24,7 @@ export interface SimulationGoalDto {
 export class SimulationRequestDto {
   public goal: SimulationGoalDto;
   public assets: AssetInputDto[];
+  public seed?: string;
 
   constructor(body: any) {
     if (!body) {
@@ -35,6 +36,13 @@ export class SimulationRequestDto {
 
     this.goal = body.goal;
     this.assets = body.assets;
+
+    if (body.seed !== undefined && body.seed !== null) {
+      if (typeof body.seed !== 'string') {
+        throw new Error('VALIDATION_ERROR: seed는 문자열 형식이어야 합니다.');
+      }
+      this.seed = body.seed;
+    }
   }
 
   // 목표 설정 데이터 유효성 검사

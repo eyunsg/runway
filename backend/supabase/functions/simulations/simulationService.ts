@@ -23,7 +23,11 @@ export class SimulationService {
   // 통합 시뮬레이션을 실행하고 분위수 결과 및 목표 도달 시점 반환
   public runSimulation(dto: SimulationRequestDto) {
     // 1. 몬테카를로 시뮬레이션 (확률적 모델 - 분석 기간 기준)
-    const mcResults = this.runMonteCarloAnalysis(dto.goal.investmentPeriodMonths, dto.assets);
+    const mcResults = this.runMonteCarloAnalysis(
+      dto.goal.investmentPeriodMonths,
+      dto.assets,
+      dto.seed
+    );
 
     // 2. 목표 달성 분석 (결정론적 모델 - 목표 금액 기준 기댓값 경로 추적)
     const goalResults = this.analyzeGoalAchievement(dto.assets, dto.goal);
@@ -35,17 +39,25 @@ export class SimulationService {
   }
 
   // 10,000회 시뮬레이션을 통해 포트폴리오의 분위수 결과 도출
-  private runMonteCarloAnalysis(investmentPeriodMonths: number, assets: AssetInputDto[]) {
+  private runMonteCarloAnalysis(
+    investmentPeriodMonths: number,
+    assets: AssetInputDto[],
+    seed?: string
+  ) {
     const portfolioValueResults = new Float64Array(numSimulations);
     const monthlyDividendResults = new Float64Array(numSimulations);
 
-    for (let i = 0; i < numSimulations; i++) {
+    for (let simulationIndex = 0; simulationIndex < numSimulations; simulationIndex++) {
       let iterationPortfolioTotalValue = 0;
       let iterationDividendTotalAmount = 0;
 
-      for (const asset of assets) {
+      for (let assetIndex = 0; assetIndex < assets.length; assetIndex++) {
+        const asset = assets[assetIndex];
+        const deterministicAssetSeed = seed
+          ? `${seed}-${simulationIndex}-${assetIndex}`
+          : undefined;
         // 자산별 독립적인 RNG 주입 (전역 상태 공유 방지)
-        const getNextRandom = this.createRandomGenerator();
+        const getNextRandom = this.createRandomGenerator(deterministicAssetSeed);
 
         const { finalValue, totalDividendIncome } = this.simulateStochasticTrajectory(
           investmentPeriodMonths,
@@ -57,9 +69,10 @@ export class SimulationService {
         iterationDividendTotalAmount += totalDividendIncome;
       }
 
-      portfolioValueResults[i] = iterationPortfolioTotalValue;
+      portfolioValueResults[simulationIndex] = iterationPortfolioTotalValue;
       // 월평균 배당금 환산
-      monthlyDividendResults[i] = iterationDividendTotalAmount / investmentPeriodMonths;
+      monthlyDividendResults[simulationIndex] =
+        iterationDividendTotalAmount / investmentPeriodMonths;
     }
 
     const results = {
@@ -162,18 +175,40 @@ export class SimulationService {
   // --- Core Utility Helpers ---
 
   // Box-Muller 변환을 이용한 클로저 기반 난수 생성기
-  private createRandomGenerator() {
+  private createRandomGenerator(seedStr?: string) {
+    // 1. 시드가 없을 경우 기존 Math.random 사용 (기존 동작 유지)
+    if (!seedStr) {
+      return this.wrapStandardNormal(Math.random);
+    }
+    // 2. 문자열 시드를 32비트 정수로 변환 (FNV-1a 스타일 해시)
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < seedStr.length; i++) {
+      h = Math.imul(h ^ seedStr.charCodeAt(i), 16777619);
+    }
+    let s = h >>> 0;
+
+    // 3. Mulberry32 알고리즘 (균등분포 난수 생성)
+    const mulberry32 = () => {
+      let t = (s += 0x6d2b79f5);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    return this.wrapStandardNormal(mulberry32);
+  }
+  // 균등분포 난수 생성기를 Box-Muller 변환을 통해 표준정규분포로 변환
+  private wrapStandardNormal(generateUniformRandom: () => number) {
     let cachedNormalValue: number | null = null;
 
-    return function getNextRandom(): number {
+    return (): number => {
       if (cachedNormalValue !== null) {
         const storedValue = cachedNormalValue;
         cachedNormalValue = null;
         return storedValue;
       }
 
-      const uniformRandom1 = 1 - Math.random();
-      const uniformRandom2 = 1 - Math.random();
+      const uniformRandom1 = 1 - generateUniformRandom();
+      const uniformRandom2 = 1 - generateUniformRandom();
 
       const magnitude = Math.sqrt(-2.0 * Math.log(uniformRandom1));
       const angle = 2.0 * Math.PI * uniformRandom2;
