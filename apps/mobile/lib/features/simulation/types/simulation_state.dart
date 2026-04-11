@@ -1,8 +1,10 @@
+import 'package:runway/features/simulation/types/simulation_response_dto.dart';
+
 class SimulationState {
   final bool isLoading;
   final bool isSuccess;
   final String? error;
-  final dynamic resultData;
+  final SimulationResponseDto? resultData;
 
   const SimulationState({
     this.isLoading = false,
@@ -15,7 +17,7 @@ class SimulationState {
     bool? isLoading,
     bool? isSuccess,
     String? error,
-    dynamic resultData,
+    SimulationResponseDto? resultData,
   }) {
     return SimulationState(
       isLoading: isLoading ?? this.isLoading,

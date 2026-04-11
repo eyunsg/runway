@@ -1,8 +1,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:runway/features/simulation/types/simulation_request_dto.dart';
+import 'package:runway/features/simulation/types/simulation_response_dto.dart';
 
 abstract class SimulationRepository {
-  Future<dynamic> runMonteCarlo(GoalAnalysisSimulationRequestDto request);
+  Future<SimulationResponseDto> runMonteCarlo(
+    GoalAnalysisSimulationRequestDto request,
+  );
 }
 
 class SimulationRepositoryImpl implements SimulationRepository {
@@ -11,7 +14,7 @@ class SimulationRepositoryImpl implements SimulationRepository {
   SimulationRepositoryImpl({required SupabaseClient client}) : _client = client;
 
   @override
-  Future<dynamic> runMonteCarlo(
+  Future<SimulationResponseDto> runMonteCarlo(
     GoalAnalysisSimulationRequestDto request,
   ) async {
     try {
@@ -22,7 +25,12 @@ class SimulationRepositoryImpl implements SimulationRepository {
       );
 
       if (response.status == 200) {
-        return response.data;
+        final data = response.data;
+        if (data == null || data is! Map<String, dynamic>) {
+          throw Exception('시뮬레이션 응답 형식이 올바르지 않습니다.');
+        }
+
+        return SimulationResponseDto.fromJson(data);
       } else {
         final errorMessage =
             response.data['error']?['message'] ?? '시뮬레이션 요청 중 오류가 발생했습니다.';

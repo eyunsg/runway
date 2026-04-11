@@ -4,8 +4,24 @@ import 'package:runway/features/simulation/controller/simulation_controller.dart
 import 'package:runway/features/simulation/usecase/simulation_usecase.dart';
 import 'package:runway/features/simulation/types/simulation_state.dart';
 import 'package:runway/features/simulation/types/simulation_request_dto.dart';
+import 'package:runway/features/simulation/types/simulation_response_dto.dart';
 
 class _MockSimulationUseCase extends Mock implements SimulationUseCase {}
+
+SimulationResponseDto _buildResponse() {
+  return SimulationResponseDto(
+    percentiles: SimulationPercentilesDto(
+      portfolioValue: SimulationPercentileValueDto(p10: 10, p50: 20, p90: 30),
+      monthlyDividend: SimulationPercentileValueDto(p10: 1, p50: 2, p90: 3),
+    ),
+    goalAnalysis: SimulationGoalAnalysisDto(
+      portfolioValueGoal: SimulationGoalMetricDto(expectedMonthsToTarget: 12),
+      monthlyDividendGoal: SimulationGoalMetricDto(
+        expectedMonthsToTarget: null,
+      ),
+    ),
+  );
+}
 
 void main() {
   late _MockSimulationUseCase useCase;
@@ -33,7 +49,7 @@ void main() {
         () => useCase.execute(
           request: any<GoalAnalysisSimulationRequestDto>(named: 'request'),
         ),
-      ).thenAnswer((_) async => {'result': 'ok'});
+      ).thenAnswer((_) async => _buildResponse());
 
       final assets = <Map<String, dynamic>>[
         {
@@ -62,7 +78,7 @@ void main() {
       expect(state.isLoading, false);
       expect(state.isSuccess, true);
       expect(state.error, isNull);
-      expect(state.resultData, {'result': 'ok'});
+      expect(state.resultData?.percentiles.portfolioValue.p50, 20);
 
       verify(
         () => useCase.execute(
@@ -159,7 +175,7 @@ void main() {
           isLoading: true,
           isSuccess: true,
           error: '에러',
-          resultData: {'x': 1},
+          resultData: _buildResponse(),
         );
 
       controller.resetStatus();

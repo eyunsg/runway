@@ -1,12 +1,13 @@
 import 'package:runway/features/simulation/repository/simulation_repository.dart';
 import 'package:runway/features/simulation/types/simulation_request_dto.dart';
+import 'package:runway/features/simulation/types/simulation_response_dto.dart';
 
 class SimulationUseCase {
   final SimulationRepository repository;
 
   SimulationUseCase(this.repository);
 
-  Future<dynamic> execute({
+  Future<SimulationResponseDto> execute({
     required GoalAnalysisSimulationRequestDto request,
   }) async {
     // DTO 기준으로 검증
