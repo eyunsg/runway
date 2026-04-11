@@ -58,7 +58,7 @@ class GoalAnalysis {
 }
 
 class PortfolioValueGoal {
-  final int expectedMonthsToTarget;
+  final int? expectedMonthsToTarget;
 
   PortfolioValueGoal({required this.expectedMonthsToTarget});
 
@@ -68,7 +68,7 @@ class PortfolioValueGoal {
 }
 
 class MonthlyDividendGoal {
-  final int expectedMonthsToTarget;
+  final int? expectedMonthsToTarget;
 
   MonthlyDividendGoal({required this.expectedMonthsToTarget});
 

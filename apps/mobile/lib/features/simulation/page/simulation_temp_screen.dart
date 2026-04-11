@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:runway/core/providers.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:runway/features/simulation/types/simulation_asset.dart';
+import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 
 // 천 단위 구분자 포맷/해제 유틸 함수
 String formatCurrency(String value) {
@@ -90,6 +92,75 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
         'monthlyVolatility': asset.monthlyVolatility,
       };
     }).toList();
+  }
+
+  // simulation 성공 결과/화면 입력값
+  CreatePortfolioInput _buildCreatePortfolioInput(
+    Map<String, dynamic> resultData,
+  ) {
+    final periodMonths = _parseInt(_periodController.text) * 12;
+    final targetPortfolioValue = _parseDouble(_targetAmountController.text);
+    final targetMonthlyDividend = _parseDouble(_targetDividendController.text);
+
+    return CreatePortfolioInput(
+      name: '포트폴리오',
+      simulationInput: SimulationInput(
+        goal: GoalInput(
+          investmentPeriodMonths: periodMonths,
+          targetPortfolioValue: targetPortfolioValue,
+          targetMonthlyDividend: targetMonthlyDividend,
+        ),
+        assets: _assets.map((asset) {
+          return AssetInput(
+            assetName: asset.assetName.trim(),
+            assetType: asset.assetType.trim(),
+            initialPrice: asset.price,
+            expectedAnnualPriceGrowthRate: asset.yield,
+            initialInvestmentAmount: asset.amount,
+            monthlyContributionAmount: asset.monthlyContributionAmount,
+            isDividendAsset: asset.isDividendAsset,
+            dividendPerShare: asset.isDividendAsset
+                ? asset.dividendAmount
+                : null,
+            expectedAnnualDividendGrowthRate: asset.isDividendAsset
+                ? asset.dividendGrowth
+                : null,
+            dividendFrequency: asset.isDividendAsset
+                ? asset.dividendPeriod.trim()
+                : null,
+            isReinvestDividends: asset.isDividendAsset
+                ? asset.isDividendReinvest
+                : null,
+          );
+        }).toList(),
+      ),
+      simulationResult: SimulationResult(
+        percentiles: PercentilesInput(
+          portfolioValue: PortfolioValueInput(
+            p10: resultData['percentiles']['portfolioValue']['p10'] as num,
+            p50: resultData['percentiles']['portfolioValue']['p50'] as num,
+            p90: resultData['percentiles']['portfolioValue']['p90'] as num,
+          ),
+          monthlyDividend: MonthlyDividendInput(
+            p10: resultData['percentiles']['monthlyDividend']['p10'] as num,
+            p50: resultData['percentiles']['monthlyDividend']['p50'] as num,
+            p90: resultData['percentiles']['monthlyDividend']['p90'] as num,
+          ),
+        ),
+        goalAnalysis: GoalAnalysisInput(
+          portfolioValueGoal: PortfolioValueGoalInput(
+            expectedMonthsToTarget:
+                resultData['goalAnalysis']['portfolioValueGoal']['expectedMonthsToTarget']
+                    as int?,
+          ),
+          monthlyDividendGoal: MonthlyDividendGoalInput(
+            expectedMonthsToTarget:
+                resultData['goalAnalysis']['monthlyDividendGoal']['expectedMonthsToTarget']
+                    as int?,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -214,6 +285,19 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(next.error!)));
         ref.read(simulationControllerProvider.notifier).clearError();
+        return;
+      }
+
+      // simulation 성공
+      if (previous?.isSuccess != true &&
+          next.isSuccess &&
+          next.resultData != null) {
+        final resultData = next.resultData as Map<String, dynamic>;
+        final createPortfolioInput = _buildCreatePortfolioInput(resultData);
+
+        if (!context.mounted) return;
+
+        context.push('/portfolio/create', extra: createPortfolioInput);
       }
     });
 
