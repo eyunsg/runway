@@ -1,29 +1,13 @@
 export class PortfolioSummaryDto {
-  portfolioId: string;
-  name: string;
-  assetCount: number;
-  investmentPeriodMonths: number;
-  updatedAt: string;
-
   constructor(
-    portfolioId: string,
-    name: string,
-    assetCount: number,
-    investmentPeriodMonths: number,
-    updatedAt: string
-  ) {
-    this.portfolioId = portfolioId;
-    this.name = name;
-    this.assetCount = assetCount;
-    this.investmentPeriodMonths = investmentPeriodMonths;
-    this.updatedAt = updatedAt;
-  }
+    public portfolioId: string,
+    public name: string,
+    public assetCount: number,
+    public investmentPeriodMonths: number,
+    public updatedAt: string
+  ) {}
 }
 
 export class GetPortfoliosResponseDto {
-  portfolios: PortfolioSummaryDto[];
-
-  constructor(portfolios: PortfolioSummaryDto[]) {
-    this.portfolios = portfolios;
-  }
+  constructor(public portfolios: PortfolioSummaryDto[]) {}
 }

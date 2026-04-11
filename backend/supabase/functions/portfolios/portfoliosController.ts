@@ -5,7 +5,7 @@ import {
   getPortfolioDetailService,
   updatePortfolioService,
 } from './portfoliosService.ts';
-import { AddPortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
+import { SavePortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,7 +36,7 @@ export async function handleAddPortfolio(req: Request) {
 
   // 2. 요청 데이터 파싱
   const body = await req.json();
-  const dto = new AddPortfolioRequestDto(body);
+  const dto = new SavePortfolioRequestDto(body);
 
   // 3. 서비스 레이어 호출 (비즈니스 로직 및 DB 저장 수행)
   await addPortfolioService(user.id, dto);
@@ -127,8 +127,8 @@ export async function handleUpdatePortfolio(req: Request, portfolioId: string) {
 
   // 2. 요청 데이터 파싱
   const body = await req.json();
-  // 생성과 데이터 스펙이 동일하므로 기존 DTO 재사용
-  const dto = new AddPortfolioRequestDto(body);
+  // 수정 저장은 시뮬레이션 화면에서 계산된 결과를 함께 저장한다.
+  const dto = new SavePortfolioRequestDto(body);
 
   // 3. 서비스 레이어 호출 (비즈니스 로직 수행)
   await updatePortfolioService(user.id, portfolioId, dto);
