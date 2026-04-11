@@ -1,4 +1,9 @@
-import { handleAddPortfolio, UnauthorizedError, ValidationError } from './portfoliosController.ts';
+import {
+  handleAddPortfolio,
+  handleGetPortfolios,
+  UnauthorizedError,
+  ValidationError,
+} from './portfoliosController.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,6 +40,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    if (req.method === 'GET') {
+      return await handleGetPortfolios(req);
+    }
+
     // 2. POST 요청 라우팅
     if (req.method === 'POST') {
       return await handleAddPortfolio(req);

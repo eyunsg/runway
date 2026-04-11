@@ -7,6 +7,7 @@ function createAdminClient() {
 
 export async function savePortfolioRepo(portfolio: Portfolio): Promise<string | null> {
   const client = createAdminClient();
+  type PortfolioAsset = Portfolio['simulationInput']['assets'][number];
 
   const { data, error } = await client
     .from('portfolios')
@@ -19,7 +20,7 @@ export async function savePortfolioRepo(portfolio: Portfolio): Promise<string | 
           target_portfolio_value: portfolio.simulationInput.goal.targetPortfolioValue,
           target_monthly_dividend: portfolio.simulationInput.goal.targetMonthlyDividend,
         },
-        assets: portfolio.simulationInput.assets.map((asset) => ({
+        assets: portfolio.simulationInput.assets.map((asset: PortfolioAsset) => ({
           asset_name: asset.assetName,
           asset_type: asset.assetType,
           initial_price: asset.initialPrice,
@@ -60,4 +61,22 @@ export async function savePortfolioRepo(portfolio: Portfolio): Promise<string | 
   }
 
   return data.id;
+}
+
+export async function getPortfoliosRepo(userId: string) {
+  const client = createAdminClient();
+
+  const { data, error } = await client
+    .from('portfolios')
+    .select('id, name, simulation_input, updated_at')
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.error(`[PortfolioRepo Error - Fetch]: ${error.message}`);
+    return null;
+  }
+
+  return data;
 }
