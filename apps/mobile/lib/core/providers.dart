@@ -36,6 +36,11 @@ import 'package:runway/features/profile/repository/delete_profile_repository.dar
 import 'package:runway/features/profile/types/delete_profile_state.dart';
 import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
 
+import 'package:runway/features/portfolio/controller/delete_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/delete_portfolio_repository.dart';
+import 'package:runway/features/portfolio/types/delete_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/delete_portfolio_usecase.dart';
+
 import '../features/profile/controller/update_profile_controller.dart';
 import '../features/profile/usecase/update_profile_usecase.dart';
 import '../features/profile/repository/update_profile_repository.dart';
@@ -212,6 +217,28 @@ final deleteProfileControllerProvider =
     StateNotifierProvider<DeleteProfileController, DeleteProfileState>((ref) {
       final usecase = ref.read(deleteProfileUsecaseProvider);
       return DeleteProfileController(deleteProfileUseCase: usecase);
+    });
+
+/// ---------------- DELETE PORTFOLIO ----------------
+
+final deleteClientRepositoryProvider = Provider<DeletePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeletePortfolioRepository(client: client);
+});
+
+final deleteClientUsecaseProvider = Provider<DeletePortfolioUsecase>((ref) {
+  final repository = ref.read(deleteClientRepositoryProvider);
+  return DeletePortfolioUsecase(repository: repository);
+});
+
+final deleteClientControllerProvider =
+    StateNotifierProvider<DeletePortfolioController, DeletePortfolioState>((
+      ref,
+    ) {
+      final usecase = ref.read(deleteClientUsecaseProvider);
+      return DeletePortfolioController(useCase: usecase);
     });
 
 /// ---------------- UPDATE PROFILE ----------------
