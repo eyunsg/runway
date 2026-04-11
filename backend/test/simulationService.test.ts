@@ -13,7 +13,7 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
     assetName: '테스트 지수',
     assetType: AssetType.INDEX,
     initialPrice: 10000,
-    expectedAnnualPriceGrowthRate: 0.05,
+    expectedAnnualPriceGrowthRate: 5, // 5%의미
     initialInvestmentAmount: 1000000,
     monthlyContributionAmount: 100000,
     isDividendAsset: false,
@@ -81,6 +81,44 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
       expect(onResult.percentiles.portfolioValue.p50).toBeGreaterThan(
         offResult.percentiles.portfolioValue.p50
       );
+    });
+
+    it('시나리오 4: 배당 재투자 설정 시에도 결과 데이터의 월 배당금(monthlyDividend)이 0보다 커야 한다', () => {
+      const dividendAsset = {
+        ...mockBaseAsset,
+        isDividendAsset: true,
+        dividendPerShare: 1000,
+        dividendFrequency: 4,
+        isReinvestDividends: true, // [중요] 재투자 설정
+      };
+
+      const requestBody = {
+        goal: { investmentPeriodMonths: 24, targetPortfolioValue: 0, targetMonthlyDividend: 0 },
+        assets: [dividendAsset],
+      };
+
+      const dto = new SimulationRequestDto(requestBody);
+      const { percentiles } = service.runSimulation(dto);
+
+      // 버그 수정 전에는 재투자 시 이 값이 0으로 나왔으나, 이제는 0보다 커야 함
+      expect(percentiles.monthlyDividend.p50).toBeGreaterThan(0);
+    });
+
+    it('시나리오 5: 극단적 음의 변동성에서도 near-zero 가격으로 수량이 폭증하지 않아야 한다', () => {
+      const result = (service as any).simulateStochasticTrajectory(
+        24,
+        {
+          ...mockBaseAsset,
+          initialPrice: 40000,
+          initialInvestmentAmount: 20000000,
+          monthlyContributionAmount: 1000000,
+        },
+        () => -100
+      );
+
+      expect(result.finalValue).toBeGreaterThanOrEqual(0);
+      expect(Number.isFinite(result.finalValue)).toBe(true);
+      expect(result.finalValue).toBeLessThan(1e15);
     });
   });
 
@@ -171,13 +209,13 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
             isDividendAsset: true,
             dividendPerShare: 100,
             dividendFrequency: 12,
-            expectedAnnualDividendGrowthRate: 0.2,
+            expectedAnnualDividendGrowthRate: 20, // 20% 의미
           },
         ],
       };
       const dto = new SimulationRequestDto(requestBody);
       const { goalAnalysis } = service.runSimulation(dto);
-
+      expect(goalAnalysis.monthlyDividendGoal.expectedMonthsToTarget).not.toBeNull();
       expect(goalAnalysis.monthlyDividendGoal.expectedMonthsToTarget).toBeGreaterThan(1);
     });
   });
@@ -234,6 +272,63 @@ describe('SimulationService - 통합 시뮬레이션 엔진 검증', () => {
       const { goalAnalysis } = service.runSimulation(dto);
 
       expect(goalAnalysis.portfolioValueGoal.expectedMonthsToTarget).toBeNull();
+    });
+  });
+  describe('Part 4: Seeded Deterministic Analysis (결정론적 검증)', () => {
+    const seededRequestBody = {
+      goal: {
+        investmentPeriodMonths: 60,
+        targetPortfolioValue: 5000000,
+        targetMonthlyDividend: 20000,
+      },
+      assets: [
+        {
+          ...mockBaseAsset,
+          assetType: AssetType.STOCK,
+          expectedAnnualPriceGrowthRate: 7,
+          isDividendAsset: true,
+          dividendPerShare: 250,
+          dividendFrequency: 4,
+          expectedAnnualDividendGrowthRate: 5,
+          isReinvestDividends: true,
+        },
+      ],
+    };
+
+    it('시드 주입 시 결과가 100% 동일하게 재현되어야 한다', () => {
+      const testSeed = 'RUNWAY-402-DETERMINISTIC-TEST';
+      const dto1 = new SimulationRequestDto({ ...seededRequestBody, seed: testSeed });
+      const dto2 = new SimulationRequestDto({ ...seededRequestBody, seed: testSeed });
+
+      const result1 = service.runSimulation(dto1);
+      const result2 = service.runSimulation(dto2);
+
+      // 객체 비교를 통해 모든 분위수 값이 소수점까지 일치하는지 확인
+      expect(result1.percentiles).toEqual(result2.percentiles);
+      expect(result1.percentiles.portfolioValue.p50).toBe(result2.percentiles.portfolioValue.p50);
+    });
+
+    it('시드가 주입되지 않으면 무작위성에 의해 매번 다른 결과가 나와야 한다', () => {
+      const dto1 = new SimulationRequestDto({ ...seededRequestBody });
+      const dto2 = new SimulationRequestDto({ ...seededRequestBody });
+
+      const result1 = service.runSimulation(dto1);
+      const result2 = service.runSimulation(dto2);
+
+      // 시드가 없으므로 중위값이 다를 확률이 지배적임
+      expect(result1.percentiles.portfolioValue.p50).not.toBe(
+        result2.percentiles.portfolioValue.p50
+      );
+    });
+
+    it('고정된 시드에 대해 통계적 유효성 및 기댓값 범위를 유지해야 한다', () => {
+      const fixedSeed = 'SNAPSHOT_VERIFICATION';
+      const dto = new SimulationRequestDto({ ...seededRequestBody, seed: fixedSeed });
+      const { percentiles } = service.runSimulation(dto);
+
+      expect(percentiles.portfolioValue.p50).toBeGreaterThan(0);
+      expect(percentiles.portfolioValue.p10).toBeLessThanOrEqual(percentiles.portfolioValue.p50);
+      expect(percentiles.portfolioValue.p50).toBeLessThanOrEqual(percentiles.portfolioValue.p90);
     });
   });
 });

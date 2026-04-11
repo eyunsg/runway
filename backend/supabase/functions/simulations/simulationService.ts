@@ -9,6 +9,8 @@ import { PercentileResultDto } from '../../../shared/dto/simulations/SimulationR
 const numSimulations = 10000;
 const annualDividendGrowthVolatility = 0.02; // 배당성장률의 연간 변동성 (2%)
 const maxAnalysisLimitMonths = 600; // 분석 한계치 (50년)
+const minimumAbsolutePrice = 1;
+const minimumPriceRatio = 0.2; // 초기 가격의 20% 아래로는 내려가지 않도록 제한
 
 const monthlyVolatilityMap: Record<AssetType, number> = {
   [AssetType.STOCK]: 0.08,
@@ -23,7 +25,11 @@ export class SimulationService {
   // 통합 시뮬레이션을 실행하고 분위수 결과 및 목표 도달 시점 반환
   public runSimulation(dto: SimulationRequestDto) {
     // 1. 몬테카를로 시뮬레이션 (확률적 모델 - 분석 기간 기준)
-    const mcResults = this.runMonteCarloAnalysis(dto.goal.investmentPeriodMonths, dto.assets);
+    const mcResults = this.runMonteCarloAnalysis(
+      dto.goal.investmentPeriodMonths,
+      dto.assets,
+      dto.seed
+    );
 
     // 2. 목표 달성 분석 (결정론적 모델 - 목표 금액 기준 기댓값 경로 추적)
     const goalResults = this.analyzeGoalAchievement(dto.assets, dto.goal);
@@ -35,17 +41,25 @@ export class SimulationService {
   }
 
   // 10,000회 시뮬레이션을 통해 포트폴리오의 분위수 결과 도출
-  private runMonteCarloAnalysis(investmentPeriodMonths: number, assets: AssetInputDto[]) {
+  private runMonteCarloAnalysis(
+    investmentPeriodMonths: number,
+    assets: AssetInputDto[],
+    seed?: string
+  ) {
     const portfolioValueResults = new Float64Array(numSimulations);
     const monthlyDividendResults = new Float64Array(numSimulations);
 
-    for (let i = 0; i < numSimulations; i++) {
+    for (let simulationIndex = 0; simulationIndex < numSimulations; simulationIndex++) {
       let iterationPortfolioTotalValue = 0;
       let iterationDividendTotalAmount = 0;
 
-      for (const asset of assets) {
+      for (let assetIndex = 0; assetIndex < assets.length; assetIndex++) {
+        const asset = assets[assetIndex];
+        const deterministicAssetSeed = seed
+          ? `${seed}-${simulationIndex}-${assetIndex}`
+          : undefined;
         // 자산별 독립적인 RNG 주입 (전역 상태 공유 방지)
-        const getNextRandom = this.createRandomGenerator();
+        const getNextRandom = this.createRandomGenerator(deterministicAssetSeed);
 
         const { finalValue, totalDividendIncome } = this.simulateStochasticTrajectory(
           investmentPeriodMonths,
@@ -57,9 +71,10 @@ export class SimulationService {
         iterationDividendTotalAmount += totalDividendIncome;
       }
 
-      portfolioValueResults[i] = iterationPortfolioTotalValue;
+      portfolioValueResults[simulationIndex] = iterationPortfolioTotalValue;
       // 월평균 배당금 환산
-      monthlyDividendResults[i] = iterationDividendTotalAmount / investmentPeriodMonths;
+      monthlyDividendResults[simulationIndex] =
+        iterationDividendTotalAmount / investmentPeriodMonths;
     }
 
     const results = {
@@ -98,9 +113,11 @@ export class SimulationService {
         const state = states[i];
 
         if (m > 1) {
+          const annualPriceGrowthRateDecimal = asset.expectedAnnualPriceGrowthRate / 100;
+          const annualDivGrowthRateDecimal = asset.expectedAnnualDividendGrowthRate / 100;
           // 기대 성장률 반영
-          const mPriceReturn = Math.pow(1 + asset.expectedAnnualPriceGrowthRate, 1 / 12) - 1;
-          const mDivGrowth = Math.pow(1 + asset.expectedAnnualDividendGrowthRate, 1 / 12) - 1;
+          const mPriceReturn = Math.pow(1 + annualPriceGrowthRateDecimal, 1 / 12) - 1;
+          const mDivGrowth = Math.pow(1 + annualDivGrowthRateDecimal, 1 / 12) - 1;
           state.currentPrice *= 1 + mPriceReturn;
           state.currentDps *= 1 + mDivGrowth;
         }
@@ -160,18 +177,40 @@ export class SimulationService {
   // --- Core Utility Helpers ---
 
   // Box-Muller 변환을 이용한 클로저 기반 난수 생성기
-  private createRandomGenerator() {
+  private createRandomGenerator(seedStr?: string) {
+    // 1. 시드가 없을 경우 기존 Math.random 사용 (기존 동작 유지)
+    if (!seedStr) {
+      return this.wrapStandardNormal(Math.random);
+    }
+    // 2. 문자열 시드를 32비트 정수로 변환 (FNV-1a 스타일 해시)
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < seedStr.length; i++) {
+      h = Math.imul(h ^ seedStr.charCodeAt(i), 16777619);
+    }
+    let s = h >>> 0;
+
+    // 3. Mulberry32 알고리즘 (균등분포 난수 생성)
+    const mulberry32 = () => {
+      let t = (s += 0x6d2b79f5);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    return this.wrapStandardNormal(mulberry32);
+  }
+  // 균등분포 난수 생성기를 Box-Muller 변환을 통해 표준정규분포로 변환
+  private wrapStandardNormal(generateUniformRandom: () => number) {
     let cachedNormalValue: number | null = null;
 
-    return function getNextRandom(): number {
+    return (): number => {
       if (cachedNormalValue !== null) {
         const storedValue = cachedNormalValue;
         cachedNormalValue = null;
         return storedValue;
       }
 
-      const uniformRandom1 = 1 - Math.random();
-      const uniformRandom2 = 1 - Math.random();
+      const uniformRandom1 = 1 - generateUniformRandom();
+      const uniformRandom2 = 1 - generateUniformRandom();
 
       const magnitude = Math.sqrt(-2.0 * Math.log(uniformRandom1));
       const angle = 2.0 * Math.PI * uniformRandom2;
@@ -192,8 +231,10 @@ export class SimulationService {
     let balance = 0;
     let dps = asset.dividendPerShare;
     let accumulatedDiv = 0;
+    let totalGeneratedDividend = 0;
 
-    const mGrowth = Math.pow(1 + asset.expectedAnnualPriceGrowthRate, 1 / 12) - 1;
+    const annualPriceGrowthRateDecimal = asset.expectedAnnualPriceGrowthRate / 100;
+    const mGrowth = Math.pow(1 + annualPriceGrowthRateDecimal, 1 / 12) - 1;
     const monthlyVolatility = monthlyVolatilityMap[asset.assetType];
 
     for (let m = 1; m <= months; m++) {
@@ -202,7 +243,10 @@ export class SimulationService {
         balance = asset.initialInvestmentAmount % price;
       } else {
         // 난수 적용 주가 갱신
-        price *= 1 + mGrowth + monthlyVolatility * getNextRandom();
+        price = this.normalizeSimulatedPrice(
+          price * (1 + mGrowth + monthlyVolatility * getNextRandom()),
+          asset.initialPrice
+        );
 
         let pool = asset.monthlyContributionAmount + balance;
 
@@ -210,12 +254,13 @@ export class SimulationService {
           // 배당 성장 시뮬레이션 및 Clamp 적용
           const rawG = this.calculatePeriodG(
             asset.dividendFrequency,
-            asset.expectedAnnualDividendGrowthRate,
+            asset.expectedAnnualDividendGrowthRate / 100,
             getNextRandom
           );
           dps *= 1 + this.checkClampRange(rawG, asset.dividendFrequency);
 
           const divCash = shares * dps;
+          totalGeneratedDividend += divCash;
           if (asset.isReinvestDividends) pool += divCash;
           else accumulatedDiv += divCash;
         }
@@ -227,7 +272,7 @@ export class SimulationService {
 
     return {
       finalValue: price * shares + balance + accumulatedDiv,
-      totalDividendIncome: accumulatedDiv,
+      totalDividendIncome: totalGeneratedDividend,
     };
   }
 
@@ -245,6 +290,16 @@ export class SimulationService {
     const annualEquivalent = Math.pow(1 + rawG, frequency) - 1;
     const clampedAnnual = Math.max(-0.2, Math.min(0.15, annualEquivalent));
     return Math.pow(1 + clampedAnnual, 1 / frequency) - 1;
+  }
+
+  private normalizeSimulatedPrice(nextPrice: number, initialPrice: number): number {
+    const priceFloor = Math.max(minimumAbsolutePrice, initialPrice * minimumPriceRatio);
+
+    if (!Number.isFinite(nextPrice)) {
+      return priceFloor;
+    }
+
+    return Math.max(priceFloor, nextPrice);
   }
 
   // 시뮬레이션 결과 데이터에서 백분위수 지표 추출
