@@ -9,6 +9,7 @@ import { PercentileResultDto } from '../../../shared/dto/simulations/SimulationR
 const numSimulations = 10000;
 const annualDividendGrowthVolatility = 0.02; // 배당성장률의 연간 변동성 (2%)
 const maxAnalysisLimitMonths = 600; // 분석 한계치 (50년)
+const minimumSimulatedPrice = 1; // 극단적 하방 변동 시 near-zero 가격으로 인한 수량 폭증 방지
 
 const monthlyVolatilityMap: Record<AssetType, number> = {
   [AssetType.STOCK]: 0.08,
@@ -241,7 +242,9 @@ export class SimulationService {
         balance = asset.initialInvestmentAmount % price;
       } else {
         // 난수 적용 주가 갱신
-        price *= 1 + mGrowth + monthlyVolatility * getNextRandom();
+        price = this.normalizeSimulatedPrice(
+          price * (1 + mGrowth + monthlyVolatility * getNextRandom())
+        );
 
         let pool = asset.monthlyContributionAmount + balance;
 
@@ -285,6 +288,14 @@ export class SimulationService {
     const annualEquivalent = Math.pow(1 + rawG, frequency) - 1;
     const clampedAnnual = Math.max(-0.2, Math.min(0.15, annualEquivalent));
     return Math.pow(1 + clampedAnnual, 1 / frequency) - 1;
+  }
+
+  private normalizeSimulatedPrice(nextPrice: number): number {
+    if (!Number.isFinite(nextPrice)) {
+      return minimumSimulatedPrice;
+    }
+
+    return Math.max(minimumSimulatedPrice, nextPrice);
   }
 
   // 시뮬레이션 결과 데이터에서 백분위수 지표 추출
