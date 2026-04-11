@@ -1,8 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:runway/features/profile/controller/delete_profile_controller.dart';
-import 'package:runway/features/profile/repository/delete_profile_repository.dart';
-import 'package:runway/features/profile/types/delete_profile_state.dart';
-import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/register/controller/register_controller.dart';
@@ -35,9 +31,27 @@ import '../features/password_reset/usecase/reset_password_usecase.dart';
 import '../features/password_reset/repository/reset_password_repository.dart';
 import '../features/password_reset/types/password_reset_state.dart';
 
+import 'package:runway/features/profile/controller/delete_profile_controller.dart';
+import 'package:runway/features/profile/repository/delete_profile_repository.dart';
+import 'package:runway/features/profile/types/delete_profile_state.dart';
+import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
+
 import '../features/profile/controller/update_profile_controller.dart';
 import '../features/profile/usecase/update_profile_usecase.dart';
 import '../features/profile/repository/update_profile_repository.dart';
+
+import '../features/simulation/controller/simulation_controller.dart';
+import '../features/simulation/usecase/simulation_usecase.dart';
+import '../features/simulation/repository/simulation_repository.dart';
+import '../features/simulation/types/simulation_state.dart';
+
+import 'package:runway/features/portfolio/controller/create_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/create_portfolio_repository.dart';
+import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
+import 'package:runway/features/portfolio/controller/update_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/update_portfolio_repository.dart';
+import 'package:runway/features/portfolio/usecase/update_portfolio_usecase.dart';
 
 import '../features/simulation/controller/simulation_controller.dart';
 import '../features/simulation/usecase/simulation_usecase.dart';
@@ -239,4 +253,44 @@ final simulationControllerProvider =
     StateNotifierProvider<SimulationController, SimulationState>((ref) {
       final useCase = ref.read(simulationUseCaseProvider);
       return SimulationController(useCase: useCase);
+    });
+
+/// ---------------- CREATE PORTFOLIO ----------------
+
+final createPortfolioRepositoryProvider = Provider<CreatePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return CreatePortfolioRepository(client: client);
+});
+
+final createPortfolioUsecaseProvider = Provider<CreatePortfolioUseCase>((ref) {
+  final repository = ref.read(createPortfolioRepositoryProvider);
+  return CreatePortfolioUseCase(repository);
+});
+
+final createPortfolioControllerProvider =
+    StateNotifierProvider<CreatePortfolioController, PortfolioState>((ref) {
+      final usecase = ref.read(createPortfolioUsecaseProvider);
+      return CreatePortfolioController(useCase: usecase);
+    });
+
+/// ---------------- UPDATE PORTFOLIO ----------------
+
+final updatePortfolioRepositoryProvider = Provider<UpdatePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return UpdatePortfolioRepository(client: client);
+});
+
+final updatePortfolioUsecaseProvider = Provider<UpdatePortfolioUseCase>((ref) {
+  final repository = ref.read(updatePortfolioRepositoryProvider);
+  return UpdatePortfolioUseCase(repository);
+});
+
+final updatePortfolioControllerProvider =
+    StateNotifierProvider<UpdatePortfolioController, PortfolioState>((ref) {
+      final usecase = ref.read(updatePortfolioUsecaseProvider);
+      return UpdatePortfolioController(useCase: usecase);
     });

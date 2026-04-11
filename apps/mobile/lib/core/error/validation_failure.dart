@@ -15,3 +15,15 @@ class PasswordFailure extends ValidationFailure {
 class DisplayNameFailure extends ValidationFailure {
   const DisplayNameFailure(super.message);
 }
+
+class PortfolioValidationFailure extends ValidationFailure {
+  const PortfolioValidationFailure(super.message);
+}
+
+class EmptyAssetsFailure extends PortfolioValidationFailure {
+  const EmptyAssetsFailure(super.message);
+}
+
+class InvalidAssetFailure extends PortfolioValidationFailure {
+  const InvalidAssetFailure(super.message);
+}
