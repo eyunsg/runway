@@ -41,7 +41,7 @@ class AssetInput {
 
   final num? dividendPerShare;
   final num? expectedAnnualDividendGrowthRate;
-  final String? dividendFrequency;
+  final int? dividendFrequency;
   final bool? isReinvestDividends;
 
   AssetInput({
