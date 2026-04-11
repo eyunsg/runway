@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:runway/core/providers.dart';
 
+import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
+
 class CreatePortfolioTempScreen extends ConsumerStatefulWidget {
-  const CreatePortfolioTempScreen({super.key});
+  final CreatePortfolioInput createPortfolioInput;
+
+  const CreatePortfolioTempScreen({
+    super.key,
+    required this.createPortfolioInput,
+  });
 
   @override
   ConsumerState<CreatePortfolioTempScreen> createState() =>

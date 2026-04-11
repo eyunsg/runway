@@ -12,6 +12,8 @@ import '../features/simulation/page/simulation_temp_screen.dart';
 import '../features/portfolio/page/get_portfolio_temp_screen.dart';
 import '../features/portfolio/page/create_portfolio_temp_screen.dart';
 
+import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
+
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/login',
@@ -52,7 +54,13 @@ class AppRouter {
       ),
       GoRoute(
         path: '/portfolio/create',
-        builder: (context, state) => const CreatePortfolioTempScreen(),
+        builder: (context, state) {
+          final createPortfolioInput = state.extra as CreatePortfolioInput;
+
+          return CreatePortfolioTempScreen(
+            createPortfolioInput: createPortfolioInput,
+          );
+        },
       ),
     ],
   );

@@ -111,13 +111,13 @@ class GoalAnalysisInput {
 }
 
 class PortfolioValueGoalInput {
-  final int expectedMonthsToTarget;
+  final int? expectedMonthsToTarget;
 
   PortfolioValueGoalInput({required this.expectedMonthsToTarget});
 }
 
 class MonthlyDividendGoalInput {
-  final int expectedMonthsToTarget;
+  final int? expectedMonthsToTarget;
 
   MonthlyDividendGoalInput({required this.expectedMonthsToTarget});
 }
