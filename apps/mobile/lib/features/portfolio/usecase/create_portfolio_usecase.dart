@@ -28,6 +28,12 @@ class CreatePortfolioUseCase {
             InvalidAssetFailure('Dividend asset fields are missing'),
           );
         }
+
+        if (_normalizeDividendFrequency(asset.dividendFrequency) == null) {
+          return Left(
+            InvalidAssetFailure('Dividend frequency must be 1, 2, 4, or 12'),
+          );
+        }
       }
     }
 
@@ -61,7 +67,7 @@ class CreatePortfolioUseCase {
             dividendPerShare: a.dividendPerShare,
             expectedAnnualDividendGrowthRate:
                 a.expectedAnnualDividendGrowthRate,
-            dividendFrequency: a.dividendFrequency,
+            dividendFrequency: _normalizeDividendFrequency(a.dividendFrequency),
             isReinvestDividends: a.isReinvestDividends,
           );
         }).toList(),
@@ -97,5 +103,38 @@ class CreatePortfolioUseCase {
         ),
       ),
     );
+  }
+
+  int? _normalizeDividendFrequency(String? value) {
+    final raw = (value ?? '').trim().toUpperCase();
+
+    switch (raw) {
+      case '12':
+      case 'MONTHLY':
+      case '매월':
+      case '월':
+        return 12;
+
+      case '4':
+      case 'QUARTERLY':
+      case '분기':
+      case '분기별':
+        return 4;
+
+      case '2':
+      case 'BIANNUAL':
+      case 'BIMONTHLY':
+        return 2;
+
+      case '1':
+      case 'ANNUAL':
+      case 'YEARLY':
+      case '연간':
+      case '매년':
+        return 1;
+
+      default:
+        return null;
+    }
   }
 }
