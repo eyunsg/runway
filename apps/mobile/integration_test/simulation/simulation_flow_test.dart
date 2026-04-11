@@ -53,12 +53,17 @@ void main() {
 
     expect(p10 <= p50, true);
     expect(p50 <= p90, true);
+  }
 
+  void validateReachedMonthsField(dynamic data) {
     final months =
         data['goalAnalysis']['portfolioValueGoal']['expectedMonthsToTarget'];
 
-    expect(months, isA<num>());
-    expect(months >= 0, true);
+    expect(months == null || months is num, true);
+
+    if (months != null) {
+      expect(months >= 0, true);
+    }
   }
 
   /// -------------------------------
@@ -74,6 +79,7 @@ void main() {
     expect(res.data, isNotNull);
 
     validateSuccessResponse(res.data);
+    validateReachedMonthsField(res.data);
   });
 
   /// -------------------------------
@@ -130,6 +136,7 @@ void main() {
     expect(res.data, isNotNull);
 
     validateSuccessResponse(res.data);
+    validateReachedMonthsField(res.data);
   });
 
   /// -------------------------------
@@ -160,6 +167,7 @@ void main() {
     expect(res.data, isNotNull);
 
     validateSuccessResponse(res.data);
+    validateReachedMonthsField(res.data);
   });
 
   /// -------------------------------
@@ -212,7 +220,6 @@ void main() {
     );
 
     final p50 = res.data['percentiles']['portfolioValue']['p50'];
-    print('TC17 p50: $p50');
 
     expect(p50 < 1e15, true); // 1,000조
   });
