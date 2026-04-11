@@ -220,6 +220,7 @@ void main() {
     );
 
     final p50 = res.data['percentiles']['portfolioValue']['p50'];
+    print('TC17 p50: $p50');
 
     expect(p50 < 1e15, true); // 1,000조
   });
