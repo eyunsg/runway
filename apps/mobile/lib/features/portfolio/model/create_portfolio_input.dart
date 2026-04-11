@@ -1,3 +1,8 @@
+import 'package:runway/features/simulation/types/simulation_request_dto.dart'
+    as simulation_request;
+import 'package:runway/features/simulation/types/simulation_response_dto.dart'
+    as simulation_response;
+
 class CreatePortfolioInput {
   final String name;
 
@@ -9,6 +14,68 @@ class CreatePortfolioInput {
     required this.simulationInput,
     required this.simulationResult,
   });
+
+  factory CreatePortfolioInput.fromSimulation({
+    required String name,
+    required simulation_request.GoalAnalysisSimulationRequestDto request,
+    required simulation_response.SimulationResponseDto response,
+  }) {
+    return CreatePortfolioInput(
+      name: name,
+      simulationInput: SimulationInput(
+        goal: GoalInput(
+          investmentPeriodMonths: request.goal.investmentPeriodMonths,
+          targetPortfolioValue: request.goal.targetPortfolioValue,
+          targetMonthlyDividend: request.goal.targetMonthlyDividend,
+        ),
+        assets: request.assets
+            .map(
+              (asset) => AssetInput(
+                assetName: asset.assetName,
+                assetType: asset.assetType,
+                initialPrice: asset.initialPrice,
+                expectedAnnualPriceGrowthRate:
+                    asset.expectedAnnualPriceGrowthRate,
+                initialInvestmentAmount: asset.initialInvestmentAmount,
+                monthlyContributionAmount: asset.monthlyContributionAmount,
+                isDividendAsset: asset.isDividendAsset,
+                dividendPerShare: asset.dividendPerShare,
+                expectedAnnualDividendGrowthRate:
+                    asset.expectedAnnualDividendGrowthRate,
+                dividendFrequency: asset.dividendFrequency,
+                isReinvestDividends: asset.isReinvestDividends,
+              ),
+            )
+            .toList(),
+      ),
+      simulationResult: SimulationResult(
+        percentiles: PercentilesInput(
+          portfolioValue: PortfolioValueInput(
+            p10: response.percentiles.portfolioValue.p10,
+            p50: response.percentiles.portfolioValue.p50,
+            p90: response.percentiles.portfolioValue.p90,
+          ),
+          monthlyDividend: MonthlyDividendInput(
+            p10: response.percentiles.monthlyDividend.p10,
+            p50: response.percentiles.monthlyDividend.p50,
+            p90: response.percentiles.monthlyDividend.p90,
+          ),
+        ),
+        goalAnalysis: GoalAnalysisInput(
+          portfolioValueGoal: PortfolioValueGoalInput(
+            expectedMonthsToTarget:
+                response.goalAnalysis.portfolioValueGoal.expectedMonthsToTarget,
+          ),
+          monthlyDividendGoal: MonthlyDividendGoalInput(
+            expectedMonthsToTarget: response
+                .goalAnalysis
+                .monthlyDividendGoal
+                .expectedMonthsToTarget,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class SimulationInput {
@@ -111,13 +178,13 @@ class GoalAnalysisInput {
 }
 
 class PortfolioValueGoalInput {
-  final int expectedMonthsToTarget;
+  final int? expectedMonthsToTarget;
 
   PortfolioValueGoalInput({required this.expectedMonthsToTarget});
 }
 
 class MonthlyDividendGoalInput {
-  final int expectedMonthsToTarget;
+  final int? expectedMonthsToTarget;
 
   MonthlyDividendGoalInput({required this.expectedMonthsToTarget});
 }

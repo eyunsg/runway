@@ -3,8 +3,22 @@ import 'package:mocktail/mocktail.dart';
 import 'package:runway/features/simulation/usecase/simulation_usecase.dart';
 import 'package:runway/features/simulation/repository/simulation_repository.dart';
 import 'package:runway/features/simulation/types/simulation_request_dto.dart';
+import 'package:runway/features/simulation/types/simulation_response_dto.dart';
 
 class _MockSimulationRepository extends Mock implements SimulationRepository {}
+
+SimulationResponseDto _buildResponse() {
+  return SimulationResponseDto(
+    percentiles: SimulationPercentilesDto(
+      portfolioValue: SimulationPercentileValueDto(p10: 1, p50: 2, p90: 3),
+      monthlyDividend: SimulationPercentileValueDto(p10: 4, p50: 5, p90: 6),
+    ),
+    goalAnalysis: SimulationGoalAnalysisDto(
+      portfolioValueGoal: SimulationGoalMetricDto(expectedMonthsToTarget: 10),
+      monthlyDividendGoal: SimulationGoalMetricDto(expectedMonthsToTarget: 20),
+    ),
+  );
+}
 
 void main() {
   late SimulationUseCase useCase;
@@ -115,11 +129,11 @@ void main() {
 
       when(
         () => repository.runMonteCarlo(any<GoalAnalysisSimulationRequestDto>()),
-      ).thenAnswer((_) async => {'ok': true});
+      ).thenAnswer((_) async => _buildResponse());
 
       final result = await useCase.execute(request: request);
 
-      expect(result, {'ok': true});
+      expect(result.percentiles.portfolioValue.p50, 2);
 
       verify(() => repository.runMonteCarlo(request)).called(1);
     });
