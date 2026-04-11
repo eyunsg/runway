@@ -16,7 +16,7 @@ void main() {
 
   Portfolio createDummyPortfolio(int i) {
     return Portfolio(
-      id: i,
+      id: 'portfolio-id-$i',
       name: 'portfolio_$i',
       assetCount: 1,
       periodMonths: 120,

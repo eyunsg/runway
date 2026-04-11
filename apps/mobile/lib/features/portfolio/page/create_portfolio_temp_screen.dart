@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:runway/core/providers.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 
@@ -30,10 +31,11 @@ class _CreatePortfolioTempScreenState
         ).showSnackBar(SnackBar(content: Text(next.error!)));
       }
 
-      if (next.isSuccess) {
+      if (next.isSuccess && previous?.isSuccess != true) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('포트폴리오 생성이 완료되었습니다.')));
+        context.go('/portfolio/get');
       }
     });
 
@@ -86,10 +88,15 @@ class _CreatePortfolioTempScreenState
         title: const Text(''),
         actions: [
           TextButton(
-            onPressed: () {
-              // TODO: repository 응답 연결 후 추가하기 액션 연결
-            },
-            child: const Text('추가하기'),
+            onPressed: portfolioState.isLoading
+                ? null
+                : () async {
+                    await ref
+                        .read(createPortfolioControllerProvider.notifier)
+                        .createPortfolio(widget.createPortfolioInput);
+                  },
+
+            child: Text(portfolioState.isLoading ? '추가 중...' : '추가하기'),
           ),
         ],
       ),
