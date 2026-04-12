@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:runway/core/providers.dart';
 import 'package:runway/domain/entity/portfolio.dart';
+import 'package:go_router/go_router.dart';
 
 class GetPortfolioTempScreen extends ConsumerStatefulWidget {
   const GetPortfolioTempScreen({super.key});
@@ -169,7 +170,7 @@ class _GetPortfolioTempScreenState
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                        // TODO: portfolio detail 화면이 생기면 이동 처리
+                        context.go('/portfolio/get/detail/${portfolioItem.id}');
                       },
                     ),
                   ),
