@@ -1,7 +1,7 @@
 import 'package:runway/domain/entity/portfolio.dart';
 
 class PortfolioResponseDto {
-  final int portfolioId;
+  final String portfolioId;
   final String name;
   final int assetCount;
   final int investmentPeriodMonths;
@@ -17,7 +17,7 @@ class PortfolioResponseDto {
 
   factory PortfolioResponseDto.fromJson(Map<String, dynamic> json) {
     return PortfolioResponseDto(
-      portfolioId: json['portfolioId'] as int,
+      portfolioId: json['portfolioId'] as String,
       name: json['name'] as String,
       assetCount: json['assetCount'] as int,
       investmentPeriodMonths: json['investmentPeriodMonths'] as int,
