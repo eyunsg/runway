@@ -36,6 +36,7 @@ class SimulationTempScreen extends ConsumerStatefulWidget {
 }
 
 class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
+  final _nameController = TextEditingController();
   // 상단 공통 조건(기간, 목표 평가/배당금)만 이 화면 State에
   // 자산별 입력값은 SimulationAsset + 카드 위젯에서 관리하도록 분리
   final _periodController = TextEditingController();
@@ -103,7 +104,9 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
     final targetMonthlyDividend = _parseDouble(_targetDividendController.text);
 
     return CreatePortfolioInput(
-      name: '포트폴리오',
+      name: _nameController.text.trim().isEmpty
+          ? '포트폴리오'
+          : _nameController.text.trim(),
       simulationInput: SimulationInput(
         goal: GoalInput(
           investmentPeriodMonths: periodMonths,
@@ -198,6 +201,7 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _periodController.dispose();
     _targetAmountController.dispose();
     _targetDividendController.dispose();
@@ -306,6 +310,23 @@ class _SimulationTempScreenState extends ConsumerState<SimulationTempScreen> {
         child: Column(
           children: [
             // 공통 설정 그룹
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        hintText: '포트폴리오 이름',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
