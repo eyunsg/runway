@@ -16,8 +16,6 @@ class GetPortfolioDetailTempScreen extends ConsumerStatefulWidget {
 
 class _GetPortfolioDetailTempScreenState
     extends ConsumerState<GetPortfolioDetailTempScreen> {
-  bool _hasRequestedInitialData = false;
-
   // 포트폴리오 삭제 다이얼로그
   Future<void> _onDeletePressed() async {
     final bool shouldDelete =
@@ -58,12 +56,19 @@ class _GetPortfolioDetailTempScreenState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_hasRequestedInitialData) return;
-      _hasRequestedInitialData = true;
-
       ref
           .read(getPortfolioDetailControllerProvider.notifier)
           .getPortfolioDetail(widget.portfolioId);
+    });
+
+    ref.listenManual(getPortfolioDetailControllerProvider, (previous, next) {
+      final hasNewError = previous?.error != next.error && next.error != null;
+
+      if (hasNewError && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
+      }
     });
   }
 
@@ -71,16 +76,8 @@ class _GetPortfolioDetailTempScreenState
   Widget build(BuildContext context) {
     final detailState = ref.watch(getPortfolioDetailControllerProvider);
 
-    ref.listen(getPortfolioDetailControllerProvider, (previous, next) {
-      final bool hasNewError =
-          previous?.error != next.error && next.error != null;
-
-      if (hasNewError) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.error!)));
-      }
-    });
+    print("screen");
+    print(detailState.toString());
 
     final bool isInitialLoading =
         detailState.isLoading && detailState.portfolioDetail == null;
@@ -127,10 +124,10 @@ class _GetPortfolioDetailTempScreenState
     final monthlyDividendPercentiles =
         simulationResult.percentiles.monthlyDividend;
 
-    final double portfolioValueGoalMonths =
+    final double? portfolioValueGoalMonths =
         simulationResult.goalAnalysis.portfolioValueGoal.expectedMonthsToTarget;
 
-    final double monthlyDividendGoalMonths = simulationResult
+    final double? monthlyDividendGoalMonths = simulationResult
         .goalAnalysis
         .monthlyDividendGoal
         .expectedMonthsToTarget;

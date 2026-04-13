@@ -92,7 +92,7 @@ class GoalAnalysis {
 class GoalTarget {
   final double target;
   final double achievementProbability;
-  final double expectedMonthsToTarget;
+  final double? expectedMonthsToTarget;
 
   GoalTarget({
     required this.target,

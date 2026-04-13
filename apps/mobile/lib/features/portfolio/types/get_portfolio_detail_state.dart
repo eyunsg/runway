@@ -18,12 +18,13 @@ class GetPortfolioDetailState {
     bool? isLoading,
     bool? isSuccess,
     String? error,
+    bool clearError = false,
   }) {
     return GetPortfolioDetailState(
       portfolioDetail: portfolioDetail ?? this.portfolioDetail,
       isLoading: isLoading ?? this.isLoading,
       isSuccess: isSuccess ?? this.isSuccess,
-      error: error,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
