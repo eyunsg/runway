@@ -10,8 +10,6 @@ class GetPortfolioController extends StateNotifier<GetPortfolioState> {
     : super(const GetPortfolioState());
 
   Future<void> fetchPortfolio() async {
-    // _offset = 0;
-
     state = state.copyWith(
       isLoading: true,
       error: null,

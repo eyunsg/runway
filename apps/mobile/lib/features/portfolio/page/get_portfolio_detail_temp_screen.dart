@@ -46,9 +46,9 @@ class _GetPortfolioDetailTempScreenState
 
     if (!shouldDelete || !mounted) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('포트폴리오 삭제 기능은 준비 중입니다.')));
+    await ref
+        .read(deleteClientControllerProvider.notifier)
+        .deletePortfolio(widget.portfolioId);
   }
 
   @override
@@ -70,14 +70,29 @@ class _GetPortfolioDetailTempScreenState
         ).showSnackBar(SnackBar(content: Text(next.error!)));
       }
     });
+
+    ref.listenManual(deleteClientControllerProvider, (previous, next) {
+      if (next.isSuccess && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('삭제 완료')));
+
+        ref.invalidate(getPortfolioControllerProvider);
+
+        context.go('/portfolio/get');
+      }
+
+      if (next.error != null && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final detailState = ref.watch(getPortfolioDetailControllerProvider);
-
-    print("screen");
-    print(detailState.toString());
 
     final bool isInitialLoading =
         detailState.isLoading && detailState.portfolioDetail == null;
