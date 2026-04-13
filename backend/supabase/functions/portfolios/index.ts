@@ -1,6 +1,7 @@
 import {
   handleAddPortfolio,
   handleGetPortfolios,
+  handleGetPortfolioDetail,
   UnauthorizedError,
   ValidationError,
 } from './portfoliosController.ts';
@@ -8,7 +9,7 @@ import {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
 function errorResponse(message: string, status: number) {
@@ -40,7 +41,16 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split('/').filter(Boolean); // 예: ["portfolios", "uuid"]
+
+    // 2. GET 요청 라우팅
     if (req.method === 'GET') {
+      // 상세 조회: /portfolios/{id} (경로 조각이 2개인 경우)
+      if (pathParts.length > 1) {
+        return await handleGetPortfolioDetail(req, pathParts[1]);
+      }
+      // 목록 조회: /portfolios
       return await handleGetPortfolios(req);
     }
 
@@ -50,7 +60,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // 3. 허용되지 않은 메서드 처리
-    return errorResponse('POST 또는 OPTIONS 요청만 허용됩니다.', 405);
+    return errorResponse('GET, POST 또는 OPTIONS 요청만 허용됩니다.', 405);
   } catch (err: unknown) {
     // 4. 전역 에러 핸들링
     let status = 500;

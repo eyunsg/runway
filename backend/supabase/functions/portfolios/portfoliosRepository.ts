@@ -80,3 +80,21 @@ export async function getPortfoliosRepo(userId: string) {
 
   return data;
 }
+
+export async function getPortfolioDetailRepo(userId: string, portfolioId: string) {
+  const client = createAdminClient();
+
+  const { data, error } = await client
+    .from('portfolios')
+    .select('*') // 상세 조물이므로 모든 컬럼(*)을 가져옵니다.
+    .eq('id', portfolioId)
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    console.error(`[PortfolioRepo Error - Detail]: ${error.message}`);
+    return null;
+  }
+
+  return data;
+}

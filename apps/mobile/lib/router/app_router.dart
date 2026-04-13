@@ -11,8 +11,8 @@ import '../features/profile/page/update_profile_temp_screen.dart';
 import '../features/simulation/page/simulation_temp_screen.dart';
 import '../features/portfolio/page/get_portfolio_temp_screen.dart';
 import '../features/portfolio/page/create_portfolio_temp_screen.dart';
-
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
+import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -60,6 +60,14 @@ class AppRouter {
           return CreatePortfolioTempScreen(
             createPortfolioInput: createPortfolioInput,
           );
+        },
+      ),
+      GoRoute(
+        path: '/portfolio/get/detail/:portfolioId',
+        builder: (context, state) {
+          final String portfolioId = state.pathParameters['portfolioId']!;
+
+          return GetPortfolioDetailTempScreen(portfolioId: portfolioId);
         },
       ),
     ],
