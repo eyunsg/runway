@@ -1,5 +1,5 @@
 class Portfolio {
-  final int id;
+  final String id;
   final String name;
   final int assetCount;
   final int periodMonths;

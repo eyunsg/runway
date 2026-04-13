@@ -10,6 +10,9 @@ import '../features/password_change/page/password_change_temp_screen.dart';
 import '../features/profile/page/update_profile_temp_screen.dart';
 import '../features/simulation/page/simulation_temp_screen.dart';
 import '../features/portfolio/page/get_portfolio_temp_screen.dart';
+import '../features/portfolio/page/create_portfolio_temp_screen.dart';
+
+import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -48,6 +51,16 @@ class AppRouter {
       GoRoute(
         path: '/portfolio/get',
         builder: (context, state) => const GetPortfolioTempScreen(),
+      ),
+      GoRoute(
+        path: '/portfolio/create',
+        builder: (context, state) {
+          final createPortfolioInput = state.extra as CreatePortfolioInput;
+
+          return CreatePortfolioTempScreen(
+            createPortfolioInput: createPortfolioInput,
+          );
+        },
       ),
     ],
   );

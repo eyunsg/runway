@@ -120,6 +120,28 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       expect(savePortfolioRepo).not.toHaveBeenCalled();
     });
 
+    it('배당 자산의 dividendFrequency가 숫자가 아니면 VALIDATION_ERROR를 던진다', async () => {
+      const invalidData = {
+        ...validRawData,
+        simulationInput: {
+          ...validRawData.simulationInput,
+          assets: [
+            {
+              ...validRawData.simulationInput.assets[0],
+              dividendFrequency: 'QUARTERLY',
+            },
+          ],
+        },
+      };
+
+      await expect(async () => {
+        const dto = new AddPortfolioRequestDto(invalidData);
+        await addPortfolioService(mockUserId, dto);
+      }).rejects.toThrow('VALIDATION_ERROR');
+
+      expect(savePortfolioRepo).not.toHaveBeenCalled();
+    });
+
     it('유저 ID가 누락된 경우 에러를 던진다', async () => {
       const dto = new AddPortfolioRequestDto(validRawData);
       // @ts-ignore: 테스트를 위해 유도된 타입 에러
