@@ -11,15 +11,29 @@ class GetPortfolioDetailController
     : super(const GetPortfolioDetailState());
 
   Future<void> getPortfolioDetail(String portfolioId) async {
-    state = state.copyWith(isLoading: true, isSuccess: false, error: null);
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, isSuccess: false, clearError: true);
 
     final result = await useCase.execute(portfolioId: portfolioId);
 
     result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, error: failure.toMessage());
+        final message = failure.toMessage();
+
+        if (state.error == message) {
+          state = state.copyWith(isLoading: false);
+          return;
+        }
+
+        state = state.copyWith(isLoading: false, error: message);
       },
       (portfolioDetail) {
+        if (state.portfolioDetail == portfolioDetail) {
+          state = state.copyWith(isLoading: false);
+          return;
+        }
+
         state = state.copyWith(
           isLoading: false,
           isSuccess: true,

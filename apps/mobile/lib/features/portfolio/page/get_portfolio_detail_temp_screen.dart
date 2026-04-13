@@ -16,72 +16,6 @@ class GetPortfolioDetailTempScreen extends ConsumerStatefulWidget {
 
 class _GetPortfolioDetailTempScreenState
     extends ConsumerState<GetPortfolioDetailTempScreen> {
-  bool _hasRequestedInitialData = false;
-
-  // [제거예정] 백엔드 상세 조회 API 연동 전까지 임시로 사용하는 mock 데이터
-  PortfolioDetail _buildMockPortfolioDetail(String portfolioId) {
-    return PortfolioDetail(
-      name: '샘플 포트폴리오 (${portfolioId.substring(0, 8)})',
-      simulationInput: SimulationInput(
-        goal: Goal(
-          investmentPeriodMonths: 120,
-          targetPortfolioValue: 100000000,
-          targetMonthlyDividend: 300000,
-        ),
-        assets: [
-          Asset(
-            name: '샘플 자산 1',
-            type: 'stock',
-            initialPrice: 50000,
-            expectedAnnualPriceGrowthRate: 0.07,
-            initialInvestmentAmount: 1000000,
-            monthlyContributionAmount: 200000,
-            isDividendAsset: true,
-            dividendPerShare: 1000,
-            expectedAnnualDividendGrowthRate: 0.03,
-            dividendFrequency: 4,
-            isReinvestDividends: true,
-          ),
-          Asset(
-            name: '샘플 자산 2',
-            type: 'bond',
-            initialPrice: 10000,
-            expectedAnnualPriceGrowthRate: 0.02,
-            initialInvestmentAmount: 500000,
-            monthlyContributionAmount: 100000,
-            isDividendAsset: false,
-            dividendPerShare: null,
-            expectedAnnualDividendGrowthRate: null,
-            dividendFrequency: null,
-            isReinvestDividends: null,
-          ),
-        ],
-      ),
-      simulationResult: SimulationResult(
-        percentiles: Percentiles(
-          portfolioValue: Percentile(
-            p10: 50000000,
-            p50: 77000000,
-            p90: 97000000,
-          ),
-          monthlyDividend: Percentile(p10: 120000, p50: 170000, p90: 220000),
-        ),
-        goalAnalysis: GoalAnalysis(
-          portfolioValueGoal: GoalTarget(
-            target: 100000000,
-            achievementProbability: 0.65,
-            expectedMonthsToTarget: 110,
-          ),
-          monthlyDividendGoal: GoalTarget(
-            target: 300000,
-            achievementProbability: 0.7,
-            expectedMonthsToTarget: 96,
-          ),
-        ),
-      ),
-    );
-  }
-
   // 포트폴리오 삭제 다이얼로그
   Future<void> _onDeletePressed() async {
     final bool shouldDelete =
@@ -112,7 +46,6 @@ class _GetPortfolioDetailTempScreenState
 
     if (!shouldDelete || !mounted) return;
 
-    // 백엔드 delete API 연동 전까지는 안내만 표시
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('포트폴리오 삭제 기능은 준비 중입니다.')));
@@ -123,71 +56,62 @@ class _GetPortfolioDetailTempScreenState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_hasRequestedInitialData) return;
-      _hasRequestedInitialData = true;
-
       ref
           .read(getPortfolioDetailControllerProvider.notifier)
           .getPortfolioDetail(widget.portfolioId);
     });
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    // (이후 주석 해제)
-    // final detailState = ref.watch(getPortfolioDetailControllerProvider);
+    ref.listenManual(getPortfolioDetailControllerProvider, (previous, next) {
+      final hasNewError = previous?.error != next.error && next.error != null;
 
-    ref.listen(getPortfolioDetailControllerProvider, (previous, next) {
-      final bool hasNewError =
-          previous?.error != next.error && next.error != null;
-
-      if (hasNewError) {
+      if (hasNewError && mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(next.error!)));
       }
     });
+  }
 
-    // [제거예정] 백엔드 상세 조회 API 연동 전까지는
-    // 실제 state 대신 mock 데이터를 사용해서 화면 그림
-    final PortfolioDetail portfolioDetail = _buildMockPortfolioDetail(
-      widget.portfolioId,
-    );
+  @override
+  Widget build(BuildContext context) {
+    final detailState = ref.watch(getPortfolioDetailControllerProvider);
 
-    // 기존의 isInitialLoading / null 체크는 잠시 비활성화 (이후 주석 해제)
-    // final bool isInitialLoading =
-    //     detailState.isLoading && detailState.portfolioDetail == null;
+    print("screen");
+    print(detailState.toString());
 
-    // final PortfolioDetail? portfolioDetail = detailState.portfolioDetail;
+    final bool isInitialLoading =
+        detailState.isLoading && detailState.portfolioDetail == null;
 
-    // if (isInitialLoading) {
-    //   return const Scaffold(
-    //     body: SafeArea(child: Center(child: CircularProgressIndicator())),
-    //   );
-    // }
+    final PortfolioDetail? portfolioDetail = detailState.portfolioDetail;
 
-    // if (portfolioDetail == null) {
-    //   return Scaffold(
-    //     appBar: AppBar(
-    //       title: const Text(''),
-    //       leading: IconButton(
-    //         icon: const Icon(Icons.arrow_back_ios_new),
-    //         onPressed: () {
-    //           Navigator.of(context).pop();
-    //         },
-    //       ),
-    //       actions: [
-    //         IconButton(
-    //           onPressed: () {},
-    //           icon: const Icon(Icons.delete_outline),
-    //         ),
-    //       ],
-    //     ),
-    //     body: const SafeArea(
-    //       child: Center(child: Text('포트폴리오 상세 정보를 불러오지 못했습니다.')),
-    //     ),
-    //   );
-    // }
+    if (isInitialLoading) {
+      return const Scaffold(
+        body: SafeArea(child: Center(child: CircularProgressIndicator())),
+      );
+    }
+
+    if (portfolioDetail == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(''),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new),
+            onPressed: () {
+              context.go('/portfolio/get');
+            },
+          ),
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.delete_outline),
+            ),
+          ],
+        ),
+        body: const SafeArea(
+          child: Center(child: Text('포트폴리오 상세 정보를 불러오지 못했습니다.')),
+        ),
+      );
+    }
 
     final simulationInput = portfolioDetail.simulationInput;
     final simulationResult = portfolioDetail.simulationResult;
@@ -200,10 +124,10 @@ class _GetPortfolioDetailTempScreenState
     final monthlyDividendPercentiles =
         simulationResult.percentiles.monthlyDividend;
 
-    final double portfolioValueGoalMonths =
+    final double? portfolioValueGoalMonths =
         simulationResult.goalAnalysis.portfolioValueGoal.expectedMonthsToTarget;
 
-    final double monthlyDividendGoalMonths = simulationResult
+    final double? monthlyDividendGoalMonths = simulationResult
         .goalAnalysis
         .monthlyDividendGoal
         .expectedMonthsToTarget;
@@ -249,11 +173,6 @@ class _GetPortfolioDetailTempScreenState
         ],
       ),
       body: SafeArea(
-        // 백엔드 상세 조회 API 연동 전까지는
-        // 항상 mock 데이터를 사용하는 UI만 렌더링 (이후 주석 해제)
-        // child: detailState.isLoading
-        //     ? const Center(child: CircularProgressIndicator())
-        //     : SingleChildScrollView(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(

@@ -134,7 +134,7 @@ class PercentileDto {
 class GoalTargetDto {
   final double target;
   final double achievementProbability;
-  final double expectedMonthsToTarget;
+  final double? expectedMonthsToTarget;
 
   GoalTargetDto({
     required this.target,
@@ -147,8 +147,8 @@ class GoalTargetDto {
       target: (json['target'] as num).toDouble(),
       achievementProbability: (json['achievementProbability'] as num)
           .toDouble(),
-      expectedMonthsToTarget: (json['expectedMonthsToTarget'] as num)
-          .toDouble(),
+      expectedMonthsToTarget: (json['expectedMonthsToTarget'] as num?)
+          ?.toDouble(),
     );
   }
 }

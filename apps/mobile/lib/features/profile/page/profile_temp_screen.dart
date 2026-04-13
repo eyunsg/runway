@@ -135,6 +135,15 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                       context.push('/simulation');
                     },
                   ),
+
+                  const Divider(),
+
+                  ListTile(
+                    title: const Text('내 포트폴리오'),
+                    onTap: () {
+                      context.push('/portfolio/get');
+                    },
+                  ),
                 ],
               ),
             ),

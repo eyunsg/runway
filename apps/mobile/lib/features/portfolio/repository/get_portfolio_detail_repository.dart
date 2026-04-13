@@ -23,7 +23,20 @@ class GetPortfolioDetailRepository {
         return Left(ServerFailure('조회 실패'));
       }
 
-      final portfolioDetailJson = response.data as Map<String, dynamic>;
+      if (response.data is! Map<String, dynamic>) {
+        return Left(ServerFailure('포트폴리오 상세 응답 형식이 올바르지 않습니다.'));
+      }
+
+      final Map<String, dynamic> portfolioDetailJson =
+          response.data as Map<String, dynamic>;
+
+      final bool hasDetailShape =
+          portfolioDetailJson.containsKey('simulationInput') &&
+          portfolioDetailJson.containsKey('simulationResult');
+
+      if (!hasDetailShape) {
+        return Left(ServerFailure('포트폴리오 상세 정보를 아직 불러올 수 없습니다.'));
+      }
 
       final portfolioDetail = PortfolioDetailResponseDto.fromJson(
         portfolioDetailJson,
