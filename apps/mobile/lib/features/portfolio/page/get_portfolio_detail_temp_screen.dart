@@ -94,9 +94,6 @@ class _GetPortfolioDetailTempScreenState
   Widget build(BuildContext context) {
     final detailState = ref.watch(getPortfolioDetailControllerProvider);
 
-    print("screen");
-    print(detailState.toString());
-
     final bool isInitialLoading =
         detailState.isLoading && detailState.portfolioDetail == null;
 
