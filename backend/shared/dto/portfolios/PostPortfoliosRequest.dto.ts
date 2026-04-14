@@ -1,4 +1,8 @@
-import { AssetInputDto, SimulationGoalDto } from '../simulations/SimulationRequest.dto.ts';
+import {
+  AssetInputDto,
+  SimulationGoalDto,
+  SimulationRequestDto,
+} from '../simulations/SimulationRequest.dto.ts';
 import {
   PercentileResultDto,
   GoalAchievementResultDto,
@@ -27,7 +31,8 @@ export class SavePortfolioRequestDto {
 
     // 2. 필드 매핑 (No-Wrapping 규칙 적용)
     this.name = body.name;
-    this.simulationInput = body.simulationInput;
+    const simulationInput = new SimulationRequestDto(body.simulationInput);
+    this.simulationInput = simulationInput;
     this.simulationResult = body.simulationResult;
   }
 

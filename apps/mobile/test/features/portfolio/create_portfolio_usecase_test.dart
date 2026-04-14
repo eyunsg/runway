@@ -82,14 +82,22 @@ void main() {
 
   group('CreatePortfolioUseCase', () {
     test('성공 케이스: Repository가 Right(null)을 반환하면 그대로 반환', () async {
-      when(
-        () => mockRepository.createPortfolio(any()),
-      ).thenAnswer((_) async => const Right(null));
+      dto.CreatePortfolioRequestDto? capturedDto;
+
+      when(() => mockRepository.createPortfolio(any())).thenAnswer((
+        invocation,
+      ) async {
+        capturedDto =
+            invocation.positionalArguments.first
+                as dto.CreatePortfolioRequestDto;
+        return const Right(null);
+      });
 
       final result = await usecase.execute(validInput);
 
       verify(() => mockRepository.createPortfolio(any())).called(1);
       expect(result.isRight(), true);
+      expect(capturedDto?.simulationInput.assets.first.dividendFrequency, 4);
     });
 
     test('Repository 실패 케이스: Left(Failure) 그대로 반환', () async {
@@ -163,5 +171,42 @@ void main() {
         (_) => fail('Left가 와야 함'),
       );
     });
+
+    test(
+      'Validation 실패: 지원하지 않는 dividendFrequency 값이면 InvalidAssetFailure 반환',
+      () async {
+        final invalidInput = CreatePortfolioInput(
+          name: '포트폴리오',
+          simulationInput: SimulationInput(
+            goal: validInput.simulationInput.goal,
+            assets: [
+              AssetInput(
+                assetName: 'SPY',
+                assetType: 'ETF',
+                initialPrice: 500,
+                expectedAnnualPriceGrowthRate: 0.07,
+                initialInvestmentAmount: 1000000,
+                monthlyContributionAmount: 500000,
+                isDividendAsset: true,
+                dividendPerShare: 5,
+                expectedAnnualDividendGrowthRate: 0.05,
+                dividendFrequency: 'WEEKLY',
+                isReinvestDividends: true,
+              ),
+            ],
+          ),
+          simulationResult: validInput.simulationResult,
+        );
+
+        final result = await usecase.execute(invalidInput);
+
+        expect(result.isLeft(), true);
+
+        result.fold(
+          (failure) => expect(failure, isA<InvalidAssetFailure>()),
+          (_) => fail('Left가 와야 함'),
+        );
+      },
+    );
   });
 }

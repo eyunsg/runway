@@ -1,10 +1,11 @@
 import { Portfolio } from '../../../shared/domain/portfolios/Portfolios.ts';
-import { SavePortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
+import { AddPortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 import {
   savePortfolioRepo,
   getPortfoliosRepo,
   getPortfolioDetailRepo,
   updatePortfolioRepo,
+  deletePortfolioRepo,
 } from './portfoliosRepository.ts';
 import {
   GetPortfoliosResponseDto,
@@ -57,11 +58,11 @@ interface RawPortfolioDetailRecord {
     goal_analysis: {
       portfolio_value_goal: {
         achievement_probability?: number;
-        expected_months_to_target: number | null;
+        expected_months_to_target: number;
       };
       monthly_dividend_goal: {
         achievement_probability?: number;
-        expected_months_to_target: number | null;
+        expected_months_to_target: number;
       };
     };
   };
@@ -91,7 +92,7 @@ export async function addPortfolioService(
 export async function updatePortfolioService(
   userId: string,
   portfolioId: string,
-  dto: SavePortfolioRequestDto
+  dto: AddPortfolioRequestDto
 ): Promise<void> {
   // 1. DTO 데이터를 도메인 모델로 변환 (데이터 유효성 검증 포함)
   const portfolio = new Portfolio(userId, dto.name, dto.simulationInput, dto.simulationResult);
@@ -102,6 +103,17 @@ export async function updatePortfolioService(
   // 3. 실패 시 예외 발생 (해당 ID가 없거나 본인 소유가 아닐 경우)
   if (!isUpdated) {
     throw new Error('NOT_FOUND: 수정할 포트폴리오를 찾을 수 없거나 권한이 없습니다.');
+  }
+}
+
+export async function deletePortfolioService(userId: string, portfolioId: string): Promise<void> {
+  // 1. 리포지토리 호출하여 삭제 수행
+  const isDeleted = await deletePortfolioRepo(userId, portfolioId);
+
+  // 2. 실패 시 예외 발생 (데이터가 없거나 본인 소유가 아닐 경우)
+  // 에러 응답 명세의 "리소스 없음" 정책에 따라 NOT_FOUND 키워드 사용
+  if (!isDeleted) {
+    throw new Error('NOT_FOUND: 삭제할 포트폴리오를 찾을 수 없거나 권한이 없습니다.');
   }
 }
 

@@ -36,6 +36,11 @@ import 'package:runway/features/profile/repository/delete_profile_repository.dar
 import 'package:runway/features/profile/types/delete_profile_state.dart';
 import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
 
+import 'package:runway/features/portfolio/controller/delete_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/delete_portfolio_repository.dart';
+import 'package:runway/features/portfolio/types/delete_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/delete_portfolio_usecase.dart';
+
 import '../features/profile/controller/update_profile_controller.dart';
 import '../features/profile/usecase/update_profile_usecase.dart';
 import '../features/profile/repository/update_profile_repository.dart';
@@ -45,11 +50,6 @@ import 'package:runway/features/portfolio/repository/create_portfolio_repository
 import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
 import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
 
-import '../features/simulation/controller/simulation_controller.dart';
-import '../features/simulation/usecase/simulation_usecase.dart';
-import '../features/simulation/repository/simulation_repository.dart';
-import '../features/simulation/types/simulation_state.dart';
-
 import 'package:runway/features/portfolio/repository/get_portfolio_repository.dart';
 import 'package:runway/features/portfolio/controller/get_portfolio_controller.dart';
 import 'package:runway/features/portfolio/types/get_portfolio_state.dart';
@@ -58,6 +58,16 @@ import 'package:runway/features/portfolio/usecase/get_portfolio_usecase.dart';
 import 'package:runway/features/portfolio/controller/update_portfolio_controller.dart';
 import 'package:runway/features/portfolio/repository/update_portfolio_repository.dart';
 import 'package:runway/features/portfolio/usecase/update_portfolio_usecase.dart';
+
+import 'package:runway/features/portfolio/controller/get_portfolio_detail_controller.dart';
+import 'package:runway/features/portfolio/repository/get_portfolio_detail_repository.dart';
+import 'package:runway/features/portfolio/types/get_portfolio_detail_state.dart';
+import 'package:runway/features/portfolio/usecase/get_portfolio_detail_usecase.dart';
+
+import '../features/simulation/controller/simulation_controller.dart';
+import '../features/simulation/usecase/simulation_usecase.dart';
+import '../features/simulation/repository/simulation_repository.dart';
+import '../features/simulation/types/simulation_state.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -218,6 +228,28 @@ final deleteProfileControllerProvider =
       return DeleteProfileController(deleteProfileUseCase: usecase);
     });
 
+/// ---------------- DELETE PORTFOLIO ----------------
+
+final deleteClientRepositoryProvider = Provider<DeletePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeletePortfolioRepository(client: client);
+});
+
+final deleteClientUsecaseProvider = Provider<DeletePortfolioUsecase>((ref) {
+  final repository = ref.read(deleteClientRepositoryProvider);
+  return DeletePortfolioUsecase(repository: repository);
+});
+
+final deleteClientControllerProvider =
+    StateNotifierProvider<DeletePortfolioController, DeletePortfolioState>((
+      ref,
+    ) {
+      final usecase = ref.read(deleteClientUsecaseProvider);
+      return DeletePortfolioController(useCase: usecase);
+    });
+
 /// ---------------- UPDATE PROFILE ----------------
 
 final updateProfileRepositoryProvider = Provider<UpdateProfileRepository>((
@@ -258,24 +290,6 @@ final createPortfolioControllerProvider =
       return CreatePortfolioController(useCase: usecase);
     });
 
-/// ---------------- SIMULATION ----------------
-
-final simulationRepositoryProvider = Provider<SimulationRepository>((ref) {
-  final client = ref.read(supabaseClientProvider);
-  return SimulationRepositoryImpl(client: client);
-});
-
-final simulationUseCaseProvider = Provider<SimulationUseCase>((ref) {
-  final repository = ref.read(simulationRepositoryProvider);
-  return SimulationUseCase(repository);
-});
-
-final simulationControllerProvider =
-    StateNotifierProvider<SimulationController, SimulationState>((ref) {
-      final useCase = ref.read(simulationUseCaseProvider);
-      return SimulationController(useCase: useCase);
-    });
-
 /// ---------------- GET PORTFOLIO ----------------
 
 final getPortfolioRepositoryProvider = Provider<GetPortfolioRepository>((ref) {
@@ -312,4 +326,45 @@ final updatePortfolioControllerProvider =
     StateNotifierProvider<UpdatePortfolioController, PortfolioState>((ref) {
       final usecase = ref.read(updatePortfolioUsecaseProvider);
       return UpdatePortfolioController(useCase: usecase);
+    });
+/// ---------------- GET PORTFOLIO DETAIL ----------------
+
+final getPortfolioDetailRepositoryProvider =
+    Provider<GetPortfolioDetailRepository>((ref) {
+      final client = ref.read(supabaseClientProvider);
+      return GetPortfolioDetailRepository(client: client);
+    });
+
+final getPortfolioDetailUsecaseProvider = Provider<GetPortfolioDetailUseCase>((
+  ref,
+) {
+  final repository = ref.read(getPortfolioDetailRepositoryProvider);
+  return GetPortfolioDetailUseCase(repository);
+});
+
+final getPortfolioDetailControllerProvider =
+    StateNotifierProvider<
+      GetPortfolioDetailController,
+      GetPortfolioDetailState
+    >((ref) {
+      final useCase = ref.read(getPortfolioDetailUsecaseProvider);
+      return GetPortfolioDetailController(useCase: useCase);
+    });
+
+/// ---------------- SIMULATION ----------------
+
+final simulationRepositoryProvider = Provider<SimulationRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return SimulationRepositoryImpl(client: client);
+});
+
+final simulationUseCaseProvider = Provider<SimulationUseCase>((ref) {
+  final repository = ref.read(simulationRepositoryProvider);
+  return SimulationUseCase(repository);
+});
+
+final simulationControllerProvider =
+    StateNotifierProvider<SimulationController, SimulationState>((ref) {
+      final useCase = ref.read(simulationUseCaseProvider);
+      return SimulationController(useCase: useCase);
     });

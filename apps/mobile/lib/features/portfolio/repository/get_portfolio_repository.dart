@@ -35,35 +35,4 @@ class GetPortfolioRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
-
-  // pagination 사용 시
-  // Future<Either<Failure, List<Portfolio>>> getPortfolio({
-  //   required int limit,
-  //   required int offset,
-  // }) async {
-  //   try {
-  //     final response = await _client.functions.invoke(
-  //       'portfolios?limit=$limit&offset=$offset',
-  //       method: HttpMethod.get,
-  //     );
-  //
-  //     if (response.status != 200) {
-  //       return Left(ServerFailure('조회 실패'));
-  //     }
-  //
-  //     final portfoliosJson = response.data['portfolios'] as List;
-  //
-  //     final portfolios = portfoliosJson
-  //         .map((e) => PortfolioResponseDto.fromJson(e).toModel())
-  //         .toList();
-  //
-  //     return Right(portfolios);
-  //   } on AuthException catch (e) {
-  //     return Left(AuthFailure(e.message));
-  //   } on PostgrestException catch (e) {
-  //     return Left(ServerFailure(e.message));
-  //   } on Exception catch (e) {
-  //     return Left(UnknownFailure(e.toString()));
-  //   }
-  // }
 }

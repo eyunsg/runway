@@ -113,7 +113,8 @@ export async function updatePortfolioRepo(
       updated_at: new Date().toISOString(), // 수정 시각 갱신
     })
     .eq('id', portfolioId)
-    .eq('user_id', portfolio.userId); // 보안: 본인 소유 확인
+    .eq('user_id', portfolio.userId) // 보안: 본인 소유 확인
+    .is('deleted_at', null);
 
   if (error) {
     console.error(`[PortfolioRepo Error - Update]: ${error.message}`);
@@ -148,6 +149,7 @@ export async function getPortfolioDetailRepo(userId: string, portfolioId: string
     .select('*') // 상세 조물이므로 모든 컬럼(*)을 가져옵니다.
     .eq('id', portfolioId)
     .eq('user_id', userId)
+    .is('deleted_at', null)
     .single();
 
   if (error) {
@@ -156,4 +158,22 @@ export async function getPortfolioDetailRepo(userId: string, portfolioId: string
   }
 
   return data;
+}
+
+export async function deletePortfolioRepo(userId: string, portfolioId: string): Promise<boolean> {
+  const client = createAdminClient();
+
+  const { error } = await client
+    .from('portfolios')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', portfolioId)
+    .eq('user_id', userId) // 보안: 본인 소유 확인
+    .is('deleted_at', null);
+
+  if (error) {
+    console.error(`[PortfolioRepo Error - Delete]: ${error.message}`);
+    return false;
+  }
+
+  return true;
 }

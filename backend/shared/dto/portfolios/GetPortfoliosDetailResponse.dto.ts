@@ -29,12 +29,12 @@ export class GetPortfolioDetailResponseDto {
       portfolioValueGoal: {
         target: number;
         achievementProbability: number;
-        expectedMonthsToTarget: number | null;
+        expectedMonthsToTarget: number;
       };
       monthlyDividendGoal: {
         target: number;
         achievementProbability: number;
-        expectedMonthsToTarget: number | null;
+        expectedMonthsToTarget: number;
       };
     };
   };
