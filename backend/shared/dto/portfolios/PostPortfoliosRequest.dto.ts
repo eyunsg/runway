@@ -8,7 +8,7 @@ import {
   GoalAchievementResultDto,
 } from '../simulations/SimulationResponse.dto.ts';
 
-export class SavePortfolioRequestDto {
+export class AddPortfolioRequestDto {
   public name: string;
   public simulationInput: {
     goal: SimulationGoalDto;
@@ -70,5 +70,3 @@ export class SavePortfolioRequestDto {
     }
   }
 }
-
-export { SavePortfolioRequestDto as AddPortfolioRequestDto };

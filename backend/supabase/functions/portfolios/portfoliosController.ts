@@ -37,7 +37,7 @@ export async function handleAddPortfolio(req: Request) {
 
   // 2. 요청 데이터 파싱
   const body = await req.json();
-  const dto = new SavePortfolioRequestDto(body);
+  const dto = new AddPortfolioRequestDto(body);
 
   // 3. 서비스 레이어 호출 (비즈니스 로직 및 DB 저장 수행)
   await addPortfolioService(user.id, dto);

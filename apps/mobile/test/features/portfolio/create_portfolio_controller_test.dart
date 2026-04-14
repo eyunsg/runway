@@ -38,7 +38,7 @@ void main() {
           isDividendAsset: true,
           dividendPerShare: 5,
           expectedAnnualDividendGrowthRate: 0.05,
-          dividendFrequency: 4,
+          dividendFrequency: 'QUARTERLY',
           isReinvestDividends: true,
         ),
       ],
