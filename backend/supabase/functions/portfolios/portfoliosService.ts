@@ -72,7 +72,7 @@ interface RawPortfolioDetailRecord {
 
 export async function addPortfolioService(
   userId: string,
-  dto: SavePortfolioRequestDto
+  dto: AddPortfolioRequestDto
 ): Promise<string> {
   // 1. DTO 데이터를 도메인 모델로 변환
   // 이 과정에서 Portfolio 클래스 내부의 validate()가 호출되어 이름, 자산 개수 등 검증
