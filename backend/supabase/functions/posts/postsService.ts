@@ -1,6 +1,32 @@
 import { Post } from '../../../shared/domain/posts/Post.ts';
 import { PostPostsRequestDto } from '../../../shared/dto/posts/PostPostsRequest.dto.ts';
-import { createPortfolioSnapshotRepo, savePostRepo } from './postsRepository.ts';
+import {
+  GetPostsResponseDto,
+  PostSummaryDto,
+} from '../../../shared/dto/posts/GetPostsResponse.dto.ts';
+import { findAllPostsRepo, savePostRepo, createPortfolioSnapshotRepo } from './postsRepository.ts';
+
+type SingleOrArray<T> = T | T[];
+
+interface RawPostRecord {
+  id: string;
+  user_id: string;
+  portfolio_snapshot_id: string | null;
+  content: string;
+  comments_count: number;
+  created_at: string;
+  profiles: SingleOrArray<{ display_name: string | null }> | null;
+  portfolio_snapshots: SingleOrArray<{
+    id: string;
+    portfolios: SingleOrArray<{
+      name: string;
+      simulation_input: {
+        goal?: { investment_period_months?: number };
+        assets?: unknown[];
+      };
+    }> | null;
+  }> | null;
+}
 
 export async function addPostService(userId: string, dto: PostPostsRequestDto): Promise<string> {
   let snapshotId: string | null = null;
@@ -22,4 +48,49 @@ export async function addPostService(userId: string, dto: PostPostsRequestDto): 
   }
 
   return postId;
+}
+
+export async function getPostsService(authHeader: string): Promise<GetPostsResponseDto> {
+  const rawData = await findAllPostsRepo(authHeader);
+
+  if (!rawData) {
+    throw new Error('DATABASE_ERROR: 게시글 목록을 불러오지 못했습니다.');
+  }
+
+  const summaries = (rawData as unknown as RawPostRecord[]).map((item) => {
+    const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+    const snapshot = Array.isArray(item.portfolio_snapshots)
+      ? item.portfolio_snapshots[0]
+      : item.portfolio_snapshots;
+    const portfolio =
+      snapshot &&
+      (Array.isArray(snapshot.portfolios) ? snapshot.portfolios[0] : snapshot.portfolios);
+
+    const postDomain = new Post(
+      item.user_id,
+      item.portfolio_snapshot_id || 'N/A',
+      item.content,
+      item.id,
+      item.created_at,
+      item.comments_count
+    );
+
+    const simInput = portfolio?.simulation_input;
+    const assetCount = Array.isArray(simInput?.assets) ? simInput.assets.length : 0;
+    const investmentPeriodMonths = simInput?.goal?.investment_period_months || 0;
+
+    return new PostSummaryDto(
+      postDomain.id!,
+      postDomain.content,
+      profile?.display_name || '알 수 없는 사용자',
+      snapshot?.id || null,
+      portfolio?.name || null,
+      assetCount,
+      investmentPeriodMonths,
+      item.created_at,
+      postDomain.commentsCount
+    );
+  });
+
+  return new GetPostsResponseDto(summaries);
 }

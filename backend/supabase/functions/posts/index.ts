@@ -1,9 +1,14 @@
-import { handleAddPost, UnauthorizedError, ValidationError } from './postsController.ts';
+import {
+  handleAddPost,
+  handleGetPosts,
+  UnauthorizedError,
+  ValidationError,
+} from './postsController.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
 
 function errorResponse(message: string, status: number) {
@@ -39,11 +44,21 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/').filter(Boolean);
 
-    // 2. 라우팅: 오직 POST /posts 만 처리
-    if (req.method === 'POST') {
-      if (pathParts.length === 1 && pathParts[0] === 'posts') {
+    const isPostsPath = pathParts.length > 0 && pathParts[pathParts.length - 1] === 'posts';
+
+    // 2. 라우팅 로직
+    if (isPostsPath) {
+      // API-COMM-001: 게시글 작성
+      if (req.method === 'POST') {
         return await handleAddPost(req);
       }
+
+      // API-COMM-002: 게시글 목록 조회
+      if (req.method === 'GET') {
+        return await handleGetPosts(req);
+      }
+
+      return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
 
     // 3. 그 외 경로나 메서드는 404/405 처리
