@@ -51,7 +51,13 @@ class AppRouter {
       ),
       GoRoute(
         path: '/portfolio/get',
-        builder: (context, state) => const GetPortfolioTempScreen(),
+        builder: (context, state) {
+          final bool isSelectionMode = (state.extra is bool)
+              ? state.extra as bool
+              : false;
+
+          return GetPortfolioTempScreen(isSelectionMode: isSelectionMode);
+        },
       ),
       GoRoute(
         path: '/portfolio/create',
