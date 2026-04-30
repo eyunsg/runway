@@ -5,7 +5,9 @@ import 'package:runway/domain/entity/portfolio.dart';
 import 'package:go_router/go_router.dart';
 
 class GetPortfolioTempScreen extends ConsumerStatefulWidget {
-  const GetPortfolioTempScreen({super.key});
+  const GetPortfolioTempScreen({super.key, this.isSelectionMode = false});
+
+  final bool isSelectionMode;
 
   @override
   ConsumerState<GetPortfolioTempScreen> createState() =>
@@ -59,10 +61,10 @@ class _GetPortfolioTempScreenState
   String _formatInvestmentPeriod(int periodMonths) {
     if (periodMonths % 12 == 0) {
       final int investmentYears = periodMonths ~/ 12;
-      return '${investmentYears}년';
+      return '$investmentYears년';
     }
 
-    return '${periodMonths}개월';
+    return '$periodMonths개월';
   }
 
   @override
@@ -118,12 +120,13 @@ class _GetPortfolioTempScreenState
           },
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              // TODO: create portfolio 화면 route 연결 후 수정 가능
-            },
-            child: const Text('만들기'),
-          ),
+          if (!widget.isSelectionMode)
+            TextButton(
+              onPressed: () {
+                // TODO: create portfolio 화면 route 연결 후 수정 가능
+              },
+              child: const Text('만들기'),
+            ),
         ],
       ),
       body: SafeArea(
@@ -170,7 +173,13 @@ class _GetPortfolioTempScreenState
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                        context.go('/portfolio/get/detail/${portfolioItem.id}');
+                        if (widget.isSelectionMode) {
+                          Navigator.of(context).pop<Portfolio>(portfolioItem);
+                        } else {
+                          context.go(
+                            '/portfolio/get/detail/${portfolioItem.id}',
+                          );
+                        }
                       },
                     ),
                   ),
