@@ -73,7 +73,7 @@ void main() {
       expect(states[1].isLoading, true);
 
       expect(states[2].isLoading, false);
-      expect(states[2].error, '서버 오류가 발생했습니다.');
+      expect(states[2].error, 'server error');
     });
   });
 }
