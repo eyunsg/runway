@@ -144,6 +144,15 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                       context.push('/portfolio/get');
                     },
                   ),
+
+                  const Divider(),
+
+                  ListTile(
+                    title: const Text('게시물 생성 (temp)'),
+                    onTap: () {
+                      context.push('/post/create');
+                    },
+                  ),
                 ],
               ),
             ),

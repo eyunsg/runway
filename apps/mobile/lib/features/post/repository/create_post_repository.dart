@@ -12,18 +12,6 @@ class CreatePostRepository {
     CreatePostRequestDto requestDto,
   ) async {
     try {
-      /// TODO(RUNWAY-227):
-      /// 프론트 정책상 portfolioId 는 optional 이어야 한다.
-      /// 하지만 현재 백엔드 PostPostsRequestDto 는 portfolioId 를 required 로 검증하고 있다.
-      /// 백엔드가 optional 로 수정되기 전까지는 repository 에서 임시 방어한다.
-      if (requestDto.portfolioId == null) {
-        return const Left(
-          ServerFailure(
-            '현재 서버에서는 포트폴리오를 선택한 경우에만 게시글 등록이 가능합니다. 백엔드 수정 후 해제 예정입니다.',
-          ),
-        );
-      }
-
       final response = await _client.functions.invoke(
         'posts',
         method: HttpMethod.post,
