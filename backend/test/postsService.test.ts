@@ -117,12 +117,16 @@ describe('PostsService - 게시물 생성 테스트 (API-COMM-001)', () => {
       }).rejects.toThrow('VALIDATION_ERROR');
     });
 
-    it('유저 ID가 누락된 경우 도메인 검증 단계에서 에러를 던진다', async () => {
-      (createPortfolioSnapshotRepo as jest.Mock).mockResolvedValue(mockSnapshotId);
+    it('portfolioId가 존재하는 경우에만 스냅샷 생성 실패 시 NOT_FOUND를 던진다', async () => {
+      (createPortfolioSnapshotRepo as jest.Mock).mockResolvedValue(null);
+
       const dto = new PostPostsRequestDto(validRequestData);
 
-      // @ts-ignore: 테스트를 위해 undefined 전달
-      await expect(addPostService(undefined, dto)).rejects.toThrow('VALIDATION_ERROR');
+      await expect(addPostService(mockUserId, dto)).rejects.toThrow(
+        'NOT_FOUND: 게시할 포트폴리오를 찾을 수 없거나 접근 권한이 없습니다.'
+      );
+
+      expect(savePostRepo).not.toHaveBeenCalled();
     });
   });
 });
