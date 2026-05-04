@@ -1,6 +1,7 @@
 import {
   handleAddPost,
   handleGetPosts,
+  handleGetMyPosts,
   UnauthorizedError,
   ValidationError,
 } from './postsController.ts';
@@ -43,8 +44,18 @@ Deno.serve(async (req: Request) => {
   try {
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/').filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1];
+    const secondLastPart = pathParts[pathParts.length - 2];
 
+    const isMyPostsPath = lastPart === 'me' && secondLastPart === 'posts';
     const isPostsPath = pathParts.length > 0 && pathParts[pathParts.length - 1] === 'posts';
+
+    if (isMyPostsPath) {
+      if (req.method === 'GET') {
+        return await handleGetMyPosts(req);
+      }
+      return errorResponse('허용되지 않은 메서드입니다.', 405);
+    }
 
     // 2. 라우팅 로직
     if (isPostsPath) {
