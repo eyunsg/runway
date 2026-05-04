@@ -65,6 +65,11 @@ import '../features/simulation/usecase/simulation_usecase.dart';
 import '../features/simulation/repository/simulation_repository.dart';
 import '../features/simulation/types/simulation_state.dart';
 
+import 'package:runway/features/post/controller/get_post_controller.dart';
+import 'package:runway/features/post/repository/get_post_repository.dart';
+import 'package:runway/features/post/types/get_post_state.dart';
+import 'package:runway/features/post/usecase/get_post_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -344,4 +349,22 @@ final simulationControllerProvider =
     StateNotifierProvider<SimulationController, SimulationState>((ref) {
       final useCase = ref.read(simulationUseCaseProvider);
       return SimulationController(useCase: useCase);
+    });
+
+/// ---------------- GET POST ----------------
+
+final getPostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPostRepository(client: client);
+});
+
+final getPostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getPostRepositoryProvider);
+  return GetPostUsecase(repository);
+});
+
+final getPostControllerProvider =
+    StateNotifierProvider<GetPostController, GetPostState>((ref) {
+      final useCase = ref.read(getPostUsecaseProvider);
+      return GetPostController(useCase: useCase);
     });
