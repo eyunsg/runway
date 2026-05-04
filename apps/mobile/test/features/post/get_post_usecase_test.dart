@@ -15,7 +15,8 @@ void main() {
 
   Post createDummyPost(int i) {
     return Post(
-      postId: i,
+      postId: '$i',
+      content: 'test content_$i',
       authorDisplayName: 'testUser_$i',
       portfolioName: 'Growth Portfolio_$i',
       assetCount: 5,
@@ -47,6 +48,9 @@ void main() {
       result.fold((_) => fail('Right가 와야 함'), (list) {
         expect(list.length, 10);
         expect(list, dummyList);
+
+        expect(list.first.postId, '0');
+        expect(list.first.content, 'test content_0');
       });
     });
 
