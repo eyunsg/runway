@@ -16,7 +16,8 @@ void main() {
 
   Post createDummyPost(int i) {
     return Post(
-      postId: i,
+      postId: '$i',
+      content: 'test content_$i',
       authorDisplayName: 'testUser_$i',
       portfolioName: 'Growth Portfolio_$i',
       assetCount: 5,
@@ -55,13 +56,14 @@ void main() {
 
       expect(states[2].isLoading, false);
       expect(states[2].posts, dummyList);
-      expect(states[2].posts.first.postId, 0);
+      expect(states[2].posts.first.postId, '0');
       expect(states[2].posts.first.authorDisplayName, 'testUser_0');
       expect(states[2].posts.first.portfolioName, 'Growth Portfolio_0');
       expect(states[2].posts.first.assetCount, 5);
       expect(states[2].posts.first.investmentPeriodMonths, 12);
       expect(states[2].posts.first.createdAt, DateTime(2024, 1, 1));
       expect(states[2].posts.first.commentCount, 3);
+      expect(states[2].posts.first.content, 'test content_0');
       expect(states[2].error, isNull);
     });
 
