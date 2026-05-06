@@ -2,6 +2,7 @@ import {
   handleAddPost,
   handleGetPosts,
   handleGetMyPosts,
+  handleGetPostDetail,
   UnauthorizedError,
   ValidationError,
 } from './postsController.ts';
@@ -48,11 +49,21 @@ Deno.serve(async (req: Request) => {
     const secondLastPart = pathParts[pathParts.length - 2];
 
     const isMyPostsPath = lastPart === 'me' && secondLastPart === 'posts';
-    const isPostsPath = pathParts.length > 0 && pathParts[pathParts.length - 1] === 'posts';
+    const isPostsPath = pathParts.length === 1 && lastPart === 'posts';
+    const isPostDetailPath =
+      pathParts.length === 2 && secondLastPart === 'posts' && lastPart !== 'me';
 
     if (isMyPostsPath) {
       if (req.method === 'GET') {
         return await handleGetMyPosts(req);
+      }
+      return errorResponse('허용되지 않은 메서드입니다.', 405);
+    }
+
+    if (isPostDetailPath) {
+      if (req.method === 'GET') {
+        const postId = lastPart;
+        return await handleGetPostDetail(req, postId);
       }
       return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
