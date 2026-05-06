@@ -3,7 +3,9 @@ export class Post {
     public readonly userId: string,
     public readonly portfolioSnapshotId: string | null,
     public readonly content: string,
-    public readonly id?: string
+    public readonly id?: string,
+    public readonly createdAt?: string,
+    public readonly commentsCount: number = 0
   ) {
     this.validate();
   }

@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { addPostService } from './postsService.ts';
+import { addPostService, getPostsService } from './postsService.ts';
 import { PostPostsRequestDto } from '../../../shared/dto/posts/PostPostsRequest.dto.ts';
 
 const corsHeaders = {
@@ -40,5 +40,22 @@ export async function handleAddPost(req: Request) {
   return new Response(null, {
     status: 201,
     headers: corsHeaders,
+  });
+}
+
+export async function handleGetPosts(req: Request) {
+  // 1. RLS 정책 적용을 위해 Authorization 헤더 추출
+  const authHeader = req.headers.get('authorization') ?? '';
+
+  // 2. 서비스 레이어 호출 (인증 헤더 전달)
+  const responseDto = await getPostsService(authHeader);
+
+  // 3. 성공 응답 반환 (명세에 따라 data 객체로 래핑)
+  return new Response(JSON.stringify({ data: responseDto }), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
   });
 }

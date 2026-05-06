@@ -5,6 +5,47 @@ function createAdminClient() {
   return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 }
 
+//마이그레이션에 정의된 RLS 정책을 활성화하여 조회할 때 사용
+function createAuthClient(authHeader: string) {
+  return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+}
+
+// 모든 게시글 조회
+export async function findAllPostsRepo(authHeader: string) {
+  const client = createAuthClient(authHeader);
+
+  const { data, error } = await client
+    .from('posts')
+    .select(
+      `
+      id,
+      user_id,
+      portfolio_snapshot_id,
+      content,
+      comments_count,
+      created_at,
+      profiles:user_id (display_name),
+      portfolio_snapshots:portfolio_snapshot_id (
+        id,
+        portfolios:portfolio_id (
+          name,
+          simulation_input
+        )
+      )
+    `
+    )
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(`[PostsRepo Error - Find All]: ${error.message}`);
+    throw new Error(`DATABASE_ERROR: ${error.message}`);
+  }
+  return data;
+}
+
 export async function createPortfolioSnapshotRepo(
   userId: string,
   portfolioId: string
