@@ -95,6 +95,29 @@ class _UpdateProfileTempScreenState
               enabled: !updateState.isLoading && !profileState.isLoading,
             ),
             const SizedBox(height: 24),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    context.push('/password-change');
+                  },
+                  child: const Text('비밀번호 변경'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () {
+                    ref
+                        .read(deleteProfileControllerProvider.notifier)
+                        .deleteProfile();
+                  },
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                  child: const Text('회원탈퇴'),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
 
             SizedBox(
               width: double.infinity,
