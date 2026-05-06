@@ -6,9 +6,11 @@ import {
   GetMyPostsResponseDto,
   MyPostSummaryDto,
 } from '../../../shared/dto/posts/GetPostsResponse.dto.ts';
+import { PostDetailDto } from '../../../shared/dto/posts/GetPostDetailResponse.dto.ts';
 import {
   findAllPostsRepo,
   findAllMyPostsRepo,
+  findPostByIdRepo,
   savePostRepo,
   createPortfolioSnapshotRepo,
 } from './postsRepository.ts';
@@ -100,6 +102,45 @@ export async function getPostsService(authHeader: string): Promise<GetPostsRespo
   });
 
   return new GetPostsResponseDto(summaries);
+}
+
+export async function getPostDetailService(
+  authHeader: string,
+  postId: string
+): Promise<PostDetailDto> {
+  const rawItem = await findPostByIdRepo(authHeader, postId);
+
+  if (!rawItem) {
+    throw new Error('NOT_FOUND: 요청하신 게시글을 찾을 수 없습니다.');
+  }
+
+  const item = rawItem as unknown as RawPostRecord;
+
+  // 조인 데이터 추출 (배열 형태 대응)
+  const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+  const snapshot = Array.isArray(item.portfolio_snapshots)
+    ? item.portfolio_snapshots[0]
+    : item.portfolio_snapshots;
+  const portfolio =
+    snapshot && (Array.isArray(snapshot.portfolios) ? snapshot.portfolios[0] : snapshot.portfolios);
+
+  // JSONB 데이터 추출
+  const simInput = portfolio?.simulation_input;
+  const assetCount = Array.isArray(simInput?.assets) ? simInput.assets.length : 0;
+  const investmentPeriodMonths = simInput?.goal?.investment_period_months || 0;
+
+  // 상세 조회 전용 DTO로 변환
+  return new PostDetailDto(
+    item.id,
+    item.content,
+    profile?.display_name || '알 수 없는 사용자',
+    snapshot?.id || null,
+    portfolio?.name || null,
+    assetCount,
+    investmentPeriodMonths,
+    item.created_at,
+    item.comments_count || 0
+  );
 }
 
 export async function getMyPostsService(

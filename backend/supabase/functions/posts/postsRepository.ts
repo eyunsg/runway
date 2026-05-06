@@ -46,6 +46,44 @@ export async function findAllPostsRepo(authHeader: string) {
   return data;
 }
 
+export async function findPostByIdRepo(authHeader: string, postId: string) {
+  const client = createAuthClient(authHeader);
+
+  const { data, error } = await client
+    .from('posts')
+    .select(
+      `
+      id,
+      user_id,
+      portfolio_snapshot_id,
+      content,
+      comments_count,
+      created_at,
+      profiles:user_id (display_name),
+      portfolio_snapshots:portfolio_snapshot_id (
+        id,
+        snapshot_data,
+        portfolios:portfolio_id (
+          name,
+          simulation_input
+        )
+      )
+    `
+    )
+    .eq('id', postId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) {
+    // 결과가 없는 경우 null 반환 (PGRST116: JSON object requested, but 0 rows returned)
+    if (error.code === 'PGRST116') return null;
+
+    console.error(`[PostsRepo Error - Find By Id]: ${error.message}`);
+    throw new Error(`DATABASE_ERROR: 게시글 정보를 불러오는 중 오류가 발생했습니다.`);
+  }
+  return data;
+}
+
 export async function findAllMyPostsRepo(authHeader: string, userId: string) {
   const client = createAuthClient(authHeader);
 
