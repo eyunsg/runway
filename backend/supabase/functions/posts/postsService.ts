@@ -131,6 +131,7 @@ export async function getMyPostsService(
     // 3. 내 게시글 전용 DTO로 변환 (content, snapshotId 제외)
     return new MyPostSummaryDto(
       item.id,
+      item.content,
       profile?.display_name || '알 수 없는 사용자',
       portfolio?.name || null,
       assetCount,
