@@ -20,43 +20,25 @@ class HomeTempScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              // 🔥 필수
-              child: Column(
-                children: [
-                  _button(
-                    context,
-                    'Create Portfolio',
-                    () => context.push('/simulation'),
-                  ),
-                  const SizedBox(height: 16),
-                  _button(
-                    context,
-                    'Get Portfolio',
-                    () => context.push('/portfolio/get'),
-                  ),
-                ],
-              ),
+            _button(
+              context,
+              'Create Portfolio',
+              () => context.push('/simulation'),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              // 🔥 필수
-              child: Column(
-                children: [
-                  _button(
-                    context,
-                    'Create Post',
-                    () => context.push('/post/create'),
-                  ),
-                  const SizedBox(height: 16),
-                  _button(context, 'Get Post', () => context.push('/post/get')),
-                  const SizedBox(height: 16),
-                  _button(context, 'Get My Post', () {}),
-                ],
-              ),
+            const SizedBox(height: 16),
+            _button(
+              context,
+              'Get Portfolio',
+              () => context.push('/portfolio/get'),
             ),
+            const SizedBox(height: 16),
+            _button(context, 'Create Post', () => context.push('/post/create')),
+            const SizedBox(height: 16),
+            _button(context, 'Get Post', () => context.push('/post/get')),
           ],
         ),
       ),
@@ -73,7 +55,11 @@ Widget _button(BuildContext context, String title, VoidCallback onPressed) {
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       ),
       onPressed: onPressed,
-      child: Text(title, textAlign: TextAlign.center),
+      child: Text(
+        title,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+      ),
     ),
   );
 }
