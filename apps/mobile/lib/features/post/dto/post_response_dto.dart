@@ -1,9 +1,10 @@
 import 'package:runway/features/post/model/post.dart';
 
 class PostResponseDto {
-  final int postId;
-  final String authorDisplayName;
-  final String portfolioName;
+  final String postId;
+  final String? content;
+  final String? authorDisplayName;
+  final String? portfolioName;
   final int assetCount;
   final int investmentPeriodMonths;
   final String createdAt;
@@ -11,6 +12,7 @@ class PostResponseDto {
 
   PostResponseDto({
     required this.postId,
+    required this.content,
     required this.authorDisplayName,
     required this.portfolioName,
     required this.assetCount,
@@ -21,9 +23,10 @@ class PostResponseDto {
 
   factory PostResponseDto.fromJson(Map<String, dynamic> json) {
     return PostResponseDto(
-      postId: json['postId'] as int,
-      authorDisplayName: json['authorDisplayName'] as String,
-      portfolioName: json['portfolioName'] as String,
+      postId: json['postId'] as String,
+      content: json['content'] as String?,
+      authorDisplayName: json['authorDisplayName'] as String?,
+      portfolioName: json['portfolioName'] as String?,
       assetCount: json['assetCount'] as int,
       investmentPeriodMonths: json['investmentPeriodMonths'] as int,
       createdAt: json['createdAt'] as String,
@@ -32,7 +35,11 @@ class PostResponseDto {
   }
 
   static List<PostResponseDto> listFromResponseJson(Map<String, dynamic> json) {
-    final rawPosts = json['posts'];
+    final root = json['data'] is Map<String, dynamic>
+        ? json['data'] as Map<String, dynamic>
+        : json;
+
+    final rawPosts = root['posts'];
     if (rawPosts == null) {
       throw const FormatException('"posts" key is missing or null.');
     }
@@ -49,8 +56,14 @@ extension PostMapper on PostResponseDto {
   Post toModel() {
     return Post(
       postId: postId,
-      authorDisplayName: authorDisplayName,
-      portfolioName: portfolioName,
+      content: content ?? '',
+      authorDisplayName:
+          authorDisplayName == null ||
+              authorDisplayName!.trim().isEmpty ||
+              authorDisplayName == '알 수 없는 사용자'
+          ? 'displayName'
+          : authorDisplayName!,
+      portfolioName: portfolioName ?? '',
       assetCount: assetCount,
       investmentPeriodMonths: investmentPeriodMonths,
       createdAt: DateTime.parse(createdAt),
