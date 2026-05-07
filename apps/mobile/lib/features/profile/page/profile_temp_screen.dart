@@ -56,15 +56,25 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                   Center(
                     child: Stack(
                       alignment: Alignment.bottomRight,
-                      children: const [
-                        CircleAvatar(
+                      children: [
+                        const CircleAvatar(
                           radius: 50,
                           child: Icon(Icons.person, size: 50),
                         ),
-                        CircleAvatar(
-                          radius: 15,
-                          backgroundColor: Colors.white,
-                          child: Icon(Icons.edit, size: 18),
+
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              context.push('/profile/update');
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: const CircleAvatar(
+                              radius: 15,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.edit, size: 18),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -101,47 +111,6 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                         logoutControllerProvider.notifier,
                       );
                       await controller.logout();
-                    },
-                  ),
-
-                  const Divider(),
-
-                  ListTile(
-                    title: const Text(
-                      '회원탈퇴 (임시)',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    onTap: () {
-                      ref
-                          .read(deleteProfileControllerProvider.notifier)
-                          .deleteProfile();
-                    },
-                  ),
-
-                  const Divider(),
-
-                  ListTile(
-                    title: const Text('회원정보 수정 (임시)'),
-                    onTap: () {
-                      context.push('/profile/update');
-                    },
-                  ),
-
-                  const Divider(),
-
-                  ListTile(
-                    title: const Text('시뮬레이션 (임시)'),
-                    onTap: () {
-                      context.push('/simulation');
-                    },
-                  ),
-
-                  const Divider(),
-
-                  ListTile(
-                    title: const Text('내 포트폴리오'),
-                    onTap: () {
-                      context.push('/portfolio/get');
                     },
                   ),
                 ],

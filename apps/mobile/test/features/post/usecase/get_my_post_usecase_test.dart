@@ -2,23 +2,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 
-import 'package:runway/features/post/usecase/get_post_usecase.dart';
-import 'package:runway/features/post/repository/get_post_repository.dart';
+import 'package:runway/features/post/usecase/get_my_post_usecase.dart';
+import 'package:runway/features/post/repository/get_my_post_repository.dart';
 import 'package:runway/features/post/model/post.dart';
 import 'package:runway/core/error/failure.dart';
 
-class MockGetPostRepository extends Mock implements GetPostRepository {}
+class MockGetMyPostRepository extends Mock implements GetMyPostRepository {}
 
 void main() {
-  late GetPostUsecase usecase;
-  late MockGetPostRepository mockRepository;
+  late GetMyPostUsecase usecase;
+  late MockGetMyPostRepository mockRepository;
 
   Post createDummyPost(int i) {
     return Post(
       postId: '$i',
-      content: 'test content_$i',
-      authorDisplayName: 'testUser_$i',
-      portfolioName: 'Growth Portfolio_$i',
+      content: 'my post content_$i',
+      authorDisplayName: 'myUser_$i',
+      portfolioName: 'My Portfolio_$i',
       assetCount: 5,
       investmentPeriodMonths: 12,
       createdAt: DateTime(2024, 1, 1),
@@ -27,21 +27,21 @@ void main() {
   }
 
   setUp(() {
-    mockRepository = MockGetPostRepository();
-    usecase = GetPostUsecase(mockRepository);
+    mockRepository = MockGetMyPostRepository();
+    usecase = GetMyPostUsecase(mockRepository);
   });
 
-  group('GetPostUsecase', () {
+  group('GetMyPostUsecase', () {
     test('성공 케이스: repository 결과 그대로 반환', () async {
       final dummyList = List.generate(10, createDummyPost);
 
       when(
-        () => mockRepository.getPost(),
+        () => mockRepository.getMyPost(),
       ).thenAnswer((_) async => Right(dummyList));
 
       final result = await usecase.execute();
 
-      verify(() => mockRepository.getPost()).called(1);
+      verify(() => mockRepository.getMyPost()).called(1);
 
       expect(result.isRight(), true);
 
@@ -50,7 +50,13 @@ void main() {
         expect(list, dummyList);
 
         expect(list.first.postId, '0');
-        expect(list.first.content, 'test content_0');
+        expect(list.first.content, 'my post content_0');
+        expect(list.first.authorDisplayName, 'myUser_0');
+        expect(list.first.portfolioName, 'My Portfolio_0');
+        expect(list.first.assetCount, 5);
+        expect(list.first.investmentPeriodMonths, 12);
+        expect(list.first.createdAt, DateTime(2024, 1, 1));
+        expect(list.first.commentCount, 3);
       });
     });
 
@@ -58,10 +64,12 @@ void main() {
       const errorMsg = 'server error';
 
       when(
-        () => mockRepository.getPost(),
+        () => mockRepository.getMyPost(),
       ).thenAnswer((_) async => Left(ServerFailure(errorMsg)));
 
       final result = await usecase.execute();
+
+      verify(() => mockRepository.getMyPost()).called(1);
 
       expect(result.isLeft(), true);
 
