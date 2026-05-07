@@ -42,7 +42,7 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              // TODO: get my post screen 작업 시 이동 코드 작성
+              context.push('/post/get/me');
             },
             child: const Text('내 게시물'),
           ),
