@@ -164,7 +164,7 @@ void main() {
 
       await controller.createPortfolio(dummyInput);
 
-      expect(states[2].error, '서버 오류가 발생했습니다.');
+      expect(states[2].error, 'server error');
     });
 
     test('UnknownFailure → 기본 메시지 반환', () async {
