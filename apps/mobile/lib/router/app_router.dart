@@ -88,6 +88,7 @@ class AppRouter {
         path: '/post/get/me',
         builder: (context, state) => const GetMyPostTempScreen(),
       ),
+      GoRoute(
         path: '/post/get',
         builder: (context, state) => const GetPostTempScreen(),
       ),
