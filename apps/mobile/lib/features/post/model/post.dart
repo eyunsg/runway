@@ -1,5 +1,6 @@
 class Post {
-  final int postId;
+  final String postId;
+  final String content;
   final String authorDisplayName;
   final String portfolioName;
   final int assetCount;
@@ -9,6 +10,7 @@ class Post {
 
   const Post({
     required this.postId,
+    required this.content,
     required this.authorDisplayName,
     required this.portfolioName,
     required this.assetCount,

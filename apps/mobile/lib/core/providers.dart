@@ -70,6 +70,11 @@ import 'package:runway/features/post/repository/create_post_repository.dart';
 import 'package:runway/features/post/types/create_post_state.dart';
 import 'package:runway/features/post/usecase/create_post_usecase.dart';
 
+import 'package:runway/features/post/controller/get_my_post_controller.dart';
+import 'package:runway/features/post/repository/get_my_post_repository.dart';
+import 'package:runway/features/post/types/get_my_post_state.dart';
+import 'package:runway/features/post/usecase/get_my_post_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -367,4 +372,22 @@ final createPostControllerProvider =
     StateNotifierProvider<CreatePostController, CreatePostState>((ref) {
       final usecase = ref.read(createPostUsecaseProvider);
       return CreatePostController(useCase: usecase);
+    });
+
+/// ---------------- GET MY POST ----------------
+
+final getMyPostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetMyPostRepository(client: client);
+});
+
+final getMyPostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getMyPostRepositoryProvider);
+  return GetMyPostUsecase(repository);
+});
+
+final getMyPostControllerProvider =
+    StateNotifierProvider<GetMyPostController, GetMyPostState>((ref) {
+      final useCase = ref.read(getMyPostUsecaseProvider);
+      return GetMyPostController(useCase: useCase);
     });

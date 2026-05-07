@@ -17,14 +17,14 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
   void initState() {
     super.initState();
 
-    // Future.microtask(() {
-    //   ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
-    // });
+    Future.microtask(() {
+      ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // final state = ref.watch(getMyPostControllerProvider);
+    final state = ref.watch(getMyPostControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -41,7 +41,7 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
         title: const Text('내 게시물'),
         centerTitle: true,
       ),
-      // body: _buildBody(state),
+      body: _buildBody(state),
     );
   }
 
@@ -67,7 +67,7 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
+                  ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
                 },
                 child: const Text('다시 시도'),
               ),
@@ -137,7 +137,7 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            // Text(post.content),
+            Text(post.content),
             if (hasPortfolio) ...[
               const SizedBox(height: 12),
               _buildPortfolioCard(post: post),
