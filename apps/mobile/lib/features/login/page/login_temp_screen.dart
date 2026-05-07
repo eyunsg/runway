@@ -17,7 +17,7 @@ class LoginTempScreen extends ConsumerWidget {
 
     ref.listen(loginControllerProvider, (prev, next) {
       if (next.status == AsyncStatus.success) {
-        context.go('/profile');
+        context.go('/devhome');
       }
 
       if (next.status == AsyncStatus.error && next.error != null) {

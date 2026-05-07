@@ -83,7 +83,7 @@ void main() {
         expect(states[0].isLoading, false);
         expect(states[1].isLoading, true);
         expect(states[2].isLoading, false);
-        expect(states[2].error, 'server error');
+        expect(states[2].error, '서버 오류가 발생했습니다.');
       },
       skip:
           'TODO: Error message policy 충돌 (ServerFailure → toMessage 매핑 정리 필요)',

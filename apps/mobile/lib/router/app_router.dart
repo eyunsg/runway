@@ -4,6 +4,7 @@ import 'package:runway/features/login/page/login_temp_screen.dart';
 import 'package:runway/features/password_reset/page/request_password_reset_temp_screen.dart';
 import 'package:runway/features/password_reset/page/password_reset_temp_screen.dart';
 import 'package:runway/features/logout/page/logout_temp_screen.dart';
+import 'package:runway/home_temp_screen.dart';
 import '../features/register/page/register_temp_screen.dart';
 import 'package:runway/features/profile/page/profile_temp_screen.dart';
 import '../features/password_change/page/password_change_temp_screen.dart';
@@ -15,6 +16,7 @@ import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
 import '../features/post/page/create_post_temp_screen.dart';
 import '../features/post/page/get_my_post_temp_screen.dart';
+import '../features/post/page/get_post_temp_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -83,8 +85,15 @@ class AppRouter {
         builder: (context, state) => const CreatePostTempScreen(),
       ),
       GoRoute(
-        path: '/post/get/my',
+        path: '/post/get/me',
         builder: (context, state) => const GetMyPostTempScreen(),
+      ),
+        path: '/post/get',
+        builder: (context, state) => const GetPostTempScreen(),
+      ),
+      GoRoute(
+        path: '/devhome',
+        builder: (context, state) => const HomeTempScreen(),
       ),
     ],
   );
