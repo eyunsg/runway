@@ -224,6 +224,7 @@ describe('PostsService 테스트', () => {
     const mockMyRawData = [
       {
         id: 'my-post-1',
+        content: '게시물 내용입니다.',
         user_id: mockUserId,
         comments_count: 3,
         created_at: '2024-03-25T15:00:00Z',
@@ -252,14 +253,13 @@ describe('PostsService 테스트', () => {
 
       const post = result.posts[0];
       expect(post.postId).toBe('my-post-1');
+      expect(post.content).toBe('게시물 내용입니다.');
       expect(post.authorDisplayName).toBe('본인유저');
       expect(post.portfolioName).toBe('내 은퇴 자금');
       expect(post.assetCount).toBe(2);
       expect(post.investmentPeriodMonths).toBe(120);
       expect(post.commentCount).toBe(3);
 
-      // 명세서 상 내 게시글에는 content와 snapshotId가 없어야 함
-      expect(post).not.toHaveProperty('content');
       expect(post).not.toHaveProperty('portfolioSnapshotId');
 
       expect(findAllMyPostsRepo).toHaveBeenCalledWith(mockAuthHeader, mockUserId);
