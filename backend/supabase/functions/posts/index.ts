@@ -80,13 +80,6 @@ Deno.serve(async (req: Request) => {
       return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
 
-    if (isMyPostsPath) {
-      if (req.method === 'GET') {
-        return await handleGetMyPosts(req);
-      }
-      return errorResponse('허용되지 않은 메서드입니다.', 405);
-    }
-
     if (isPostDetailPath) {
       const postId = lastPart;
 
