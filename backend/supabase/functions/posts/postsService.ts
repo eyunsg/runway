@@ -3,8 +3,15 @@ import { PostPostsRequestDto } from '../../../shared/dto/posts/PostPostsRequest.
 import {
   GetPostsResponseDto,
   PostSummaryDto,
+  GetMyPostsResponseDto,
+  MyPostSummaryDto,
 } from '../../../shared/dto/posts/GetPostsResponse.dto.ts';
-import { findAllPostsRepo, savePostRepo, createPortfolioSnapshotRepo } from './postsRepository.ts';
+import {
+  findAllPostsRepo,
+  findAllMyPostsRepo,
+  savePostRepo,
+  createPortfolioSnapshotRepo,
+} from './postsRepository.ts';
 
 type SingleOrArray<T> = T | T[];
 
@@ -93,4 +100,45 @@ export async function getPostsService(authHeader: string): Promise<GetPostsRespo
   });
 
   return new GetPostsResponseDto(summaries);
+}
+
+export async function getMyPostsService(
+  authHeader: string,
+  userId: string
+): Promise<GetMyPostsResponseDto> {
+  const rawData = await findAllMyPostsRepo(authHeader, userId);
+
+  if (!rawData) {
+    throw new Error('DATABASE_ERROR: 내 게시글 목록을 불러오지 못했습니다.');
+  }
+
+  const summaries = (rawData as unknown as RawPostRecord[]).map((item) => {
+    // 1. 조인 데이터 추출 (배열 형태 대응)
+    const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+    const snapshot = Array.isArray(item.portfolio_snapshots)
+      ? item.portfolio_snapshots[0]
+      : item.portfolio_snapshots;
+    const portfolio =
+      snapshot &&
+      (Array.isArray(snapshot.portfolios) ? snapshot.portfolios[0] : snapshot.portfolios);
+
+    // 2. JSONB 데이터 추출
+    const simInput = portfolio?.simulation_input;
+    const assetCount = Array.isArray(simInput?.assets) ? simInput.assets.length : 0;
+    const investmentPeriodMonths = simInput?.goal?.investment_period_months || 0;
+
+    // 3. 내 게시글 전용 DTO로 변환 (content, snapshotId 제외)
+    return new MyPostSummaryDto(
+      item.id,
+      item.content,
+      profile?.display_name || '알 수 없는 사용자',
+      portfolio?.name || null,
+      assetCount,
+      investmentPeriodMonths,
+      item.created_at,
+      item.comments_count || 0
+    );
+  });
+
+  return new GetMyPostsResponseDto(summaries);
 }

@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { addPostService, getPostsService } from './postsService.ts';
+import { addPostService, getPostsService, getMyPostsService } from './postsService.ts';
 import { PostPostsRequestDto } from '../../../shared/dto/posts/PostPostsRequest.dto.ts';
 
 const corsHeaders = {
@@ -51,6 +51,38 @@ export async function handleGetPosts(req: Request) {
   const responseDto = await getPostsService(authHeader);
 
   // 3. 성공 응답 반환 (명세에 따라 data 객체로 래핑)
+  return new Response(JSON.stringify({ data: responseDto }), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+export async function handleGetMyPosts(req: Request) {
+  const authHeader = req.headers.get('authorization') ?? '';
+
+  // 1. 사용자 인증 확인 (RLS 정책 적용을 위한 Auth Client 활용)
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: {
+      headers: { Authorization: authHeader },
+    },
+  });
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new UnauthorizedError('인증에 실패했습니다. 내 정보를 불러오려면 로그인이 필요합니다.');
+  }
+
+  // 2. 서비스 레이어 호출 (인증 헤더와 유저 ID 전달)
+  const responseDto = await getMyPostsService(authHeader, user.id);
+
+  // 3. 성공 응답 반환
   return new Response(JSON.stringify({ data: responseDto }), {
     status: 200,
     headers: {

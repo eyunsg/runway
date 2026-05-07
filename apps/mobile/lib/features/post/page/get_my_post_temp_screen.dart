@@ -4,26 +4,27 @@ import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
 import 'package:runway/features/post/model/post.dart';
 
-class GetPostTempScreen extends ConsumerStatefulWidget {
-  const GetPostTempScreen({super.key});
+class GetMyPostTempScreen extends ConsumerStatefulWidget {
+  const GetMyPostTempScreen({super.key});
 
   @override
-  ConsumerState<GetPostTempScreen> createState() => _GetPostTempScreenState();
+  ConsumerState<GetMyPostTempScreen> createState() =>
+      _GetMyPostTempScreenState();
 }
 
-class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
+class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
   @override
   void initState() {
     super.initState();
 
     Future.microtask(() {
-      ref.read(getPostControllerProvider.notifier).fetchPost();
+      ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(getPostControllerProvider);
+    final state = ref.watch(getMyPostControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,23 +38,10 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
           },
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
         ),
-        title: const Text('커뮤니티'),
+        title: const Text('내 게시물'),
         centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {
-              context.push('/post/get/me');
-            },
-            child: const Text('내 게시물'),
-          ),
-        ],
       ),
-      body: Column(
-        children: [
-          Expanded(child: _buildBody(state)),
-          _buildBottomInputArea(),
-        ],
-      ),
+      body: _buildBody(state),
     );
   }
 
@@ -79,7 +67,7 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  ref.read(getPostControllerProvider.notifier).fetchPost();
+                  ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
                 },
                 child: const Text('다시 시도'),
               ),
@@ -106,13 +94,12 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
     );
   }
 
-  // 게시글 기본 아이템 구성
   Widget _buildPostItem({required Post post}) {
     final hasPortfolio = post.portfolioName.trim().isNotEmpty;
 
     return InkWell(
       onTap: () {
-        // TODO: get post detail screen 작업 시 이동 코드 작성
+        // TODO: get my post detail screen 작업 시 이동 코드 작성
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -123,25 +110,34 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
               children: [
                 const CircleAvatar(child: Icon(Icons.person)),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post.authorDisplayName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      _formatDate(post.createdAt),
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.authorDisplayName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        _formatDate(post.createdAt),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    _showPostActionDialog(post);
+                  },
+                  icon: const Icon(Icons.more_horiz),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-
             Text(post.content),
-
             if (hasPortfolio) ...[
               const SizedBox(height: 12),
               _buildPortfolioCard(post: post),
@@ -152,7 +148,6 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
     );
   }
 
-  // 중앙 포트폴리오 카드 위젯
   Widget _buildPortfolioCard({required Post post}) {
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -183,41 +178,69 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
     );
   }
 
-  // 하단 입력 창 영역
-  Widget _buildBottomInputArea() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                context.push('/post/create');
+  Future<void> _showPostActionDialog(Post post) async {
+    final action = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('게시물 작업을 선택해주세요.', textAlign: TextAlign.center),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop('edit');
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  '무슨 생각을 하고 있나요?',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
+              child: const Text('수정'),
             ),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop('delete');
+              },
+              child: const Text('삭제'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop('cancel');
+              },
+              child: const Text('취소'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (action == 'edit') {
+      // TODO: 게시물 수정 페이지로 이동
+      return;
+    }
+
+    if (action == 'delete') {
+      _showDeleteDialog(post);
+    }
+  }
+
+  Future<void> _showDeleteDialog(Post post) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('게시물을 삭제할까요?', textAlign: TextAlign.center),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // TODO: 게시물 삭제 controller 연결
+              },
+              child: const Text('삭제'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('취소'),
+            ),
+          ],
+        );
+      },
     );
   }
 

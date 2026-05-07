@@ -46,6 +46,38 @@ export async function findAllPostsRepo(authHeader: string) {
   return data;
 }
 
+export async function findAllMyPostsRepo(authHeader: string, userId: string) {
+  const client = createAuthClient(authHeader);
+
+  const { data, error } = await client
+    .from('posts')
+    .select(
+      `
+      id,
+      content,
+      user_id,
+      comments_count,
+      created_at,
+      profiles:user_id (display_name),
+      portfolio_snapshots:portfolio_snapshot_id (
+        portfolios:portfolio_id (
+          name,
+          simulation_input
+        )
+      )
+    `
+    )
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(`[PostsRepo Error - Find My Posts]: ${error.message}`);
+    throw new Error(`DATABASE_ERROR: 내 게시글 목록을 불러오는 중 오류가 발생했습니다.`);
+  }
+  return data;
+}
+
 export async function createPortfolioSnapshotRepo(
   userId: string,
   portfolioId: string
