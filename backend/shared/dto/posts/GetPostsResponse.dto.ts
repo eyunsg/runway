@@ -42,6 +42,7 @@ export class GetPostsResponseDto {
 
 export class MyPostSummaryDto {
   postId: string;
+  content: string;
   authorDisplayName: string;
   portfolioName: string | null;
   assetCount: number | null;
@@ -51,6 +52,7 @@ export class MyPostSummaryDto {
 
   constructor(
     postId: string,
+    content: string,
     authorDisplayName: string,
     portfolioName: string | null,
     assetCount: number | null,
@@ -59,6 +61,7 @@ export class MyPostSummaryDto {
     commentCount: number
   ) {
     this.postId = postId;
+    this.content = content;
     this.authorDisplayName = authorDisplayName;
     this.portfolioName = portfolioName;
     this.assetCount = assetCount;

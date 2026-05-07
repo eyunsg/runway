@@ -54,6 +54,7 @@ export async function findAllMyPostsRepo(authHeader: string, userId: string) {
     .select(
       `
       id,
+      content,
       user_id,
       comments_count,
       created_at,
