@@ -20,10 +20,20 @@ class GetPostController extends StateNotifier<GetPostState> {
 
     result.fold(
       (failure) {
-        state = state.copyWith(isLoading: false, error: failure.toMessage());
+        state = state.copyWith(
+          isLoading: false,
+          isSuccess: false,
+          error: failure.toMessage(),
+        );
       },
       (list) {
-        state = state.copyWith(isLoading: false, posts: list, hasMore: false);
+        state = state.copyWith(
+          isLoading: false,
+          isSuccess: true,
+          error: null,
+          posts: list,
+          hasMore: false,
+        );
       },
     );
   }

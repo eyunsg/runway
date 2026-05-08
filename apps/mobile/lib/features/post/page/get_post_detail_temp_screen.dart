@@ -38,11 +38,11 @@ class _GetPostDetailTempScreenState
   void initState() {
     super.initState();
 
-    // Future.microtask(() {
-    //   ref
-    //       .read(getPostDetailControllerProvider.notifier)
-    //       .fetchPostDetail(widget.postId);
-    // });
+    Future.microtask(() {
+      ref
+          .read(getPostDetailControllerProvider.notifier)
+          .fetchPostDetail(widget.postId);
+    });
   }
 
   @override
@@ -53,7 +53,7 @@ class _GetPostDetailTempScreenState
 
   @override
   Widget build(BuildContext context) {
-    // final state = ref.watch(getPostDetailControllerProvider);
+    final state = ref.watch(getPostDetailControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +70,7 @@ class _GetPostDetailTempScreenState
       ),
       body: Column(
         children: [
-          // Expanded(child: _buildBody(state)),
+          Expanded(child: _buildBody(state)),
           _buildBottomInputArea(),
         ],
       ),
@@ -99,9 +99,9 @@ class _GetPostDetailTempScreenState
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // ref
-                  //     .read(getPostDetailControllerProvider.notifier)
-                  //     .fetchPostDetail(widget.postId);
+                  ref
+                      .read(getPostDetailControllerProvider.notifier)
+                      .fetchPostDetail(widget.postId);
                 },
                 child: const Text('다시 시도'),
               ),
