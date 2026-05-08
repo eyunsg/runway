@@ -84,6 +84,32 @@ export async function findPostByIdRepo(authHeader: string, postId: string) {
   return data;
 }
 
+export async function updatePostRepo(
+  authHeader: string,
+  postId: string,
+  content: string
+): Promise<boolean> {
+  const client = createAuthClient(authHeader);
+
+  const { data, error } = await client
+    .from('posts')
+    .update({
+      content,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', postId)
+    .is('deleted_at', null)
+    .select(); // RLS 정책에 의해 본인이 아니면 수정 결과가 반환되지 않음
+
+  if (error) {
+    console.error(`[PostsRepo Error - Update]: ${error.message}`);
+    throw new Error(`DATABASE_ERROR: 게시글 수정 중 오류가 발생했습니다.`);
+  }
+
+  // 데이터가 1개라도 반환되었다면 권한이 있고 수정에 성공했다는 의미
+  return data !== null && data.length > 0;
+}
+
 export async function findAllMyPostsRepo(authHeader: string, userId: string) {
   const client = createAuthClient(authHeader);
 
