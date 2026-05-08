@@ -20,6 +20,7 @@ void main() {
     postId: testPostId,
     content: 'detail post content',
     authorDisplayName: 'detailUser',
+    portfolioSnapshotId: 'snapshot-1',
     portfolioName: 'Detail Portfolio',
     assetCount: 5,
     investmentPeriodMonths: 12,
@@ -61,6 +62,7 @@ void main() {
       expect(states[2].post, dummyPost);
       expect(states[2].post!.postId, testPostId);
       expect(states[2].post!.authorDisplayName, 'detailUser');
+      expect(states[2].post!.portfolioSnapshotId, 'snapshot-1');
       expect(states[2].post!.portfolioName, 'Detail Portfolio');
       expect(states[2].post!.assetCount, 5);
       expect(states[2].post!.investmentPeriodMonths, 12);

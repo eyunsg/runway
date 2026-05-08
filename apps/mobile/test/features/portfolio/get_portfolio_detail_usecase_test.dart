@@ -74,6 +74,7 @@ void main() {
 
   group('GetPortfolioDetailUseCase', () {
     const portfolioId = 'portfolio_1';
+    const portfolioSnapshotId = 'portfolio_snapshot_1';
 
     test('성공 케이스: repository 결과 그대로 반환', () async {
       final dummyDetail = createDummyDetail(portfolioId);
@@ -107,6 +108,47 @@ void main() {
       ).thenAnswer((_) async => Left(ServerFailure(errorMsg)));
 
       final result = await usecase.execute(portfolioId: portfolioId);
+
+      expect(result.isLeft(), true);
+
+      result.fold(
+        (failure) => expect(failure.message, errorMsg),
+        (_) => fail('Left가 와야 함'),
+      );
+    });
+
+    test('성공 케이스(snapshot): repository 결과 그대로 반환', () async {
+      final dummyDetail = createDummyDetail(portfolioSnapshotId);
+
+      when(
+        () => mockRepository.getPortfolioSnapshotDetail(portfolioSnapshotId),
+      ).thenAnswer((_) async => Right(dummyDetail));
+
+      final result = await usecase.executeBySnapshotId(
+        portfolioSnapshotId: portfolioSnapshotId,
+      );
+
+      verify(
+        () => mockRepository.getPortfolioSnapshotDetail(portfolioSnapshotId),
+      ).called(1);
+
+      expect(result.isRight(), true);
+
+      result.fold((_) => fail('Right가 와야 함'), (detail) {
+        expect(detail.name, portfolioSnapshotId);
+      });
+    });
+
+    test('실패 케이스(snapshot): repository Failure 그대로 반환', () async {
+      const errorMsg = 'server error';
+
+      when(
+        () => mockRepository.getPortfolioSnapshotDetail(portfolioSnapshotId),
+      ).thenAnswer((_) async => Left(ServerFailure(errorMsg)));
+
+      final result = await usecase.executeBySnapshotId(
+        portfolioSnapshotId: portfolioSnapshotId,
+      );
 
       expect(result.isLeft(), true);
 

@@ -21,6 +21,7 @@ void main() {
     postId: testPostId,
     content: 'detail post content',
     authorDisplayName: 'detailUser',
+    portfolioSnapshotId: 'snapshot-1',
     portfolioName: 'Detail Portfolio',
     assetCount: 5,
     investmentPeriodMonths: 12,
@@ -50,6 +51,7 @@ void main() {
         expect(post.postId, testPostId);
         expect(post.content, 'detail post content');
         expect(post.authorDisplayName, 'detailUser');
+        expect(post.portfolioSnapshotId, 'snapshot-1');
         expect(post.portfolioName, 'Detail Portfolio');
         expect(post.assetCount, 5);
         expect(post.investmentPeriodMonths, 12);
