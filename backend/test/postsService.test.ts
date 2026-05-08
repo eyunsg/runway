@@ -2,18 +2,21 @@ import {
   addPostService,
   getPostsService,
   getMyPostsService,
+  getPostDetailService,
 } from '../supabase/functions/posts/postsService.ts';
 import {
   createPortfolioSnapshotRepo,
   savePostRepo,
   findAllPostsRepo,
   findAllMyPostsRepo,
+  findPostByIdRepo,
 } from '../supabase/functions/posts/postsRepository.ts';
 import { PostPostsRequestDto } from '../shared/dto/posts/PostPostsRequest.dto.ts';
 import {
   GetPostsResponseDto,
   GetMyPostsResponseDto,
 } from '../shared/dto/posts/GetPostsResponse.dto.ts';
+import { PostDetailDto } from '../shared/dto/posts/GetPostDetailResponse.dto.ts';
 
 // 리포지토리 모킹
 jest.mock('../supabase/functions/posts/postsRepository.ts', () => ({
@@ -21,6 +24,7 @@ jest.mock('../supabase/functions/posts/postsRepository.ts', () => ({
   savePostRepo: jest.fn(),
   findAllPostsRepo: jest.fn(),
   findAllMyPostsRepo: jest.fn(),
+  findPostByIdRepo: jest.fn(),
 }));
 
 describe('PostsService 테스트', () => {
@@ -217,6 +221,85 @@ describe('PostsService 테스트', () => {
 
       // 서비스 내부에서 new Post() 생성 시 도메인 validate()에 의해 에러 발생
       await expect(getPostsService(mockAuthHeader)).rejects.toThrow('VALIDATION_ERROR');
+    });
+  });
+
+  describe('getPostDetailService - 게시글 상세 조회 (API-COMM-003)', () => {
+    const mockDetailRawData = {
+      id: mockPostId,
+      user_id: mockUserId,
+      portfolio_snapshot_id: mockSnapshotId,
+      content: '상세 보기용 테스트 내용입니다.',
+      comments_count: 15,
+      created_at: '2024-03-25T12:00:00Z',
+      profiles: { display_name: '상세작성자' },
+      portfolio_snapshots: [
+        {
+          id: mockSnapshotId,
+          portfolios: {
+            name: '상세조회 포트폴리오',
+            simulation_input: {
+              goal: { investment_period_months: 36 },
+              assets: [{}, {}, {}, {}, {}],
+            },
+          },
+        },
+      ],
+    };
+
+    it('존재하는 postId로 조회 시 상세 데이터를 PostDetailDto로 올바르게 매핑한다', async () => {
+      (findPostByIdRepo as jest.Mock).mockResolvedValue(mockDetailRawData);
+
+      const result = await getPostDetailService(mockAuthHeader, mockPostId);
+
+      expect(result).toBeInstanceOf(PostDetailDto);
+      expect(result.postId).toBe(mockPostId);
+      expect(result.content).toBe('상세 보기용 테스트 내용입니다.');
+      expect(result.authorDisplayName).toBe('상세작성자');
+      expect(result.portfolioName).toBe('상세조회 포트폴리오');
+      expect(result.assetCount).toBe(5);
+      expect(result.investmentPeriodMonths).toBe(36);
+      expect(result.commentCount).toBe(15);
+
+      expect(findPostByIdRepo).toHaveBeenCalledWith(mockAuthHeader, mockPostId);
+    });
+
+    it('요청한 게시글이 존재하지 않으면 NOT_FOUND 에러를 던진다', async () => {
+      (findPostByIdRepo as jest.Mock).mockResolvedValue(null);
+
+      await expect(getPostDetailService(mockAuthHeader, 'non-existent-id')).rejects.toThrow(
+        'NOT_FOUND: 요청하신 게시글을 찾을 수 없습니다.'
+      );
+    });
+
+    it('리포지토리에서 예외 발생 시 에러를 그대로 전파한다', async () => {
+      (findPostByIdRepo as jest.Mock).mockRejectedValue(new Error('DATABASE_ERROR: 연결 실패'));
+
+      await expect(getPostDetailService(mockAuthHeader, mockPostId)).rejects.toThrow(
+        'DATABASE_ERROR: 연결 실패'
+      );
+    });
+
+    it('프로필이나 포트폴리오 정보가 없는 경우에도 기본값을 사용하여 정상 응답한다', async () => {
+      const minimalData = {
+        id: 'no-info-post',
+        user_id: 'user-99',
+        portfolio_snapshot_id: null,
+        content: '정보 없는 게시글',
+        comments_count: 0,
+        created_at: '2024-03-26T10:00:00Z',
+        profiles: null,
+        portfolio_snapshots: null,
+      };
+
+      (findPostByIdRepo as jest.Mock).mockResolvedValue(minimalData);
+
+      const result = await getPostDetailService(mockAuthHeader, 'no-info-post');
+
+      expect(result.authorDisplayName).toBe('알 수 없는 사용자');
+      expect(result.portfolioName).toBeNull();
+      expect(result.assetCount).toBe(0);
+      expect(result.investmentPeriodMonths).toBe(0);
     });
   });
 
