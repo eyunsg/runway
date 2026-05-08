@@ -4,6 +4,7 @@ import {
   savePortfolioRepo,
   getPortfoliosRepo,
   getPortfolioDetailRepo,
+  getPortfolioSnapshotDetailRepo,
   updatePortfolioRepo,
   deletePortfolioRepo,
 } from './portfoliosRepository.ts';
@@ -68,6 +69,76 @@ interface RawPortfolioDetailRecord {
   };
   created_at: string;
   updated_at: string;
+}
+
+interface RawPortfolioSnapshotDetailRecord {
+  snapshot_data: {
+    name: string;
+    simulation_input: RawPortfolioDetailRecord['simulation_input'];
+    simulation_result: RawPortfolioDetailRecord['simulation_result'];
+  };
+}
+
+function mapRawDetailToDto(raw: {
+  name: string;
+  simulation_input: RawPortfolioDetailRecord['simulation_input'];
+  simulation_result: RawPortfolioDetailRecord['simulation_result'];
+}): GetPortfolioDetailResponseDto {
+  const input = raw.simulation_input;
+  const result = raw.simulation_result;
+
+  const simulationInput = {
+    goal: {
+      investmentPeriodMonths: input.goal.investment_period_months,
+      targetPortfolioValue: input.goal.target_portfolio_value,
+      targetMonthlyDividend: input.goal.target_monthly_dividend,
+    },
+    assets: input.assets.map((asset) => ({
+      assetName: asset.asset_name,
+      assetType: asset.asset_type,
+      initialPrice: asset.initial_price,
+      expectedAnnualPriceGrowthRate: asset.expected_annual_price_growth_rate,
+      initialInvestmentAmount: asset.initial_investment_amount,
+      monthlyContributionAmount: asset.monthly_contribution_amount,
+      isDividendAsset: asset.is_dividend_asset,
+      dividendPerShare: asset.dividend_per_share,
+      expectedAnnualDividendGrowthRate: asset.expected_annual_dividend_growth_rate,
+      dividendFrequency: asset.dividend_frequency,
+      isReinvestDividends: asset.is_reinvest_dividends,
+    })),
+  };
+
+  const simulationResult = {
+    percentiles: {
+      portfolioValue: {
+        p10: result.percentiles.portfolio_value.p10,
+        p50: result.percentiles.portfolio_value.p50,
+        p90: result.percentiles.portfolio_value.p90,
+      },
+      monthlyDividend: {
+        p10: result.percentiles.monthly_dividend.p10,
+        p50: result.percentiles.monthly_dividend.p50,
+        p90: result.percentiles.monthly_dividend.p90,
+      },
+    },
+    goalAnalysis: {
+      portfolioValueGoal: {
+        target: input.goal.target_portfolio_value,
+        achievementProbability:
+          result.goal_analysis.portfolio_value_goal.achievement_probability || 0,
+        expectedMonthsToTarget: result.goal_analysis.portfolio_value_goal.expected_months_to_target,
+      },
+      monthlyDividendGoal: {
+        target: input.goal.target_monthly_dividend,
+        achievementProbability:
+          result.goal_analysis.monthly_dividend_goal.achievement_probability || 0,
+        expectedMonthsToTarget:
+          result.goal_analysis.monthly_dividend_goal.expected_months_to_target,
+      },
+    },
+  };
+
+  return new GetPortfolioDetailResponseDto(raw.name, simulationInput, simulationResult);
 }
 
 export async function addPortfolioService(
@@ -159,61 +230,28 @@ export async function getPortfolioDetailService(
   }
 
   const data = rawData as unknown as RawPortfolioDetailRecord;
-  const input = data.simulation_input;
-  const result = data.simulation_result;
+  return mapRawDetailToDto({
+    name: data.name,
+    simulation_input: data.simulation_input,
+    simulation_result: data.simulation_result,
+  });
+}
 
-  // DB(snake_case) 구조에서 응답(camelCase) 구조로 정밀 매핑
-  const simulationInput = {
-    goal: {
-      investmentPeriodMonths: input.goal.investment_period_months,
-      targetPortfolioValue: input.goal.target_portfolio_value,
-      targetMonthlyDividend: input.goal.target_monthly_dividend,
-    },
-    assets: input.assets.map((asset) => ({
-      assetName: asset.asset_name,
-      assetType: asset.asset_type,
-      initialPrice: asset.initial_price,
-      expectedAnnualPriceGrowthRate: asset.expected_annual_price_growth_rate,
-      initialInvestmentAmount: asset.initial_investment_amount,
-      monthlyContributionAmount: asset.monthly_contribution_amount,
-      isDividendAsset: asset.is_dividend_asset,
-      dividendPerShare: asset.dividend_per_share,
-      expectedAnnualDividendGrowthRate: asset.expected_annual_dividend_growth_rate,
-      dividendFrequency: asset.dividend_frequency,
-      isReinvestDividends: asset.is_reinvest_dividends,
-    })),
-  };
+export async function getPortfolioSnapshotDetailService(
+  portfolioSnapshotId: string
+): Promise<GetPortfolioDetailResponseDto> {
+  const rawData = await getPortfolioSnapshotDetailRepo(portfolioSnapshotId);
 
-  const simulationResult = {
-    percentiles: {
-      portfolioValue: {
-        p10: result.percentiles.portfolio_value.p10,
-        p50: result.percentiles.portfolio_value.p50,
-        p90: result.percentiles.portfolio_value.p90,
-      },
-      monthlyDividend: {
-        p10: result.percentiles.monthly_dividend.p10,
-        p50: result.percentiles.monthly_dividend.p50,
-        p90: result.percentiles.monthly_dividend.p90,
-      },
-    },
-    goalAnalysis: {
-      portfolioValueGoal: {
-        target: input.goal.target_portfolio_value,
-        achievementProbability:
-          result.goal_analysis.portfolio_value_goal.achievement_probability || 0,
-        expectedMonthsToTarget: result.goal_analysis.portfolio_value_goal.expected_months_to_target,
-      },
-      monthlyDividendGoal: {
-        target: input.goal.target_monthly_dividend,
-        achievementProbability:
-          result.goal_analysis.monthly_dividend_goal.achievement_probability || 0,
-        expectedMonthsToTarget:
-          result.goal_analysis.monthly_dividend_goal.expected_months_to_target,
-      },
-    },
-  };
+  if (!rawData) {
+    throw new Error('NOT_FOUND: 요청하신 포트폴리오 스냅샷을 찾을 수 없습니다.');
+  }
 
-  // 최종 DTO 생성 및 반환
-  return new GetPortfolioDetailResponseDto(data.name, simulationInput, simulationResult);
+  const data = rawData as unknown as RawPortfolioSnapshotDetailRecord;
+  const snapshot = data.snapshot_data;
+
+  return mapRawDetailToDto({
+    name: snapshot.name,
+    simulation_input: snapshot.simulation_input,
+    simulation_result: snapshot.simulation_result,
+  });
 }

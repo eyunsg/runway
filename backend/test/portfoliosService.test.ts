@@ -2,6 +2,7 @@ import {
   addPortfolioService,
   getPortfoliosService,
   getPortfolioDetailService,
+  getPortfolioSnapshotDetailService,
   updatePortfolioService,
   deletePortfolioService,
 } from '../supabase/functions/portfolios/portfoliosService.ts';
@@ -9,6 +10,7 @@ import {
   savePortfolioRepo,
   getPortfoliosRepo,
   getPortfolioDetailRepo,
+  getPortfolioSnapshotDetailRepo,
   updatePortfolioRepo,
   deletePortfolioRepo,
 } from '../supabase/functions/portfolios/portfoliosRepository.ts';
@@ -25,6 +27,7 @@ jest.mock('../supabase/functions/portfolios/portfoliosRepository.ts', () => ({
   savePortfolioRepo: jest.fn(),
   getPortfoliosRepo: jest.fn(),
   getPortfolioDetailRepo: jest.fn(),
+  getPortfolioSnapshotDetailRepo: jest.fn(),
   updatePortfolioRepo: jest.fn(),
   deletePortfolioRepo: jest.fn(),
 }));
@@ -373,6 +376,113 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
         expect(
           result.simulationResult.goalAnalysis.portfolioValueGoal.expectedMonthsToTarget
         ).toBeNull();
+      });
+    });
+
+    describe('getPortfolioSnapshotDetailService', () => {
+      const mockSnapshotId = 'snap-999';
+
+      const mockSnapshotDbData = {
+        snapshot_data: {
+          name: '스냅샷 포트폴리오',
+          simulation_input: {
+            goal: {
+              investment_period_months: 24,
+              target_portfolio_value: 3000000,
+              target_monthly_dividend: 15000,
+            },
+            assets: [
+              {
+                asset_name: '엔비디아',
+                asset_type: 'STOCK',
+                initial_price: 900,
+                expected_annual_price_growth_rate: 0.12,
+                initial_investment_amount: 20000,
+                monthly_contribution_amount: 1500,
+                is_dividend_asset: false,
+                dividend_per_share: 0,
+                expected_annual_dividend_growth_rate: 0,
+                dividend_frequency: 0,
+                is_reinvest_dividends: true,
+              },
+            ],
+          },
+          simulation_result: {
+            percentiles: {
+              portfolio_value: { p10: 1000000, p50: 2500000, p90: 4500000 },
+              monthly_dividend: { p10: 100, p50: 300, p90: 600 },
+            },
+            goal_analysis: {
+              portfolio_value_goal: {
+                achievement_probability: 0.55,
+                expected_months_to_target: 36,
+              },
+              monthly_dividend_goal: {
+                achievement_probability: 0.2,
+                expected_months_to_target: 48,
+              },
+            },
+          },
+        },
+      };
+
+      it('portfolioSnapshotId 기반 조회 시 GetPortfolioDetailResponseDto를 반환한다', async () => {
+        (getPortfolioSnapshotDetailRepo as jest.Mock).mockResolvedValue(mockSnapshotDbData);
+
+        const result = await getPortfolioSnapshotDetailService(mockSnapshotId);
+
+        expect(result).toBeInstanceOf(GetPortfolioDetailResponseDto);
+        expect(result.name).toBe('스냅샷 포트폴리오');
+        expect(result.simulationInput.goal.investmentPeriodMonths).toBe(24);
+        expect(result.simulationResult.percentiles.portfolioValue.p50).toBe(2500000);
+
+        expect(getPortfolioSnapshotDetailRepo).toHaveBeenCalledWith(mockSnapshotId);
+      });
+
+      it('존재하지 않는 snapshot 조회 시 NOT_FOUND 에러를 던진다', async () => {
+        (getPortfolioSnapshotDetailRepo as jest.Mock).mockResolvedValue(null);
+
+        await expect(getPortfolioSnapshotDetailService('invalid-snap')).rejects.toThrow(
+          'NOT_FOUND'
+        );
+      });
+
+      it('Response 구조가 GetPortfolioDetailResponseDto와 동일하다', async () => {
+        (getPortfolioSnapshotDetailRepo as jest.Mock).mockResolvedValue(mockSnapshotDbData);
+
+        const result = await getPortfolioSnapshotDetailService(mockSnapshotId);
+
+        const expectedDto = new GetPortfolioDetailResponseDto(
+          '',
+          {
+            goal: {
+              investmentPeriodMonths: 0,
+              targetPortfolioValue: 0,
+              targetMonthlyDividend: 0,
+            },
+            assets: [],
+          },
+          {
+            percentiles: {
+              portfolioValue: { p10: 0, p50: 0, p90: 0 },
+              monthlyDividend: { p10: 0, p50: 0, p90: 0 },
+            },
+            goalAnalysis: {
+              portfolioValueGoal: {
+                target: 0,
+                achievementProbability: 0,
+                expectedMonthsToTarget: 0,
+              },
+              monthlyDividendGoal: {
+                target: 0,
+                achievementProbability: 0,
+                expectedMonthsToTarget: 0,
+              },
+            },
+          }
+        );
+
+        expect(Object.keys(result).sort()).toEqual(Object.keys(expectedDto).sort());
       });
     });
   });
