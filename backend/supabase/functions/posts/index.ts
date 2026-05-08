@@ -4,6 +4,7 @@ import {
   handleGetMyPosts,
   handleGetPostDetail,
   handlePatchPost,
+  handleDeletePost,
   UnauthorizedError,
   ValidationError,
 } from './postsController.ts';
@@ -11,7 +12,7 @@ import {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, GET, PATCH, DELETE, OPTIONS',
 };
 
 function errorResponse(message: string, status: number) {
@@ -70,6 +71,10 @@ Deno.serve(async (req: Request) => {
 
       if (req.method === 'PATCH') {
         return await handlePatchPost(req, postId);
+      }
+
+      if (req.method === 'DELETE') {
+        return await handleDeletePost(req, postId);
       }
 
       return errorResponse('허용되지 않은 메서드입니다.', 405);

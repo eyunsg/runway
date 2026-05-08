@@ -110,6 +110,27 @@ export async function updatePostRepo(
   return data !== null && data.length > 0;
 }
 
+export async function deletePostRepo(authHeader: string, postId: string): Promise<boolean> {
+  const client = createAuthClient(authHeader);
+
+  const { data, error } = await client
+    .from('posts')
+    .update({
+      deleted_at: new Date().toISOString(),
+    })
+    .eq('id', postId)
+    .is('deleted_at', null)
+    .select(); // RLS 정책에 의해 본인이 아니면 수정 결과가 반환되지 않음
+
+  if (error) {
+    console.error(`[PostsRepo Error - Delete]: ${error.message}`);
+    throw new Error(`DATABASE_ERROR: 게시글 삭제 중 오류가 발생했습니다.`);
+  }
+
+  // 데이터가 반환되었다면 권한이 있고 삭제(업데이트)에 성공했다는 의미입니다.
+  return data !== null && data.length > 0;
+}
+
 export async function findAllMyPostsRepo(authHeader: string, userId: string) {
   const client = createAuthClient(authHeader);
 
