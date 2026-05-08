@@ -112,7 +112,7 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
 
     return InkWell(
       onTap: () {
-        // TODO: get post detail screen 작업 시 이동 코드 작성
+        context.push('/post/get/detail/${post.postId}');
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),

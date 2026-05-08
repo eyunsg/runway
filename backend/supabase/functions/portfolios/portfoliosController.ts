@@ -3,6 +3,7 @@ import {
   addPortfolioService,
   getPortfoliosService,
   getPortfolioDetailService,
+  getPortfolioSnapshotDetailService,
   updatePortfolioService,
   deletePortfolioService,
 } from './portfoliosService.ts';
@@ -100,6 +101,18 @@ export async function handleGetPortfolioDetail(req: Request, portfolioId: string
   const result = await getPortfolioDetailService(user.id, portfolioId);
 
   // 결과 객체를 직접 반환
+  return new Response(JSON.stringify(result), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+export async function handleGetPortfolioSnapshotDetail(req: Request, portfolioSnapshotId: string) {
+  const result = await getPortfolioSnapshotDetailService(portfolioSnapshotId);
+
   return new Response(JSON.stringify(result), {
     status: 200,
     headers: {

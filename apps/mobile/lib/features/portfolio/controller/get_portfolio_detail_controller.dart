@@ -42,4 +42,39 @@ class GetPortfolioDetailController
       },
     );
   }
+
+  Future<void> getPortfolioSnapshotDetail(String portfolioSnapshotId) async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, isSuccess: false, clearError: true);
+
+    final result = await useCase.executeBySnapshotId(
+      portfolioSnapshotId: portfolioSnapshotId,
+    );
+
+    result.fold(
+      (failure) {
+        final message = failure.toMessage();
+
+        if (state.error == message) {
+          state = state.copyWith(isLoading: false);
+          return;
+        }
+
+        state = state.copyWith(isLoading: false, error: message);
+      },
+      (portfolioDetail) {
+        if (state.portfolioDetail == portfolioDetail) {
+          state = state.copyWith(isLoading: false);
+          return;
+        }
+
+        state = state.copyWith(
+          isLoading: false,
+          isSuccess: true,
+          portfolioDetail: portfolioDetail,
+        );
+      },
+    );
+  }
 }
