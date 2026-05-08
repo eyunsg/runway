@@ -135,17 +135,6 @@ class _GetPortfolioDetailTempScreenState
     if (portfolioDetail == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text(''),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-                return;
-              }
-              context.go('/portfolio/get');
-            },
-          ),
           actions: canDelete
               ? [
                   IconButton(
@@ -206,17 +195,6 @@ class _GetPortfolioDetailTempScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(''),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-              return;
-            }
-            context.go('/portfolio/get');
-          },
-        ),
         actions: [
           if (canDelete)
             IconButton(

@@ -113,12 +113,6 @@ class _GetPortfolioTempScreenState
       appBar: AppBar(
         title: const Text('포트폴리오'),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
         actions: [
           if (!widget.isSelectionMode)
             TextButton(
@@ -176,7 +170,7 @@ class _GetPortfolioTempScreenState
                         if (widget.isSelectionMode) {
                           Navigator.of(context).pop<Portfolio>(portfolioItem);
                         } else {
-                          context.go(
+                          context.push(
                             '/portfolio/get/detail/${portfolioItem.id}',
                           );
                         }
