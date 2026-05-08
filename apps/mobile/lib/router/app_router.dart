@@ -82,6 +82,17 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: '/portfolio/get/detail/snapshot/:portfolioSnapshotId',
+        builder: (context, state) {
+          final String portfolioSnapshotId =
+              state.pathParameters['portfolioSnapshotId']!;
+
+          return GetPortfolioDetailTempScreen.snapshot(
+            portfolioSnapshotId: portfolioSnapshotId,
+          );
+        },
+      ),
+      GoRoute(
         path: '/post/create',
         builder: (context, state) => const CreatePostTempScreen(),
       ),

@@ -128,7 +128,9 @@ class _GetPostDetailTempScreenState
   }
 
   Widget _buildPostItem({required Post post}) {
-    final hasPortfolio = post.portfolioName.trim().isNotEmpty;
+    final bool hasPortfolioCard = post.portfolioName.trim().isNotEmpty;
+    final String portfolioSnapshotId = (post.portfolioSnapshotId ?? '').trim();
+    final bool isPortfolioCardTappable = portfolioSnapshotId.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -156,41 +158,68 @@ class _GetPostDetailTempScreenState
           ),
           const SizedBox(height: 12),
           Text(post.content),
-          if (hasPortfolio) ...[
+          if (hasPortfolioCard) ...[
             const SizedBox(height: 12),
-            _buildPortfolioCard(post: post),
+            _buildPortfolioCard(
+              post: post,
+              isEnabled: isPortfolioCardTappable,
+              onTap: isPortfolioCardTappable
+                  ? () {
+                      context.push(
+                        '/portfolio/get/detail/snapshot/$portfolioSnapshotId',
+                      );
+                    }
+                  : null,
+            ),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildPortfolioCard({required Post post}) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.blueGrey.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildPortfolioCard({
+    required Post post,
+    required bool isEnabled,
+    required VoidCallback? onTap,
+  }) {
+    final BorderRadius borderRadius = BorderRadius.circular(12);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: borderRadius,
+        child: Ink(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.blueGrey.withOpacity(isEnabled ? 0.2 : 0.12),
+            borderRadius: borderRadius,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                post.portfolioName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.portfolioName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '자산 ${post.assetCount}개 · 투자 기간 ${_formatInvestmentPeriod(post.investmentPeriodMonths)}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                '자산 ${post.assetCount}개 · 투자 기간 ${_formatInvestmentPeriod(post.investmentPeriodMonths)}',
-                style: const TextStyle(fontSize: 12),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: isEnabled ? null : Colors.black26,
               ),
             ],
           ),
-          const Icon(Icons.arrow_forward_ios, size: 16),
-        ],
+        ),
       ),
     );
   }

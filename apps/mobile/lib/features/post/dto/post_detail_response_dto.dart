@@ -61,6 +61,7 @@ extension PostDetailMapper on PostDetailDto {
           authorDisplayName.trim().isEmpty || authorDisplayName == '알 수 없는 사용자'
           ? 'displayName'
           : authorDisplayName,
+      portfolioSnapshotId: portfolioSnapshotId,
       portfolioName: portfolioName ?? '',
       assetCount: assetCount ?? 0,
       investmentPeriodMonths: investmentPeriodMonths ?? 0,
