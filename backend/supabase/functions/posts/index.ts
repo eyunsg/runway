@@ -2,6 +2,8 @@ import {
   handleAddPost,
   handleGetPosts,
   handleGetMyPosts,
+  handleGetPostDetail,
+  handlePatchPost,
   UnauthorizedError,
   ValidationError,
 } from './postsController.ts';
@@ -9,7 +11,7 @@ import {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, GET, PATCH, OPTIONS',
 };
 
 function errorResponse(message: string, status: number) {
@@ -48,12 +50,28 @@ Deno.serve(async (req: Request) => {
     const secondLastPart = pathParts[pathParts.length - 2];
 
     const isMyPostsPath = lastPart === 'me' && secondLastPart === 'posts';
-    const isPostsPath = pathParts.length > 0 && pathParts[pathParts.length - 1] === 'posts';
+    const isPostsPath = pathParts.length === 1 && lastPart === 'posts';
+    const isPostDetailPath =
+      pathParts.length === 2 && secondLastPart === 'posts' && lastPart !== 'me';
 
     if (isMyPostsPath) {
       if (req.method === 'GET') {
         return await handleGetMyPosts(req);
       }
+      return errorResponse('허용되지 않은 메서드입니다.', 405);
+    }
+
+    if (isPostDetailPath) {
+      const postId = lastPart;
+
+      if (req.method === 'GET') {
+        return await handleGetPostDetail(req, postId);
+      }
+
+      if (req.method === 'PATCH') {
+        return await handlePatchPost(req, postId);
+      }
+
       return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
 
