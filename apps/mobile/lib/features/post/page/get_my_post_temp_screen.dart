@@ -20,6 +20,23 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
     Future.microtask(() {
       ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
     });
+
+    ref.listenManual(deletePostControllerProvider, (previous, next) {
+      if (next.isSuccess && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('삭제 완료')));
+
+        ref.invalidate(deletePostControllerProvider);
+        ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
+      }
+
+      if (next.error != null && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
+      }
+    });
   }
 
   @override
@@ -228,7 +245,9 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                // TODO: 게시물 삭제 controller 연결
+                ref
+                    .read(deletePostControllerProvider.notifier)
+                    .deletePost(post.postId);
               },
               child: const Text('삭제'),
             ),
