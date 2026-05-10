@@ -3,6 +3,8 @@ import {
   getPostsService,
   getMyPostsService,
   getPostDetailService,
+  updatePostService,
+  deletePostService,
 } from '../supabase/functions/posts/postsService.ts';
 import {
   createPortfolioSnapshotRepo,
@@ -10,8 +12,11 @@ import {
   findAllPostsRepo,
   findAllMyPostsRepo,
   findPostByIdRepo,
+  updatePostRepo,
+  deletePostRepo,
 } from '../supabase/functions/posts/postsRepository.ts';
 import { PostPostsRequestDto } from '../shared/dto/posts/PostPostsRequest.dto.ts';
+import { UpdatePostsRequestDto } from '../shared/dto/posts/UpdatePostsRequest.dto.ts';
 import {
   GetPostsResponseDto,
   GetMyPostsResponseDto,
@@ -25,6 +30,8 @@ jest.mock('../supabase/functions/posts/postsRepository.ts', () => ({
   findAllPostsRepo: jest.fn(),
   findAllMyPostsRepo: jest.fn(),
   findPostByIdRepo: jest.fn(),
+  updatePostRepo: jest.fn(),
+  deletePostRepo: jest.fn(),
 }));
 
 describe('PostsService 테스트', () => {
@@ -300,6 +307,72 @@ describe('PostsService 테스트', () => {
       expect(result.portfolioName).toBeNull();
       expect(result.assetCount).toBe(0);
       expect(result.investmentPeriodMonths).toBe(0);
+    });
+  });
+
+  describe('게시글 수정 (API-COMM-004)', () => {
+    it('본인 게시글을 정상적인 내용으로 수정하면 에러 없이 완료된다', async () => {
+      // 리포지토리가 수정 성공(true)을 반환한다고 가정
+      (updatePostRepo as jest.Mock).mockResolvedValue(true);
+
+      const updateDto = new UpdatePostsRequestDto({ content: '수정된 게시글 내용입니다.' });
+
+      await expect(updatePostService(mockAuthHeader, mockPostId, updateDto)).resolves.not.toThrow();
+
+      expect(updatePostRepo).toHaveBeenCalledWith(
+        mockAuthHeader,
+        mockPostId,
+        '수정된 게시글 내용입니다.'
+      );
+    });
+
+    it('본인 게시글이 아니거나 존재하지 않아 수정 실패 시 NOT_FOUND 에러를 던진다', async () => {
+      // RLS 정책에 의해 수정된 행이 없음(false)을 반환한다고 가정
+      (updatePostRepo as jest.Mock).mockResolvedValue(false);
+
+      const updateDto = new UpdatePostsRequestDto({ content: '수정 시도' });
+
+      await expect(updatePostService(mockAuthHeader, 'wrong-id', updateDto)).rejects.toThrow(
+        'NOT_FOUND: 게시글을 찾을 수 없거나 수정 권한이 없습니다.'
+      );
+    });
+
+    it('수정 내용이 비어있으면 DTO 레벨에서 VALIDATION_ERROR를 던진다', async () => {
+      const invalidData = { content: '   ' };
+
+      expect(() => new UpdatePostsRequestDto(invalidData)).toThrow('VALIDATION_ERROR');
+    });
+
+    it('수정 내용이 5000자를 초과하면 DTO 레벨에서 VALIDATION_ERROR를 던진다', async () => {
+      const invalidData = { content: 'A'.repeat(5001) };
+
+      expect(() => new UpdatePostsRequestDto(invalidData)).toThrow('VALIDATION_ERROR');
+    });
+  });
+
+  describe('게시글 삭제 (API-COMM-005)', () => {
+    it('본인 게시글 삭제 시 성공적으로 완료된다', async () => {
+      // Repository가 성공(true)을 반환하도록 설정
+      (deletePostRepo as jest.Mock).mockResolvedValue(true);
+
+      await expect(deletePostService(mockAuthHeader, mockPostId)).resolves.not.toThrow();
+
+      expect(deletePostRepo).toHaveBeenCalledWith(mockAuthHeader, mockPostId);
+    });
+
+    it('작성자가 아니거나 게시글이 이미 삭제된 경우 NOT_FOUND 에러를 던진다', async () => {
+      // Repository가 실패(false)를 반환하도록 설정
+      (deletePostRepo as jest.Mock).mockResolvedValue(false);
+
+      await expect(deletePostService(mockAuthHeader, 'invalid-id')).rejects.toThrow(
+        'NOT_FOUND: 게시글을 찾을 수 없거나 삭제 권한이 없습니다.'
+      );
+    });
+
+    it('리포지토리 에러 발생 시 예외를 전파한다', async () => {
+      (deletePostRepo as jest.Mock).mockRejectedValue(new Error('DATABASE_ERROR'));
+
+      await expect(deletePostService(mockAuthHeader, mockPostId)).rejects.toThrow('DATABASE_ERROR');
     });
   });
 

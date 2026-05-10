@@ -85,6 +85,11 @@ import 'package:runway/features/post/repository/get_post_detail_repository.dart'
 import 'package:runway/features/post/types/get_post_detail_state.dart';
 import 'package:runway/features/post/usecase/get_post_detail_usecase.dart';
 
+import 'package:runway/features/post/controller/delete_post_controller.dart';
+import 'package:runway/features/post/repository/delete_post_repository.dart';
+import 'package:runway/features/post/types/delete_post_state.dart';
+import 'package:runway/features/post/usecase/delete_post_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -400,6 +405,24 @@ final getMyPostControllerProvider =
     StateNotifierProvider<GetMyPostController, GetMyPostState>((ref) {
       final useCase = ref.read(getMyPostUsecaseProvider);
       return GetMyPostController(useCase: useCase);
+    });
+
+/// ---------------- DELETE POST ----------------
+
+final deletePostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return DeletePostRepository(client: client);
+});
+
+final deletePostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(deletePostRepositoryProvider);
+  return DeletePostUsecase(repository: repository);
+});
+
+final deletePostControllerProvider =
+    StateNotifierProvider<DeletePostController, DeletePostState>((ref) {
+      final useCase = ref.read(deletePostUsecaseProvider);
+      return DeletePostController(useCase: useCase);
     });
 
 /// ---------------- GET POST ----------------
