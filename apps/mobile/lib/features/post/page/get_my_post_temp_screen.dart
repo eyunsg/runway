@@ -27,7 +27,6 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
           context,
         ).showSnackBar(const SnackBar(content: Text('삭제 완료')));
 
-        ref.invalidate(deletePostControllerProvider);
         ref.read(getMyPostControllerProvider.notifier).fetchMyPost();
       }
 
@@ -243,11 +242,14 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
           title: const Text('게시물을 삭제할까요?', textAlign: TextAlign.center),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ref
+              onPressed: () async {
+                await ref
                     .read(deletePostControllerProvider.notifier)
                     .deletePost(post.postId);
+
+                if (!context.mounted) return;
+
+                Navigator.of(context).pop();
               },
               child: const Text('삭제'),
             ),
