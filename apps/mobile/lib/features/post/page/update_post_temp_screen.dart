@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:runway/core/providers.dart';
+import 'package:runway/core/providers.dart';
 import 'package:runway/domain/entity/portfolio.dart';
-// import 'package:runway/features/post/controller/update_post_controller.dart';
+import 'package:runway/features/post/controller/update_post_controller.dart';
 import 'package:runway/features/post/model/create_post_selected_portfolio.dart';
 import 'package:runway/features/post/model/post.dart';
 
@@ -18,36 +18,36 @@ class UpdatePostTempScreen extends ConsumerStatefulWidget {
 
 class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
   late final TextEditingController _contentController;
-  // late final UpdatePostController _updatePostController;
+  late final UpdatePostController _updatePostController;
   bool _isSyncingFromState = false;
 
   @override
   void initState() {
     super.initState();
 
-    // _updatePostController = ref.read(updatePostControllerProvider.notifier);
+    _updatePostController = ref.read(updatePostControllerProvider.notifier);
 
     _contentController = TextEditingController();
 
     Future.microtask(() {
       if (!mounted) return;
 
-      // _updatePostController.initialize(widget.post);
+      _updatePostController.initialize(widget.post);
 
-      // final updatePostState = ref.read(updatePostControllerProvider);
+      final updatePostState = ref.read(updatePostControllerProvider);
 
       _isSyncingFromState = true;
-      // _contentController.text = updatePostState.content;
-      // _contentController.selection = TextSelection.collapsed(
-      // offset: updatePostState.content.length,
-      // );
+      _contentController.text = updatePostState.content;
+      _contentController.selection = TextSelection.collapsed(
+        offset: updatePostState.content.length,
+      );
       _isSyncingFromState = false;
     });
 
     _contentController.addListener(() {
       if (_isSyncingFromState) return;
 
-      // _updatePostController.updateContent(_contentController.text);
+      _updatePostController.updateContent(_contentController.text);
     });
   }
 
@@ -76,17 +76,17 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
       return;
     }
 
-    // final CreatePostSelectedPortfolio updatePostSelectedPortfolio =
-    CreatePostSelectedPortfolio(
-      id: selectedPortfolio.id,
-      name: selectedPortfolio.name,
-      assetCount: selectedPortfolio.assetCount,
-      periodMonths: selectedPortfolio.periodMonths,
-    );
+    final CreatePostSelectedPortfolio updatePostSelectedPortfolio =
+        CreatePostSelectedPortfolio(
+          id: selectedPortfolio.id,
+          name: selectedPortfolio.name,
+          assetCount: selectedPortfolio.assetCount,
+          periodMonths: selectedPortfolio.periodMonths,
+        );
 
-    // ref
-    // .read(updatePostControllerProvider.notifier)
-    // .selectPortfolio(updatePostSelectedPortfolio);
+    ref
+        .read(updatePostControllerProvider.notifier)
+        .selectPortfolio(updatePostSelectedPortfolio);
   }
 
   Future<void> _showPortfolioEditDialog() async {
@@ -128,76 +128,76 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
     }
 
     if (action == 'delete') {
-      // ref.read(updatePostControllerProvider.notifier).clearSelectedPortfolio();
+      ref.read(updatePostControllerProvider.notifier).clearSelectedPortfolio();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // final updatePostState = ref.watch(updatePostControllerProvider);
-    // final updatePostController = ref.read(
-    //   updatePostControllerProvider.notifier,
-    // );
+    final updatePostState = ref.watch(updatePostControllerProvider);
+    final updatePostController = ref.read(
+      updatePostControllerProvider.notifier,
+    );
 
-    // ref.listen(updatePostControllerProvider, (previousState, nextState) {
-    // if (_contentController.text != nextState.content) {
-    //   _isSyncingFromState = true;
-    //   _contentController.value = TextEditingValue(
-    //     text: nextState.content,
-    //     selection: TextSelection.collapsed(offset: nextState.content.length),
-    //   );
-    //   _isSyncingFromState = false;
-    // }
+    ref.listen(updatePostControllerProvider, (previousState, nextState) {
+      if (_contentController.text != nextState.content) {
+        _isSyncingFromState = true;
+        _contentController.value = TextEditingValue(
+          text: nextState.content,
+          selection: TextSelection.collapsed(offset: nextState.content.length),
+        );
+        _isSyncingFromState = false;
+      }
 
-    // final bool hasNewError =
-    //     previousState?.error != nextState.error && nextState.error != null;
+      final bool hasNewError =
+          previousState?.error != nextState.error && nextState.error != null;
 
-    // if (hasNewError) {
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(SnackBar(content: Text(nextState.error!)));
+      if (hasNewError) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(nextState.error!)));
 
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (!mounted) return;
-    //     updatePostController.clearError();
-    //   });
-    // }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          updatePostController.clearError();
+        });
+      }
 
-    // final bool shouldShowDeletedMessage =
-    //     previousState?.shouldShowPortfolioDeletedMessage !=
-    //         nextState.shouldShowPortfolioDeletedMessage &&
-    //     nextState.shouldShowPortfolioDeletedMessage;
+      final bool shouldShowDeletedMessage =
+          previousState?.shouldShowPortfolioDeletedMessage !=
+              nextState.shouldShowPortfolioDeletedMessage &&
+          nextState.shouldShowPortfolioDeletedMessage;
 
-    // if (shouldShowDeletedMessage) {
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(const SnackBar(content: Text('포트폴리오 태그가 삭제되었어요.')));
+      if (shouldShowDeletedMessage) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('포트폴리오 태그가 삭제되었어요.')));
 
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (!mounted) return;
-    //     updatePostController.clearDeletedMessage();
-    //   });
-    // }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          updatePostController.clearDeletedMessage();
+        });
+      }
 
-    // final bool hasNewSuccess =
-    //     previousState?.isSuccess != nextState.isSuccess &&
-    //     nextState.isSuccess;
+      final bool hasNewSuccess =
+          previousState?.isSuccess != nextState.isSuccess &&
+          nextState.isSuccess;
 
-    // if (hasNewSuccess) {
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
+      if (hasNewSuccess) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
 
-    //   WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //     if (!mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
 
-    //     updatePostController.clearSuccess();
-    //     ref.read(updatePostControllerProvider.notifier).reset();
+          updatePostController.clearSuccess();
+          ref.read(updatePostControllerProvider.notifier).reset();
 
-    //     context.go('/post/get/me');
-    //   });
-    // }
-    // });
+          context.go('/post/get/me');
+        });
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -209,25 +209,25 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
             if (!didPop) return;
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              // ref.read(updatePostControllerProvider.notifier).reset();
+              ref.read(updatePostControllerProvider.notifier).reset();
             });
           },
         ),
         actions: [
-          // TextButton(
-          //   onPressed: updatePostState.isSubmitting
-          //       ? null
-          //       : () async {
-          //           await updatePostController.submitUpdate();
-          //         },
-          //   child: updatePostState.isSubmitting
-          //       ? const SizedBox(
-          //           width: 18,
-          //           height: 18,
-          //           child: CircularProgressIndicator(strokeWidth: 2),
-          //         )
-          //       : const Text('수정하기'),
-          // ),
+          TextButton(
+            onPressed: updatePostState.isSubmitting
+                ? null
+                : () async {
+                    await updatePostController.submitUpdate();
+                  },
+            child: updatePostState.isSubmitting
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('수정하기'),
+          ),
         ],
       ),
       body: Column(
@@ -248,9 +248,9 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            // child: updatePostState.selectedPortfolio != null
-            //     ? _buildPortfolioCard(updatePostState.selectedPortfolio!)
-            //     : _buildTagButton(),
+            child: updatePostState.selectedPortfolio != null
+                ? _buildPortfolioCard(updatePostState.selectedPortfolio!)
+                : _buildTagButton(),
           ),
         ],
       ),
