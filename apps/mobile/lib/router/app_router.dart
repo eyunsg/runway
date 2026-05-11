@@ -111,6 +111,7 @@ class AppRouter {
         builder: (context, state) {
           final Post post = state.extra as Post;
           return UpdatePostTempScreen(post: post);
+        },
       ),
       GoRoute(
         path: '/post/get/detail/:postId',
