@@ -68,7 +68,7 @@ Deno.serve(async (req: Request) => {
         return await handleGetPostDetail(req, postId);
       }
 
-      if (req.method === 'PATCH') {
+      if (req.method === 'POST') {
         return await handlePatchPost(req, postId);
       }
 

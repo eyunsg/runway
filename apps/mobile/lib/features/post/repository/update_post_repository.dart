@@ -34,7 +34,7 @@ class UpdatePostRepository {
       // [현재] content only 임시 실행 코드
       final response = await _client.functions.invoke(
         'posts/${requestDto.postId}',
-        method: HttpMethod.patch,
+        method: HttpMethod.post,
         body: {'content': requestDto.content},
       );
 
