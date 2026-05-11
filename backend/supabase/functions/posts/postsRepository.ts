@@ -110,6 +110,21 @@ export async function updatePostRepo(
   return data !== null && data.length > 0;
 }
 
+export async function deletePostRepo(authHeader: string, postId: string): Promise<boolean> {
+  const client = createAuthClient(authHeader);
+
+  const { data, error } = await client.rpc('delete_post_and_snapshot', {
+    p_post_id: postId,
+  });
+
+  if (error) {
+    console.error(`[RPC Delete Error]: ${error.message}`);
+    throw new Error('DATABASE_ERROR: 삭제 트랜잭션 실패');
+  }
+
+  return data === true;
+}
+
 export async function findAllMyPostsRepo(authHeader: string, userId: string) {
   const client = createAuthClient(authHeader);
 

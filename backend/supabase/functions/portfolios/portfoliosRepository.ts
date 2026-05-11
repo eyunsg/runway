@@ -160,6 +160,24 @@ export async function getPortfolioDetailRepo(userId: string, portfolioId: string
   return data;
 }
 
+export async function getPortfolioSnapshotDetailRepo(portfolioSnapshotId: string) {
+  const client = createAdminClient();
+
+  const { data, error } = await client
+    .from('portfolio_snapshots')
+    .select('snapshot_data')
+    .eq('id', portfolioSnapshotId)
+    .is('deleted_at', null)
+    .single();
+
+  if (error) {
+    console.error(`[PortfolioRepo Error - Snapshot Detail]: ${error.message}`);
+    return null;
+  }
+
+  return data;
+}
+
 export async function deletePortfolioRepo(userId: string, portfolioId: string): Promise<boolean> {
   const client = createAdminClient();
 

@@ -85,6 +85,16 @@ import 'package:runway/features/post/repository/update_post_repository.dart';
 import 'package:runway/features/post/types/update_post_state.dart';
 import 'package:runway/features/post/usecase/update_post_usecase.dart';
 
+import 'package:runway/features/post/controller/get_post_detail_controller.dart';
+import 'package:runway/features/post/repository/get_post_detail_repository.dart';
+import 'package:runway/features/post/types/get_post_detail_state.dart';
+import 'package:runway/features/post/usecase/get_post_detail_usecase.dart';
+
+import 'package:runway/features/post/controller/delete_post_controller.dart';
+import 'package:runway/features/post/repository/delete_post_repository.dart';
+import 'package:runway/features/post/types/delete_post_state.dart';
+import 'package:runway/features/post/usecase/delete_post_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -402,6 +412,24 @@ final getMyPostControllerProvider =
       return GetMyPostController(useCase: useCase);
     });
 
+/// ---------------- DELETE POST ----------------
+
+final deletePostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return DeletePostRepository(client: client);
+});
+
+final deletePostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(deletePostRepositoryProvider);
+  return DeletePostUsecase(repository: repository);
+});
+
+final deletePostControllerProvider =
+    StateNotifierProvider<DeletePostController, DeletePostState>((ref) {
+      final useCase = ref.read(deletePostUsecaseProvider);
+      return DeletePostController(useCase: useCase);
+    });
+
 /// ---------------- GET POST ----------------
 
 final getPostRepositoryProvider = Provider((ref) {
@@ -436,4 +464,21 @@ final updatePostControllerProvider =
     StateNotifierProvider<UpdatePostController, UpdatePostState>((ref) {
       final useCase = ref.read(updatePostUsecaseProvider);
       return UpdatePostController(useCase: useCase);
+    });
+/// ---------------- GET POST DETAIL ----------------
+
+final getPostDetailRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPostDetailRepository(client: client);
+});
+
+final getPostDetailUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getPostDetailRepositoryProvider);
+  return GetPostDetailUsecase(repository);
+});
+
+final getPostDetailControllerProvider =
+    StateNotifierProvider<GetPostDetailController, GetPostDetailState>((ref) {
+      final useCase = ref.read(getPostDetailUsecaseProvider);
+      return GetPostDetailController(useCase: useCase);
     });

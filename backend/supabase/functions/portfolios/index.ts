@@ -2,6 +2,7 @@ import {
   handleAddPortfolio,
   handleGetPortfolios,
   handleGetPortfolioDetail,
+  handleGetPortfolioSnapshotDetail,
   handleUpdatePortfolio,
   handleDeletePortfolio,
   UnauthorizedError,
@@ -45,35 +46,59 @@ Deno.serve(async (req: Request) => {
 
   try {
     const url = new URL(req.url);
-    const pathParts = url.pathname.split('/').filter(Boolean); // 예: ["portfolios", "uuid"]
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1];
+    const secondLastPart = pathParts[pathParts.length - 2];
+
+    const isPortfoliosPath = lastPart === 'portfolios';
+    const isPortfolioDetailPath = secondLastPart === 'portfolios' && lastPart !== 'snapshots';
+    const isPortfolioSnapshotDetailPath =
+      secondLastPart === 'snapshots' && pathParts.includes('portfolios');
 
     // 2. GET 요청 라우팅
     if (req.method === 'GET') {
-      // 상세 조회: /portfolios/{id} (경로 조각이 2개인 경우)
-      if (pathParts.length > 1) {
-        return await handleGetPortfolioDetail(req, pathParts[1]);
+      // 스냅샷 상세 조회: /portfolios/snapshots/{snapshotId}
+      if (isPortfolioSnapshotDetailPath) {
+        const snapshotId = lastPart;
+        return await handleGetPortfolioSnapshotDetail(req, snapshotId);
       }
-      // 목록 조회: /portfolios
-      return await handleGetPortfolios(req);
+
+      // 포트폴리오 상세 조회: /portfolios/{portfolioId}
+      if (isPortfolioDetailPath && !isPortfoliosPath) {
+        const portfolioId = lastPart;
+        return await handleGetPortfolioDetail(req, portfolioId);
+      }
+
+      // 포트폴리오 목록 조회: /portfolios
+      if (isPortfoliosPath) {
+        return await handleGetPortfolios(req);
+      }
+
+      return errorResponse('요청하신 경로를 찾을 수 없습니다.', 404);
     }
 
     // 3. POST 요청 라우팅
     if (req.method === 'POST') {
-      return await handleAddPortfolio(req);
+      if (isPortfoliosPath) {
+        return await handleAddPortfolio(req);
+      }
+      return errorResponse('요청하신 경로를 찾을 수 없습니다.', 404);
     }
 
     // 4. PATCH 요청 라우팅 (수정)
     if (req.method === 'PATCH') {
-      if (pathParts.length > 1) {
-        return await handleUpdatePortfolio(req, pathParts[1]);
+      if (isPortfolioDetailPath && !isPortfoliosPath) {
+        const portfolioId = lastPart;
+        return await handleUpdatePortfolio(req, portfolioId);
       }
       return errorResponse('포트폴리오 ID가 필요합니다.', 400);
     }
 
     // 5. DELETE 요청 라우팅
     if (req.method === 'DELETE') {
-      if (pathParts.length > 1) {
-        return await handleDeletePortfolio(req, pathParts[1]);
+      if (isPortfolioDetailPath && !isPortfoliosPath) {
+        const portfolioId = lastPart;
+        return await handleDeletePortfolio(req, portfolioId);
       }
       return errorResponse('삭제할 포트폴리오 ID가 필요합니다.', 400);
     }

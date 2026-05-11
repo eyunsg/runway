@@ -14,4 +14,13 @@ class GetPortfolioDetailUseCase {
     final result = await repository.getPortfolioDetail(portfolioId);
     return result;
   }
+
+  Future<Either<Failure, PortfolioDetail>> executeBySnapshotId({
+    required String portfolioSnapshotId,
+  }) async {
+    final result = await repository.getPortfolioSnapshotDetail(
+      portfolioSnapshotId,
+    );
+    return result;
+  }
 }

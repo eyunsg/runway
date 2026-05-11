@@ -5,9 +5,20 @@ import 'package:runway/domain/entity/portfolio_detail.dart';
 import 'package:go_router/go_router.dart';
 
 class GetPortfolioDetailTempScreen extends ConsumerStatefulWidget {
-  final String portfolioId;
+  final String? portfolioId;
+  final String? portfolioSnapshotId;
 
-  const GetPortfolioDetailTempScreen({super.key, required this.portfolioId});
+  const GetPortfolioDetailTempScreen({super.key, required String portfolioId})
+    : portfolioId = portfolioId,
+      portfolioSnapshotId = null,
+      assert(portfolioId != '');
+
+  const GetPortfolioDetailTempScreen.snapshot({
+    super.key,
+    required String portfolioSnapshotId,
+  }) : portfolioSnapshotId = portfolioSnapshotId,
+       portfolioId = null,
+       assert(portfolioSnapshotId != '');
 
   @override
   ConsumerState<GetPortfolioDetailTempScreen> createState() =>
@@ -18,6 +29,9 @@ class _GetPortfolioDetailTempScreenState
     extends ConsumerState<GetPortfolioDetailTempScreen> {
   // 포트폴리오 삭제 다이얼로그
   Future<void> _onDeletePressed() async {
+    final String? portfolioId = widget.portfolioId;
+    if (portfolioId == null || portfolioId.trim().isEmpty) return;
+
     final bool shouldDelete =
         await showDialog<bool>(
           context: context,
@@ -48,7 +62,7 @@ class _GetPortfolioDetailTempScreenState
 
     await ref
         .read(deleteClientControllerProvider.notifier)
-        .deletePortfolio(widget.portfolioId);
+        .deletePortfolio(portfolioId);
   }
 
   @override
@@ -56,9 +70,17 @@ class _GetPortfolioDetailTempScreenState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(getPortfolioDetailControllerProvider.notifier)
-          .getPortfolioDetail(widget.portfolioId);
+      final controller = ref.read(
+        getPortfolioDetailControllerProvider.notifier,
+      );
+      final String snapshotId = (widget.portfolioSnapshotId ?? '').trim();
+
+      if (snapshotId.isNotEmpty) {
+        controller.getPortfolioSnapshotDetail(snapshotId);
+        return;
+      }
+
+      controller.getPortfolioDetail(widget.portfolioId!);
     });
 
     ref.listenManual(getPortfolioDetailControllerProvider, (previous, next) {
@@ -72,6 +94,8 @@ class _GetPortfolioDetailTempScreenState
     });
 
     ref.listenManual(deleteClientControllerProvider, (previous, next) {
+      if (widget.portfolioId == null) return;
+
       if (next.isSuccess && mounted) {
         ScaffoldMessenger.of(
           context,
@@ -93,6 +117,9 @@ class _GetPortfolioDetailTempScreenState
   @override
   Widget build(BuildContext context) {
     final detailState = ref.watch(getPortfolioDetailControllerProvider);
+    final bool isSnapshotDetail = widget.portfolioId == null;
+    final bool canDelete = widget.portfolioId != null && !isSnapshotDetail;
+    final bool canEditAssets = !isSnapshotDetail;
 
     final bool isInitialLoading =
         detailState.isLoading && detailState.portfolioDetail == null;
@@ -108,19 +135,14 @@ class _GetPortfolioDetailTempScreenState
     if (portfolioDetail == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text(''),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new),
-            onPressed: () {
-              context.go('/portfolio/get');
-            },
-          ),
-          actions: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.delete_outline),
-            ),
-          ],
+          actions: canDelete
+              ? [
+                  IconButton(
+                    onPressed: _onDeletePressed,
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ]
+              : null,
         ),
         body: const SafeArea(
           child: Center(child: Text('포트폴리오 상세 정보를 불러오지 못했습니다.')),
@@ -173,18 +195,12 @@ class _GetPortfolioDetailTempScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(''),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () {
-            context.go('/portfolio/get');
-          },
-        ),
         actions: [
-          IconButton(
-            onPressed: _onDeletePressed,
-            icon: const Icon(Icons.delete_outline),
-          ),
+          if (canDelete)
+            IconButton(
+              onPressed: _onDeletePressed,
+              icon: const Icon(Icons.delete_outline),
+            ),
         ],
       ),
       body: SafeArea(
@@ -248,15 +264,16 @@ class _GetPortfolioDetailTempScreenState
                 );
               }),
 
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: update portfolio 화면 연결 시 수정
-                  },
-                  child: const Text('자산 수정하기'),
+              if (canEditAssets)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // TODO: update portfolio 화면 연결 시 수정
+                    },
+                    child: const Text('자산 수정하기'),
+                  ),
                 ),
-              ),
             ],
           ),
         ),

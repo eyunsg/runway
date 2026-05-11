@@ -69,6 +69,7 @@ extension MyPostMapper on MyPostResponseDto {
               authorDisplayName == '알 수 없는 사용자'
           ? 'displayName'
           : authorDisplayName!,
+      portfolioSnapshotId: null,
       portfolioName: portfolioName ?? '',
       assetCount: assetCount,
       investmentPeriodMonths: investmentPeriodMonths,

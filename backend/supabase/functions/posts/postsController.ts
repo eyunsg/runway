@@ -5,6 +5,7 @@ import {
   getMyPostsService,
   getPostDetailService,
   updatePostService,
+  deletePostService,
 } from './postsService.ts';
 import { PostPostsRequestDto } from '../../../shared/dto/posts/PostPostsRequest.dto.ts';
 import { UpdatePostsRequestDto } from '../../../shared/dto/posts/UpdatePostsRequest.dto.ts';
@@ -95,6 +96,19 @@ export async function handlePatchPost(req: Request, postId: string) {
   await updatePostService(authHeader, postId, dto);
 
   // 3. 성공 응답 반환 (명세에 따라 204 No Content)
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
+export async function handleDeletePost(req: Request, postId: string) {
+  const authHeader = req.headers.get('authorization') ?? '';
+
+  // 서비스 호출 (비즈니스 로직 및 RLS 기반 삭제 수행)
+  await deletePostService(authHeader, postId);
+
+  // 성공 응답 반환 (명세에 따라 204 No Content)
   return new Response(null, {
     status: 204,
     headers: corsHeaders,

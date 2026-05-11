@@ -125,4 +125,65 @@ void main() {
       expect(states[2].error, 'server error');
     });
   });
+
+  group('getPortfolioSnapshotDetail', () {
+    const portfolioSnapshotId = 'portfolio_snapshot_1';
+
+    test('성공 시 loading → success 상태 + 데이터 세팅', () async {
+      final dummyDetail = createDummyDetail();
+
+      when(
+        () => mockUseCase.executeBySnapshotId(
+          portfolioSnapshotId: portfolioSnapshotId,
+        ),
+      ).thenAnswer((_) async => Right(dummyDetail));
+
+      final states = <GetPortfolioDetailState>[];
+      controller.addListener((state) => states.add(state));
+
+      await controller.getPortfolioSnapshotDetail(portfolioSnapshotId);
+
+      verify(
+        () => mockUseCase.executeBySnapshotId(
+          portfolioSnapshotId: portfolioSnapshotId,
+        ),
+      ).called(1);
+
+      expect(states.length, 3);
+
+      expect(states[0].isLoading, false);
+
+      expect(states[1].isLoading, true);
+      expect(states[1].isSuccess, false);
+      expect(states[1].error, isNull);
+
+      expect(states[2].isLoading, false);
+      expect(states[2].isSuccess, true);
+      expect(states[2].portfolioDetail, dummyDetail);
+      expect(states[2].error, isNull);
+    });
+
+    test('실패 시 error 세팅', () async {
+      when(
+        () => mockUseCase.executeBySnapshotId(
+          portfolioSnapshotId: portfolioSnapshotId,
+        ),
+      ).thenAnswer((_) async => Left(ServerFailure('server error')));
+
+      final states = <GetPortfolioDetailState>[];
+      controller.addListener((state) => states.add(state));
+
+      await controller.getPortfolioSnapshotDetail(portfolioSnapshotId);
+
+      expect(states.length, 3);
+
+      expect(states[0].isLoading, false);
+
+      expect(states[1].isLoading, true);
+
+      expect(states[2].isLoading, false);
+      expect(states[2].isSuccess, false);
+      expect(states[2].error, 'server error');
+    });
+  });
 }

@@ -13,6 +13,7 @@ import {
   findAllMyPostsRepo,
   findPostByIdRepo,
   updatePostRepo,
+  deletePostRepo,
   savePostRepo,
   createPortfolioSnapshotRepo,
 } from './postsRepository.ts';
@@ -155,6 +156,15 @@ export async function updatePostService(
   if (!isUpdated) {
     // RLS 정책에 의해 수정이 되지 않았거나(본인 아님) 글이 없는 경우
     throw new Error('NOT_FOUND: 게시글을 찾을 수 없거나 수정 권한이 없습니다.');
+  }
+}
+
+export async function deletePostService(authHeader: string, postId: string): Promise<void> {
+  const isDeleted = await deletePostRepo(authHeader, postId);
+
+  if (!isDeleted) {
+    // RLS 정책에 의해 업데이트된 행이 없거나(본인 아님) 이미 삭제된 경우
+    throw new Error('NOT_FOUND: 게시글을 찾을 수 없거나 삭제 권한이 없습니다.');
   }
 }
 
