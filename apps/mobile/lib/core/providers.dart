@@ -80,6 +80,11 @@ import 'package:runway/features/post/repository/get_post_repository.dart';
 import 'package:runway/features/post/types/get_post_state.dart';
 import 'package:runway/features/post/usecase/get_post_usecase.dart';
 
+// import 'package:runway/features/post/controller/update_post_controller.dart';
+// import 'package:runway/features/post/repository/update_post_repository.dart';
+// import 'package:runway/features/post/types/update_post_state.dart';
+// import 'package:runway/features/post/usecase/update_post_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -395,7 +400,7 @@ final getMyPostControllerProvider =
     StateNotifierProvider<GetMyPostController, GetMyPostState>((ref) {
       final useCase = ref.read(getMyPostUsecaseProvider);
       return GetMyPostController(useCase: useCase);
-});
+    });
 
 /// ---------------- GET POST ----------------
 
@@ -413,4 +418,22 @@ final getPostControllerProvider =
     StateNotifierProvider<GetPostController, GetPostState>((ref) {
       final useCase = ref.read(getPostUsecaseProvider);
       return GetPostController(useCase: useCase);
-});
+    });
+
+/// ---------------- UPDATE POST ----------------
+
+// final updatePostRepositoryProvider = Provider((ref) {
+//   final client = ref.read(supabaseClientProvider);
+//   return UpdatePostRepository(client: client);
+// });
+
+// final updatePostUsecaseProvider = Provider((ref) {
+//   final repository = ref.read(updatePostRepositoryProvider);
+//   return UpdatePostUsecase(repository);
+// });
+
+// final updatePostControllerProvider =
+//     StateNotifierProvider<UpdatePostController, UpdatePostState>((ref) {
+//       final useCase = ref.read(updatePostUsecaseProvider);
+//       return UpdatePostController(useCase: useCase);
+//     });

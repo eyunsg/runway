@@ -209,7 +209,8 @@ class _GetMyPostTempScreenState extends ConsumerState<GetMyPostTempScreen> {
     );
 
     if (action == 'edit') {
-      // TODO: 게시물 수정 페이지로 이동
+      if (!mounted) return;
+      context.push('/post/update', extra: post);
       return;
     }
 
