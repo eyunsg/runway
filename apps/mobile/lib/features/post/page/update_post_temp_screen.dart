@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
-import 'package:runway/domain/entity/portfolio.dart';
 import 'package:runway/features/post/controller/update_post_controller.dart';
-import 'package:runway/features/post/model/create_post_selected_portfolio.dart';
 import 'package:runway/features/post/model/post.dart';
 
 class UpdatePostTempScreen extends ConsumerStatefulWidget {
@@ -55,81 +53,6 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
   void dispose() {
     _contentController.dispose();
     super.dispose();
-  }
-
-  String _formatInvestmentPeriod(int periodMonths) {
-    if (periodMonths % 12 == 0) {
-      final int investmentYears = periodMonths ~/ 12;
-      return '$investmentYears년';
-    }
-
-    return '$periodMonths개월';
-  }
-
-  Future<void> _navigateToPortfolioSelection() async {
-    final Portfolio? selectedPortfolio = await context.push(
-      '/portfolio/get',
-      extra: true,
-    );
-
-    if (selectedPortfolio == null) {
-      return;
-    }
-
-    final CreatePostSelectedPortfolio updatePostSelectedPortfolio =
-        CreatePostSelectedPortfolio(
-          id: selectedPortfolio.id,
-          name: selectedPortfolio.name,
-          assetCount: selectedPortfolio.assetCount,
-          periodMonths: selectedPortfolio.periodMonths,
-        );
-
-    ref
-        .read(updatePostControllerProvider.notifier)
-        .selectPortfolio(updatePostSelectedPortfolio);
-  }
-
-  Future<void> _showPortfolioEditDialog() async {
-    final String? action = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('포트폴리오 설정'),
-          content: const Text('포트폴리오를 변경하거나 삭제할 수 있어요.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop('delete');
-              },
-              child: const Text('삭제'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop('change');
-              },
-              child: const Text('변경'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('취소'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (!mounted) return;
-
-    if (action == 'change') {
-      await _navigateToPortfolioSelection();
-      return;
-    }
-
-    if (action == 'delete') {
-      ref.read(updatePostControllerProvider.notifier).clearSelectedPortfolio();
-    }
   }
 
   @override
@@ -263,54 +186,6 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTagButton() {
-    return OutlinedButton(
-      onPressed: _navigateToPortfolioSelection,
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 50),
-      ),
-      child: const Text('포트폴리오 태그'),
-    );
-  }
-
-  Widget _buildPortfolioCard(CreatePostSelectedPortfolio selectedPortfolio) {
-    final String formattedInvestmentPeriod = _formatInvestmentPeriod(
-      selectedPortfolio.periodMonths,
-    );
-
-    final String portfolioDescription =
-        '자산 ${selectedPortfolio.assetCount}개 · 투자 기간 $formattedInvestmentPeriod';
-
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  selectedPortfolio.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(portfolioDescription),
-              ],
-            ),
-          ),
-        ),
-        IconButton(
-          onPressed: _showPortfolioEditDialog,
-          icon: const Icon(Icons.edit_outlined),
-        ),
-      ],
     );
   }
 }
