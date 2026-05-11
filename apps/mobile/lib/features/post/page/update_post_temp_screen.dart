@@ -248,9 +248,18 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: updatePostState.selectedPortfolio != null
-                ? _buildPortfolioCard(updatePostState.selectedPortfolio!)
-                : _buildTagButton(),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '포트폴리오는 수정할 수 없어요.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
           ),
         ],
       ),
