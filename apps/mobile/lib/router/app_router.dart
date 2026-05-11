@@ -17,6 +17,8 @@ import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
 import '../features/post/page/create_post_temp_screen.dart';
 import '../features/post/page/get_my_post_temp_screen.dart';
 import '../features/post/page/get_post_temp_screen.dart';
+import '../features/post/page/update_post_temp_screen.dart';
+import 'package:runway/features/post/model/post.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -91,6 +93,13 @@ class AppRouter {
       GoRoute(
         path: '/post/get',
         builder: (context, state) => const GetPostTempScreen(),
+      ),
+      GoRoute(
+        path: '/post/update',
+        builder: (context, state) {
+          final Post post = state.extra as Post;
+          return UpdatePostTempScreen(post: post);
+        },
       ),
       GoRoute(
         path: '/devhome',
