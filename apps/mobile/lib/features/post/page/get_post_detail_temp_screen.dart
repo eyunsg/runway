@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
 import 'package:runway/features/post/model/post.dart';
+import 'package:runway/features/post/types/create_comment_state.dart';
 
 class GetPostDetailTempScreen extends ConsumerStatefulWidget {
   const GetPostDetailTempScreen({super.key, required this.postId});
@@ -10,12 +11,15 @@ class GetPostDetailTempScreen extends ConsumerStatefulWidget {
   final String postId;
 
   @override
-  ConsumerState createState() => _GetPostDetailTempScreenState();
+  ConsumerState<GetPostDetailTempScreen> createState() =>
+      _GetPostDetailTempScreenState();
 }
 
 class _GetPostDetailTempScreenState
     extends ConsumerState<GetPostDetailTempScreen> {
   final TextEditingController _commentController = TextEditingController();
+  bool _isSyncingCommentFromState = false;
+
   final List<_MockComment> _mockComments = const [
     _MockComment(
       authorDisplayName: 'displayName',
@@ -38,6 +42,14 @@ class _GetPostDetailTempScreenState
   void initState() {
     super.initState();
 
+    _commentController.addListener(() {
+      if (_isSyncingCommentFromState) return;
+
+      ref
+          .read(createCommentControllerProvider.notifier)
+          .updateContent(_commentController.text);
+    });
+
     Future.microtask(() {
       ref
           .read(getPostDetailControllerProvider.notifier)
@@ -54,25 +66,84 @@ class _GetPostDetailTempScreenState
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(getPostDetailControllerProvider);
+    final createCommentState = ref.watch(createCommentControllerProvider);
+    final createCommentController = ref.read(
+      createCommentControllerProvider.notifier,
+    );
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-              return;
-            }
-            Navigator.of(context).maybePop();
-          },
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+    ref.listen(createCommentControllerProvider, (previousState, nextState) {
+      if (_commentController.text != nextState.content) {
+        _isSyncingCommentFromState = true;
+        _commentController.value = TextEditingValue(
+          text: nextState.content,
+          selection: TextSelection.collapsed(offset: nextState.content.length),
+        );
+        _isSyncingCommentFromState = false;
+      }
+
+      final bool hasNewError =
+          previousState?.error != nextState.error && nextState.error != null;
+
+      if (hasNewError) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(nextState.error!)));
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          createCommentController.clearError();
+        });
+      }
+
+      final bool hasNewSuccess =
+          previousState?.isSuccess != nextState.isSuccess &&
+          nextState.isSuccess;
+
+      if (hasNewSuccess) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('댓글이 등록되었습니다.')));
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          createCommentController.clearSuccess();
+        });
+      }
+    });
+
+    final double keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              if (context.canPop()) {
+                context.pop();
+                return;
+              }
+              Navigator.of(context).maybePop();
+            },
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(child: _buildBody(state)),
-          _buildBottomInputArea(),
-        ],
+        body: Column(
+          children: [
+            Expanded(child: _buildBody(state)),
+            AnimatedPadding(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(bottom: keyboardInset),
+              child: _buildBottomInputArea(createCommentState),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -311,38 +382,62 @@ class _GetPostDetailTempScreenState
     );
   }
 
-  Widget _buildBottomInputArea() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.blueGrey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: TextField(
-                controller: _commentController,
-                minLines: 1,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  hintText: '댓글로 의견을 남겨보세요',
-                  border: InputBorder.none,
+  Widget _buildBottomInputArea(CreateCommentState createCommentState) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 20)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.blueGrey.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: TextField(
+                  controller: _commentController,
+                  minLines: 1,
+                  maxLines: 5,
+
+                  enabled: !createCommentState.isSubmitting,
+                  decoration: const InputDecoration(
+                    hintText: '댓글로 의견을 남겨보세요',
+                    border: InputBorder.none,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.send)),
-        ],
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: createCommentState.isSubmitting
+                  ? null
+                  : () async {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      await ref
+                          .read(createCommentControllerProvider.notifier)
+                          .submitComment(postId: widget.postId);
+                    },
+              icon: createCommentState.isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send),
+            ),
+          ],
+        ),
       ),
     );
   }
