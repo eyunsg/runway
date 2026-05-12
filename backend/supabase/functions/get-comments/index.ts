@@ -35,7 +35,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const url = new URL(req.url);
-    const pathParts = url.pathname.split('/').filter(Boolean);
+    const rawParts = url.pathname.split('/').filter(Boolean);
+    const pathParts =
+      rawParts.length > 0 && rawParts[0] === 'get-comments' ? rawParts.slice(1) : rawParts;
     const lastPart = pathParts[pathParts.length - 1];
     const secondLastPart = pathParts[pathParts.length - 2];
     const thirdLastPart = pathParts[pathParts.length - 3];
