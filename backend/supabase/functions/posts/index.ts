@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
         return await handleGetPostDetail(req, postId);
       }
 
-      if (req.method === 'PATCH') {
+      if (req.method === 'POST') {
         return await handlePatchPost(req, postId);
       }
 
@@ -80,10 +80,17 @@ Deno.serve(async (req: Request) => {
       return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
 
-    if (isMyPostsPath) {
+    if (isPostDetailPath) {
+      const postId = lastPart;
+
       if (req.method === 'GET') {
-        return await handleGetMyPosts(req);
+        return await handleGetPostDetail(req, postId);
       }
+
+      if (req.method === 'POST') {
+        return await handlePatchPost(req, postId);
+      }
+
       return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
 

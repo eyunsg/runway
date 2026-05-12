@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
+import 'package:runway/features/comment/model/comment.dart';
 import 'package:runway/features/post/model/post.dart';
 import 'package:runway/features/post/types/create_comment_state.dart';
 
@@ -18,25 +19,6 @@ class GetPostDetailTempScreen extends ConsumerStatefulWidget {
 class _GetPostDetailTempScreenState
     extends ConsumerState<GetPostDetailTempScreen> {
   final TextEditingController _commentController = TextEditingController();
-  bool _isSyncingCommentFromState = false;
-
-  final List<_MockComment> _mockComments = const [
-    _MockComment(
-      authorDisplayName: 'displayName',
-      createdAt: '2026.05.08',
-      content: '좋은 게시물이네요.',
-    ),
-    _MockComment(
-      authorDisplayName: 'displayName',
-      createdAt: '2026.05.08',
-      content: '저도 비슷하게 생각했어요.',
-    ),
-    _MockComment(
-      authorDisplayName: 'displayName',
-      createdAt: '2026.05.08',
-      content: '댓글 API 연동 전 임시 mock 데이터입니다.',
-    ),
-  ];
 
   @override
   void initState() {
@@ -54,6 +36,9 @@ class _GetPostDetailTempScreenState
       ref
           .read(getPostDetailControllerProvider.notifier)
           .fetchPostDetail(widget.postId);
+      ref
+          .read(getCommentsControllerProvider.notifier)
+          .fetchComments(widget.postId);
     });
   }
 
@@ -296,7 +281,47 @@ class _GetPostDetailTempScreenState
   }
 
   Widget _buildCommentSection() {
-    if (_mockComments.isEmpty) {
+    final commentState = ref.watch(getCommentsControllerProvider);
+
+    if (commentState.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (commentState.error != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('댓글을 불러오지 못했습니다.'),
+              const SizedBox(height: 8),
+              Text(
+                commentState.error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref
+                      .read(getCommentsControllerProvider.notifier)
+                      .fetchComments(widget.postId);
+                },
+                child: const Text('다시 시도'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final comments = commentState.comments;
+
+    if (comments.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24.0),
         child: Center(child: Text('댓글이 없습니다.')),
@@ -304,17 +329,17 @@ class _GetPostDetailTempScreenState
     }
 
     return ListView.builder(
-      itemCount: _mockComments.length,
+      itemCount: comments.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
-        final comment = _mockComments[index];
+        final comment = comments[index];
         return _buildCommentItem(comment: comment);
       },
     );
   }
 
-  Widget _buildCommentItem({required _MockComment comment}) {
+  Widget _buildCommentItem({required Comment comment}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
@@ -333,7 +358,7 @@ class _GetPostDetailTempScreenState
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      comment.createdAt,
+                      _formatDate(comment.createdAt),
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -461,16 +486,4 @@ class _GetPostDetailTempScreenState
     }
     return '$remainMonths개월';
   }
-}
-
-class _MockComment {
-  final String authorDisplayName;
-  final String createdAt;
-  final String content;
-
-  const _MockComment({
-    required this.authorDisplayName,
-    required this.createdAt,
-    required this.content,
-  });
 }
