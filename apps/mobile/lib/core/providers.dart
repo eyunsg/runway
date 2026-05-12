@@ -90,6 +90,11 @@ import 'package:runway/features/post/repository/get_post_detail_repository.dart'
 import 'package:runway/features/post/types/get_post_detail_state.dart';
 import 'package:runway/features/post/usecase/get_post_detail_usecase.dart';
 
+import 'package:runway/features/comment/controller/get_comments_controller.dart';
+import 'package:runway/features/comment/repository/get_comments_repository.dart';
+import 'package:runway/features/comment/types/get_comments_state.dart';
+import 'package:runway/features/comment/usecase/get_comments_usecase.dart';
+
 import 'package:runway/features/post/controller/delete_post_controller.dart';
 import 'package:runway/features/post/repository/delete_post_repository.dart';
 import 'package:runway/features/post/types/delete_post_state.dart';
@@ -465,6 +470,7 @@ final updatePostControllerProvider =
       final useCase = ref.read(updatePostUsecaseProvider);
       return UpdatePostController(useCase: useCase);
     });
+
 /// ---------------- GET POST DETAIL ----------------
 
 final getPostDetailRepositoryProvider = Provider((ref) {
@@ -481,4 +487,22 @@ final getPostDetailControllerProvider =
     StateNotifierProvider<GetPostDetailController, GetPostDetailState>((ref) {
       final useCase = ref.read(getPostDetailUsecaseProvider);
       return GetPostDetailController(useCase: useCase);
+    });
+
+/// ---------------- GET COMMENTS ----------------
+
+final getCommentsRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetCommentsRepository(client: client);
+});
+
+final getCommentsUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getCommentsRepositoryProvider);
+  return GetCommentsUsecase(repository);
+});
+
+final getCommentsControllerProvider =
+    StateNotifierProvider<GetCommentsController, GetCommentsState>((ref) {
+      final useCase = ref.read(getCommentsUsecaseProvider);
+      return GetCommentsController(useCase: useCase);
     });
