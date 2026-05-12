@@ -14,7 +14,8 @@ export async function findCommentsByPostIdRepo(authHeader: string, postId: strin
     .from('comments')
     .select(
       `
-      comment_id,
+      id,
+      post_id,
       content,
       created_at,
       user_id,
@@ -31,5 +32,5 @@ export async function findCommentsByPostIdRepo(authHeader: string, postId: strin
   }
 
   const rows = (data ?? []) as unknown as CommentDbRow[];
-  return Comment.fromDbRows(rows, postId);
+  return Comment.fromDbRows(rows);
 }
