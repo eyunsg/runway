@@ -1,7 +1,7 @@
 type SingleOrArray<T> = T | T[];
 
 export interface CommentDbRow {
-  comment_id: string;
+  id: string;
   content: string;
   created_at: string;
   user_id: string;
@@ -34,7 +34,7 @@ export class Comment {
     const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
 
     return new Comment(
-      row.comment_id,
+      row.id,
       row.content,
       profile?.display_name || '알 수 없는 사용자',
       row.created_at
@@ -44,7 +44,6 @@ export class Comment {
   static fromDbRows(rows: CommentDbRow[], postId?: string): Comment[] {
     return rows
       .filter((row) => row.deleted_at == null)
-      .filter((row) => (postId ? row.post_id === postId : true))
       .sort((a, b) => a.created_at.localeCompare(b.created_at))
       .map((row) => Comment.fromDbRow(row));
   }
