@@ -19,7 +19,7 @@ describe('GetComments - Domain/Service 테스트', () => {
     it('deleted_at IS NULL만 포함하고 created_at ASC로 정렬한다', () => {
       const rows: CommentDbRow[] = [
         {
-          comment_id: 'c2',
+          id: 'c2',
           content: '두번째',
           created_at: '2024-03-21T10:00:00Z',
           user_id: 'u2',
@@ -28,7 +28,7 @@ describe('GetComments - Domain/Service 테스트', () => {
           profiles: { display_name: '작성자2' },
         },
         {
-          comment_id: 'c1',
+          id: 'c1',
           content: '첫번째',
           created_at: '2024-03-20T10:00:00Z',
           user_id: 'u1',
@@ -37,7 +37,7 @@ describe('GetComments - Domain/Service 테스트', () => {
           profiles: { display_name: '작성자1' },
         },
         {
-          comment_id: 'c3',
+          id: 'c3',
           content: '삭제됨',
           created_at: '2024-03-22T10:00:00Z',
           user_id: 'u3',
@@ -47,43 +47,16 @@ describe('GetComments - Domain/Service 테스트', () => {
         },
       ];
 
-      const comments = Comment.fromDbRows(rows, mockPostId);
+      const comments = Comment.fromDbRows(rows);
       expect(comments).toHaveLength(2);
       expect(comments[0].commentId).toBe('c1');
       expect(comments[1].commentId).toBe('c2');
     });
 
-    it('postId 기반 필터링이 정상 동작한다', () => {
-      const rows: CommentDbRow[] = [
-        {
-          comment_id: 'c1',
-          content: 'A',
-          created_at: '2024-03-20T10:00:00Z',
-          user_id: 'u1',
-          post_id: mockPostId,
-          deleted_at: null,
-          profiles: { display_name: '작성자1' },
-        },
-        {
-          comment_id: 'c2',
-          content: 'B',
-          created_at: '2024-03-20T11:00:00Z',
-          user_id: 'u2',
-          post_id: 'other-post',
-          deleted_at: null,
-          profiles: { display_name: '작성자2' },
-        },
-      ];
-
-      const comments = Comment.fromDbRows(rows, mockPostId);
-      expect(comments).toHaveLength(1);
-      expect(comments[0].commentId).toBe('c1');
-    });
-
     it('profiles 매핑으로 authorDisplayName을 만든다 (없으면 기본값)', () => {
       const rows: CommentDbRow[] = [
         {
-          comment_id: 'c1',
+          id: 'c1',
           content: 'A',
           created_at: '2024-03-20T10:00:00Z',
           user_id: 'u1',
@@ -92,7 +65,7 @@ describe('GetComments - Domain/Service 테스트', () => {
           profiles: { display_name: '작성자1' },
         },
         {
-          comment_id: 'c2',
+          id: 'c2',
           content: 'B',
           created_at: '2024-03-20T11:00:00Z',
           user_id: 'u2',
@@ -102,7 +75,7 @@ describe('GetComments - Domain/Service 테스트', () => {
         },
       ];
 
-      const comments = Comment.fromDbRows(rows, mockPostId);
+      const comments = Comment.fromDbRows(rows);
       expect(comments[0].authorDisplayName).toBe('작성자1');
       expect(comments[1].authorDisplayName).toBe('알 수 없는 사용자');
     });
@@ -112,7 +85,7 @@ describe('GetComments - Domain/Service 테스트', () => {
     it('정상적으로 comments 리스트를 반환한다 (user_id 미포함)', async () => {
       const rows: CommentDbRow[] = [
         {
-          comment_id: 'c1',
+          id: 'c1',
           content: '첫번째',
           created_at: '2024-03-20T10:00:00Z',
           user_id: 'u1',
@@ -122,7 +95,7 @@ describe('GetComments - Domain/Service 테스트', () => {
         },
       ];
 
-      const domainComments = Comment.fromDbRows(rows, mockPostId);
+      const domainComments = Comment.fromDbRows(rows);
       (findCommentsByPostIdRepo as jest.Mock).mockResolvedValue(domainComments);
 
       const result = await getCommentsService(mockAuthHeader, mockPostId);
