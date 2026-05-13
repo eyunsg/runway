@@ -37,4 +37,17 @@ class GetCommentsController extends StateNotifier<GetCommentsState> {
       },
     );
   }
+
+  Future<void> refreshComments(String postId) async {
+    await fetchComments(postId);
+  }
+
+  void clearComments() {
+    state = state.copyWith(
+      comments: const [],
+      isLoading: false,
+      isSuccess: false,
+      error: null,
+    );
+  }
 }
