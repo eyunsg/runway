@@ -27,8 +27,6 @@ class _GetPostDetailTempScreenState
     super.initState();
 
     _commentController.addListener(() {
-      if (_isSyncingCommentFromState) return;
-
       ref
           .read(createCommentControllerProvider.notifier)
           .updateContent(_commentController.text);
@@ -67,12 +65,10 @@ class _GetPostDetailTempScreenState
       nextState,
     ) {
       if (_commentController.text != nextState.content) {
-        _isSyncingCommentFromState = true;
         _commentController.value = TextEditingValue(
           text: nextState.content,
           selection: TextSelection.collapsed(offset: nextState.content.length),
         );
-        _isSyncingCommentFromState = false;
       }
 
       final bool hasNewError =
