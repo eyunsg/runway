@@ -100,6 +100,16 @@ import 'package:runway/features/post/repository/delete_post_repository.dart';
 import 'package:runway/features/post/types/delete_post_state.dart';
 import 'package:runway/features/post/usecase/delete_post_usecase.dart';
 
+import 'package:runway/features/post/controller/create_comment_controller.dart';
+import 'package:runway/features/post/repository/create_comment_repository.dart';
+import 'package:runway/features/post/types/create_comment_state.dart';
+import 'package:runway/features/post/usecase/create_comment_usecase.dart';
+
+import 'package:runway/features/comment/controller/delete_comment_controller.dart';
+import 'package:runway/features/comment/repository/delete_comment_repository.dart';
+import 'package:runway/features/comment/types/delete_comment_state.dart';
+import 'package:runway/features/comment/usecase/delete_comment_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -489,6 +499,26 @@ final getPostDetailControllerProvider =
       return GetPostDetailController(useCase: useCase);
     });
 
+/// ---------------- CREATE COMMENT ----------------
+
+final createCommentRepositoryProvider = Provider<CreateCommentRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return CreateCommentRepository(client: client);
+});
+
+final createCommentUsecaseProvider = Provider<CreateCommentUsecase>((ref) {
+  final repository = ref.read(createCommentRepositoryProvider);
+  return CreateCommentUsecase(repository);
+});
+
+final createCommentControllerProvider =
+    StateNotifierProvider<CreateCommentController, CreateCommentState>((ref) {
+      final usecase = ref.read(createCommentUsecaseProvider);
+      return CreateCommentController(useCase: usecase);
+    });
+
 /// ---------------- GET COMMENTS ----------------
 
 final getCommentsRepositoryProvider = Provider((ref) {
@@ -505,4 +535,23 @@ final getCommentsControllerProvider =
     StateNotifierProvider<GetCommentsController, GetCommentsState>((ref) {
       final useCase = ref.read(getCommentsUsecaseProvider);
       return GetCommentsController(useCase: useCase);
+    });
+
+/// ---------------- DELETE COMMENT ----------------
+final deleteCommentRepositoryProvider = Provider<DeleteCommentRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeleteCommentRepository(client: client);
+});
+
+final deleteCommentUsecaseProvider = Provider<DeleteCommentUsecase>((ref) {
+  final repository = ref.read(deleteCommentRepositoryProvider);
+  return DeleteCommentUsecase(repository);
+});
+
+final deleteCommentControllerProvider =
+    StateNotifierProvider<DeleteCommentController, DeleteCommentState>((ref) {
+      final usecase = ref.read(deleteCommentUsecaseProvider);
+      return DeleteCommentController(useCase: usecase);
     });
