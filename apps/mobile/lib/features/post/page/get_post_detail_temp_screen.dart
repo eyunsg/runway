@@ -5,6 +5,7 @@ import 'package:runway/core/providers.dart';
 import 'package:runway/features/comment/model/comment.dart';
 import 'package:runway/features/post/model/post.dart';
 import 'package:runway/features/post/types/create_comment_state.dart';
+import 'package:runway/features/comment/types/delete_comment_state.dart';
 
 class GetPostDetailTempScreen extends ConsumerStatefulWidget {
   const GetPostDetailTempScreen({super.key, required this.postId});
@@ -19,6 +20,7 @@ class GetPostDetailTempScreen extends ConsumerStatefulWidget {
 class _GetPostDetailTempScreenState
     extends ConsumerState<GetPostDetailTempScreen> {
   final TextEditingController _commentController = TextEditingController();
+  bool _isSyncingCommentFromState = false;
 
   @override
   void initState() {
@@ -50,11 +52,18 @@ class _GetPostDetailTempScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(getPostDetailControllerProvider);
     final createCommentState = ref.watch(createCommentControllerProvider);
+    final deleteCommentState = ref.watch(deleteCommentControllerProvider);
     final createCommentController = ref.read(
       createCommentControllerProvider.notifier,
     );
+    final deleteCommentController = ref.read(
+      deleteCommentControllerProvider.notifier,
+    );
 
-    ref.listen(createCommentControllerProvider, (previousState, nextState) {
+    ref.listen<CreateCommentState>(createCommentControllerProvider, (
+      previousState,
+      nextState,
+    ) {
       if (_commentController.text != nextState.content) {
         _commentController.value = TextEditingValue(
           text: nextState.content,
@@ -81,6 +90,10 @@ class _GetPostDetailTempScreenState
           nextState.isSuccess;
 
       if (hasNewSuccess) {
+        ref
+            .read(getCommentsControllerProvider.notifier)
+            .fetchComments(widget.postId);
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('댓글이 등록되었습니다.')));
@@ -88,6 +101,44 @@ class _GetPostDetailTempScreenState
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           createCommentController.clearSuccess();
+        });
+      }
+    });
+
+    ref.listen<DeleteCommentState>(deleteCommentControllerProvider, (
+      previousState,
+      nextState,
+    ) {
+      final bool hasNewError =
+          previousState?.error != nextState.error && nextState.error != null;
+
+      if (hasNewError) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(nextState.error!)));
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          deleteCommentController.clearError();
+        });
+      }
+
+      final bool hasNewSuccess =
+          previousState?.isSuccess != nextState.isSuccess &&
+          nextState.isSuccess;
+
+      if (hasNewSuccess) {
+        ref
+            .read(getCommentsControllerProvider.notifier)
+            .fetchComments(widget.postId);
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('댓글이 삭제되었습니다.')));
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          deleteCommentController.clearSuccess();
         });
       }
     });
@@ -116,7 +167,7 @@ class _GetPostDetailTempScreenState
         ),
         body: Column(
           children: [
-            Expanded(child: _buildBody(state)),
+            Expanded(child: _buildBody(state, deleteCommentState)),
             AnimatedPadding(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
@@ -129,7 +180,7 @@ class _GetPostDetailTempScreenState
     );
   }
 
-  Widget _buildBody(dynamic state) {
+  Widget _buildBody(dynamic state, DeleteCommentState deleteCommentState) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -174,7 +225,7 @@ class _GetPostDetailTempScreenState
       children: [
         _buildPostItem(post: post),
         const Divider(height: 1),
-        _buildCommentSection(),
+        _buildCommentSection(deleteCommentState),
       ],
     );
   }
@@ -276,7 +327,7 @@ class _GetPostDetailTempScreenState
     );
   }
 
-  Widget _buildCommentSection() {
+  Widget _buildCommentSection(DeleteCommentState deleteCommentState) {
     final commentState = ref.watch(getCommentsControllerProvider);
 
     if (commentState.isLoading) {
@@ -330,12 +381,18 @@ class _GetPostDetailTempScreenState
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final comment = comments[index];
-        return _buildCommentItem(comment: comment);
+        return _buildCommentItem(
+          comment: comment,
+          isDeleteSubmitting: deleteCommentState.isSubmitting,
+        );
       },
     );
   }
 
-  Widget _buildCommentItem({required Comment comment}) {
+  Widget _buildCommentItem({
+    required Comment comment,
+    required bool isDeleteSubmitting,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
@@ -361,9 +418,11 @@ class _GetPostDetailTempScreenState
                 ),
               ),
               IconButton(
-                onPressed: () {
-                  _showDeleteCommentDialog();
-                },
+                onPressed: isDeleteSubmitting
+                    ? null
+                    : () {
+                        _showDeleteCommentDialog(comment.commentId);
+                      },
                 icon: const Icon(Icons.more_horiz),
               ),
             ],
@@ -378,22 +437,22 @@ class _GetPostDetailTempScreenState
     );
   }
 
-  Future<void> _showDeleteCommentDialog() async {
-    await showDialog(
+  Future<void> _showDeleteCommentDialog(String commentId) async {
+    final bool? shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('댓글을 삭제할까요?', textAlign: TextAlign.center),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop(true);
               },
               child: const Text('삭제'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop(false);
               },
               child: const Text('취소'),
             ),
@@ -401,6 +460,13 @@ class _GetPostDetailTempScreenState
         );
       },
     );
+
+    if (shouldDelete != true) return;
+    if (!mounted) return;
+
+    await ref
+        .read(deleteCommentControllerProvider.notifier)
+        .deleteComment(commentId: commentId);
   }
 
   Widget _buildBottomInputArea(CreateCommentState createCommentState) {
