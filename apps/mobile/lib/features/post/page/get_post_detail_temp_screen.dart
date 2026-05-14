@@ -20,7 +20,6 @@ class GetPostDetailTempScreen extends ConsumerStatefulWidget {
 class _GetPostDetailTempScreenState
     extends ConsumerState<GetPostDetailTempScreen> {
   final TextEditingController _commentController = TextEditingController();
-  bool _isSyncingCommentFromState = false;
 
   @override
   void initState() {
