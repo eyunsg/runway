@@ -23,6 +23,15 @@ import {
 } from '../shared/dto/posts/GetPostsResponse.dto.ts';
 import { PostDetailDto } from '../shared/dto/posts/GetPostDetailResponse.dto.ts';
 
+class HttpError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 // 리포지토리 모킹
 jest.mock('../supabase/functions/posts/postsRepository.ts', () => ({
   createPortfolioSnapshotRepo: jest.fn(),
@@ -352,7 +361,6 @@ describe('PostsService 테스트', () => {
 
   describe('게시글 삭제 (API-COMM-005)', () => {
     it('본인 게시글 삭제 시 성공적으로 완료된다', async () => {
-      // Repository가 성공(true)을 반환하도록 설정
       (deletePostRepo as jest.Mock).mockResolvedValue(true);
 
       await expect(deletePostService(mockAuthHeader, mockPostId)).resolves.not.toThrow();
@@ -360,12 +368,31 @@ describe('PostsService 테스트', () => {
       expect(deletePostRepo).toHaveBeenCalledWith(mockAuthHeader, mockPostId);
     });
 
-    it('작성자가 아니거나 게시글이 이미 삭제된 경우 NOT_FOUND 에러를 던진다', async () => {
-      // Repository가 실패(false)를 반환하도록 설정
-      (deletePostRepo as jest.Mock).mockResolvedValue(false);
+    it('게시글이 존재하지 않으면 NOT_FOUND 에러를 던진다', async () => {
+      (deletePostRepo as jest.Mock).mockRejectedValue(
+        new HttpError(404, 'NOT_FOUND: 게시글을 찾을 수 없습니다.')
+      );
 
       await expect(deletePostService(mockAuthHeader, 'invalid-id')).rejects.toThrow(
-        'NOT_FOUND: 게시글을 찾을 수 없거나 삭제 권한이 없습니다.'
+        'NOT_FOUND: 게시글을 찾을 수 없습니다.'
+      );
+    });
+
+    it('작성자가 아니면 FORBIDDEN 에러를 던진다', async () => {
+      (deletePostRepo as jest.Mock).mockRejectedValue(
+        new HttpError(403, 'FORBIDDEN: 삭제 권한이 없습니다.')
+      );
+
+      await expect(deletePostService(mockAuthHeader, 'another-user-post')).rejects.toThrow(
+        'FORBIDDEN: 삭제 권한이 없습니다.'
+      );
+    });
+
+    it('이미 삭제된 게시글이면 POST_ALREADY_DELETED 에러를 던진다', async () => {
+      (deletePostRepo as jest.Mock).mockRejectedValue(new HttpError(400, 'POST_ALREADY_DELETED'));
+
+      await expect(deletePostService(mockAuthHeader, 'deleted-post')).rejects.toThrow(
+        'POST_ALREADY_DELETED'
       );
     });
 
