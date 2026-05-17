@@ -5,6 +5,7 @@ import {
   getPostDetailService,
   updatePostService,
   deletePostService,
+  getRecentPostsService,
 } from '../supabase/functions/posts/postsService.ts';
 import {
   createPortfolioSnapshotRepo,
@@ -14,6 +15,7 @@ import {
   findPostByIdRepo,
   updatePostRepo,
   deletePostRepo,
+  findRecentPostsRepo,
 } from '../supabase/functions/posts/postsRepository.ts';
 import { PostPostsRequestDto } from '../shared/dto/posts/PostPostsRequest.dto.ts';
 import { UpdatePostsRequestDto } from '../shared/dto/posts/UpdatePostsRequest.dto.ts';
@@ -22,6 +24,10 @@ import {
   GetMyPostsResponseDto,
 } from '../shared/dto/posts/GetPostsResponse.dto.ts';
 import { PostDetailDto } from '../shared/dto/posts/GetPostDetailResponse.dto.ts';
+import {
+  GetRecentPostsResponseDto,
+  RecentPostDto,
+} from '../shared/dto/posts/GetRecentPostsResponse.dto.ts';
 
 // 리포지토리 모킹
 jest.mock('../supabase/functions/posts/postsRepository.ts', () => ({
@@ -32,6 +38,7 @@ jest.mock('../supabase/functions/posts/postsRepository.ts', () => ({
   findPostByIdRepo: jest.fn(),
   updatePostRepo: jest.fn(),
   deletePostRepo: jest.fn(),
+  findRecentPostsRepo: jest.fn(),
 }));
 
 describe('PostsService 테스트', () => {
@@ -477,6 +484,90 @@ describe('PostsService 테스트', () => {
       (findAllMyPostsRepo as jest.Mock).mockResolvedValue(incompleteData);
 
       const result = await getMyPostsService(mockAuthHeader, mockUserId);
+      const post = result.posts[0];
+
+      expect(post.authorDisplayName).toBe('알 수 없는 사용자');
+      expect(post.portfolioName).toBeNull();
+      expect(post.assetCount).toBe(0);
+      expect(post.investmentPeriodMonths).toBe(0);
+    });
+  });
+
+  /// ---------------- API-COMM-010: 최근 게시물 3개 조회 테스트 ----------------
+  describe('getRecentPostsService - 최근 게시물 3개 조회 (API-COMM-010)', () => {
+    const mockRecentRawData = [
+      {
+        id: 'recent-post-1',
+        user_id: mockUserId,
+        portfolio_snapshot_id: 'snapshot-1',
+        content: '최근 게시글 내용',
+        comments_count: 2,
+        created_at: '2026-05-17T21:45:00Z',
+        profiles: { display_name: '최근작성자' },
+        portfolio_snapshots: [
+          {
+            id: 'snapshot-1',
+            portfolios: {
+              name: '최근 포트폴리오',
+              simulation_input: {
+                goal: { investment_period_months: 12 },
+                assets: [{}, {}], // 자산 2개
+              },
+            },
+          },
+        ],
+      },
+    ];
+
+    it('성공적으로 최근 게시글 목록을 조회하여 GetRecentPostsResponseDto 형식으로 변환한다', async () => {
+      (findRecentPostsRepo as jest.Mock).mockResolvedValue(mockRecentRawData);
+
+      const result = await getRecentPostsService(mockAuthHeader);
+
+      // 1. DTO 인스턴스 검증
+      expect(result).toBeInstanceOf(GetRecentPostsResponseDto);
+      expect(result.posts).toHaveLength(1);
+
+      // 2. 개별 포스트 데이터 직렬화 및 정합성 검증
+      const post = result.posts[0];
+      expect(post).toBeInstanceOf(RecentPostDto);
+      expect(post.postId).toBe('recent-post-1');
+      expect(post.authorDisplayName).toBe('최근작성자');
+      expect(post.portfolioName).toBe('최근 포트폴리오');
+      expect(post.assetCount).toBe(2);
+      expect(post.investmentPeriodMonths).toBe(12);
+      expect(post.createdAt).toBe('2026-05-17T21:45:00Z');
+      expect(post.commentCount).toBe(2);
+
+      // 3. 리포지토리 최근 3개 제한 인수 파라미터 호출 여부 검사
+      expect(findRecentPostsRepo).toHaveBeenCalledWith(mockAuthHeader, 3);
+    });
+
+    it('최근 게시글 조회 결과가 null인 경우 DATABASE_ERROR 예외를 던진다', async () => {
+      (findRecentPostsRepo as jest.Mock).mockResolvedValue(null);
+
+      await expect(getRecentPostsService(mockAuthHeader)).rejects.toThrow(
+        'DATABASE_ERROR: 최근 게시글 목록을 불러오지 못했습니다.'
+      );
+    });
+
+    it('조인 테이블 및 JSONB 속성이 소실된 불완전한 DB 데이터도 크래시 없이 안전하게 복구하여 바인딩한다', async () => {
+      const incompleteRawData = [
+        {
+          id: 'recent-post-broken',
+          user_id: 'user-broken',
+          portfolio_snapshot_id: null,
+          content: '스냅샷 유실 최근글',
+          comments_count: 0,
+          created_at: '2026-05-17T21:40:00Z',
+          profiles: null,
+          portfolio_snapshots: null,
+        },
+      ];
+
+      (findRecentPostsRepo as jest.Mock).mockResolvedValue(incompleteRawData);
+
+      const result = await getRecentPostsService(mockAuthHeader);
       const post = result.posts[0];
 
       expect(post.authorDisplayName).toBe('알 수 없는 사용자');

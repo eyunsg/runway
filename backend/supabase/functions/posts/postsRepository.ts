@@ -220,3 +220,38 @@ export async function savePostRepo(post: Post): Promise<string | null> {
 
   return data.id;
 }
+
+//최근에 등록된 게시물 3개를 안전하게 역정렬해 조회
+export async function findRecentPostsRepo(authHeader: string, limitCount = 3) {
+  const client = createAuthClient(authHeader);
+
+  const { data, error } = await client
+    .from('posts')
+    .select(
+      `
+      id,
+      user_id,
+      portfolio_snapshot_id,
+      content,
+      comments_count,
+      created_at,
+      profiles:user_id (display_name),
+      portfolio_snapshots:portfolio_snapshot_id (
+        id,
+        portfolios:portfolio_id (
+          name,
+          simulation_input
+        )
+      )
+    `
+    )
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(limitCount);
+
+  if (error) {
+    console.error(`[PostsRepo Error - Find Recent]: ${error.message}`);
+    throw new Error(`DATABASE_ERROR: 최근 게시글 정보를 불러오는 중 오류가 발생했습니다.`);
+  }
+  return data;
+}

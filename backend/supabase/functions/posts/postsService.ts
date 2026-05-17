@@ -9,6 +9,10 @@ import {
 } from '../../../shared/dto/posts/GetPostsResponse.dto.ts';
 import { PostDetailDto } from '../../../shared/dto/posts/GetPostDetailResponse.dto.ts';
 import {
+  GetRecentPostsResponseDto,
+  RecentPostDto,
+} from '../../../shared/dto/posts/GetRecentPostsResponse.dto.ts';
+import {
   findAllPostsRepo,
   findAllMyPostsRepo,
   findPostByIdRepo,
@@ -16,6 +20,7 @@ import {
   deletePostRepo,
   savePostRepo,
   createPortfolioSnapshotRepo,
+  findRecentPostsRepo,
 } from './postsRepository.ts';
 
 type SingleOrArray<T> = T | T[];
@@ -207,4 +212,44 @@ export async function getMyPostsService(
   });
 
   return new GetMyPostsResponseDto(summaries);
+}
+
+export async function getRecentPostsService(
+  authHeader: string
+): Promise<GetRecentPostsResponseDto> {
+  // 1. 리포지토리에서 최근 등록된 게시글 최대 3건 수집
+  const rawData = await findRecentPostsRepo(authHeader, 3);
+
+  if (!rawData) {
+    throw new Error('DATABASE_ERROR: 최근 게시글 목록을 불러오지 못했습니다.');
+  }
+
+  // 2. DB 원시 데이터를 RecentPostDto 클래스 인스턴스로 바인딩
+  const posts = (rawData as unknown as RawPostRecord[]).map((item) => {
+    const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+    const snapshot = Array.isArray(item.portfolio_snapshots)
+      ? item.portfolio_snapshots[0]
+      : item.portfolio_snapshots;
+    const portfolio =
+      snapshot &&
+      (Array.isArray(snapshot.portfolios) ? snapshot.portfolios[0] : snapshot.portfolios);
+
+    const simInput = portfolio?.simulation_input;
+    const assetCount = Array.isArray(simInput?.assets) ? simInput.assets.length : 0;
+    const investmentPeriodMonths = simInput?.goal?.investment_period_months || 0;
+
+    // RecentPostDto 클래스 생성자를 통해 데이터 정합성을 유지하며 가공
+    return new RecentPostDto(
+      item.id,
+      profile?.display_name || '알 수 없는 사용자',
+      portfolio?.name || null,
+      assetCount,
+      investmentPeriodMonths,
+      item.created_at,
+      item.comments_count || 0
+    );
+  });
+
+  // 3. 최종 GetRecentPostsResponseDto 인스턴스를 조립해 반환
+  return new GetRecentPostsResponseDto(posts);
 }
