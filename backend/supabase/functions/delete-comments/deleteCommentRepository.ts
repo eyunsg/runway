@@ -6,7 +6,10 @@ function createAuthClient(authHeader: string) {
   });
 }
 
-export async function softDeleteCommentRepo(authHeader: string, commentId: string): Promise<void> {
+export async function softDeleteCommentRepo(
+  authHeader: string,
+  commentId: string
+): Promise<boolean> {
   const client = createAuthClient(authHeader);
 
   // 1. 댓글 조회
@@ -50,4 +53,6 @@ export async function softDeleteCommentRepo(authHeader: string, commentId: strin
   if (deleteError) {
     throw new Error(`DATABASE_ERROR: ${deleteError.message}`);
   }
+
+  return true;
 }
