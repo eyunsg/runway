@@ -95,20 +95,6 @@ Deno.serve(async (req: Request) => {
       return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
 
-    if (isPostDetailPath) {
-      const postId = lastPart;
-
-      if (req.method === 'GET') {
-        return await handleGetPostDetail(req, postId);
-      }
-
-      if (req.method === 'POST') {
-        return await handlePatchPost(req, postId);
-      }
-
-      return errorResponse('허용되지 않은 메서드입니다.', 405);
-    }
-
     // 2. 라우팅 로직
     if (isPostsPath) {
       // API-COMM-001: 게시글 작성
