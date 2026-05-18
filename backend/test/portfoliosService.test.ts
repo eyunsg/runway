@@ -41,6 +41,7 @@ jest.mock('../supabase/functions/portfolios/portfoliosRepository.ts', () => ({
 
 describe('PortfolioService - 포트폴리오 생성 테스트', () => {
   const mockUserId = 'user-123';
+  const mockAuthHeader = 'Bearer mock-token';
 
   // 성공 케이스를 위한 유효한 데이터 세트
   const validRawData = {
@@ -89,12 +90,13 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       (savePortfolioRepo as jest.Mock).mockResolvedValue('new-portfolio-id');
 
       const dto = new AddPortfolioRequestDto(validRawData);
-      const result = await addPortfolioService(mockUserId, dto);
+      const result = await addPortfolioService(mockAuthHeader, mockUserId, dto);
 
       expect(result).toBe('new-portfolio-id');
 
       // 서비스가 리포지토리에 'Portfolio' 도메인 객체를 전달하는지 확인
       expect(savePortfolioRepo).toHaveBeenCalledWith(
+        mockAuthHeader,
         expect.objectContaining({
           userId: mockUserId,
           name: validRawData.name,
@@ -108,7 +110,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
 
       const dto = new AddPortfolioRequestDto(validRawData);
 
-      await expect(addPortfolioService(mockUserId, dto)).rejects.toThrow(
+      await expect(addPortfolioService(mockAuthHeader, mockUserId, dto)).rejects.toThrow(
         'DATABASE_ERROR: 포트폴리오 저장 실패'
       );
     });
@@ -119,7 +121,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       // Portfolio 도메인 객체 생성 시 validate()가 실행되어 에러가 발생함
       await expect(async () => {
         const dto = new AddPortfolioRequestDto(invalidData);
-        await addPortfolioService(mockUserId, dto);
+        await addPortfolioService(mockAuthHeader, mockUserId, dto);
       }).rejects.toThrow('VALIDATION_ERROR');
 
       expect(savePortfolioRepo).not.toHaveBeenCalled();
@@ -134,7 +136,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
 
       await expect(async () => {
         const dto = new AddPortfolioRequestDto(invalidData);
-        await addPortfolioService(mockUserId, dto);
+        await addPortfolioService(mockAuthHeader, mockUserId, dto);
       }).rejects.toThrow('VALIDATION_ERROR');
 
       expect(savePortfolioRepo).not.toHaveBeenCalled();
@@ -156,7 +158,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
 
       await expect(async () => {
         const dto = new AddPortfolioRequestDto(invalidData);
-        await addPortfolioService(mockUserId, dto);
+        await addPortfolioService(mockAuthHeader, mockUserId, dto);
       }).rejects.toThrow('VALIDATION_ERROR');
 
       expect(savePortfolioRepo).not.toHaveBeenCalled();
@@ -165,7 +167,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
     it('유저 ID가 누락된 경우 에러를 던진다', async () => {
       const dto = new AddPortfolioRequestDto(validRawData);
       // @ts-ignore: 테스트를 위해 유도된 타입 에러
-      await expect(addPortfolioService(undefined, dto)).rejects.toThrow();
+      await expect(addPortfolioService(mockAuthHeader, undefined, dto)).rejects.toThrow();
     });
   });
 
@@ -197,7 +199,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       (getPortfoliosRepo as jest.Mock).mockResolvedValue(mockDbData);
 
       // 2. 서비스 호출
-      const result = await getPortfoliosService(mockUserId);
+      const result = await getPortfoliosService(mockAuthHeader, mockUserId);
 
       // 3. 검증
       expect(result).toBeInstanceOf(GetPortfoliosResponseDto);
@@ -211,13 +213,13 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       expect(first.investmentPeriodMonths).toBe(60);
       expect(first.updatedAt).toBe('2023-10-27T10:00:00Z');
 
-      expect(getPortfoliosRepo).toHaveBeenCalledWith(mockUserId);
+      expect(getPortfoliosRepo).toHaveBeenCalledWith(mockAuthHeader, mockUserId);
     });
 
     it('포트폴리오가 없을 경우 빈 목록을 포함한 DTO를 반환한다', async () => {
       (getPortfoliosRepo as jest.Mock).mockResolvedValue([]);
 
-      const result = await getPortfoliosService(mockUserId);
+      const result = await getPortfoliosService(mockAuthHeader, mockUserId);
 
       expect(result.portfolios).toEqual([]);
       expect(result.portfolios).toHaveLength(0);
@@ -226,7 +228,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
     it('리포지토리에서 null이 반환될 경우 DATABASE_ERROR를 던진다', async () => {
       (getPortfoliosRepo as jest.Mock).mockResolvedValue(null);
 
-      await expect(getPortfoliosService(mockUserId)).rejects.toThrow(
+      await expect(getPortfoliosService(mockAuthHeader, mockUserId)).rejects.toThrow(
         'DATABASE_ERROR: 포트폴리오 목록 조회 실패'
       );
     });
@@ -242,7 +244,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       ];
       (getPortfoliosRepo as jest.Mock).mockResolvedValue(incompleteData);
 
-      const result = await getPortfoliosService(mockUserId);
+      const result = await getPortfoliosService(mockAuthHeader, mockUserId);
 
       expect(result.portfolios[0].assetCount).toBe(0);
       expect(result.portfolios[0].investmentPeriodMonths).toBe(0);
@@ -252,7 +254,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       // 레포지토리에서 deleted_at IS NULL 필터링 결과로 빈 배열이 반환된 상황 모킹
       (getPortfoliosRepo as jest.Mock).mockResolvedValue([]);
 
-      const result = await getPortfoliosService(mockUserId);
+      const result = await getPortfoliosService(mockAuthHeader, mockUserId);
       expect(result.portfolios).toHaveLength(0);
     });
 
@@ -309,7 +311,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       it('존재하는 ID로 조회 시 모든 필드가 camelCase로 매핑된 DTO를 반환한다', async () => {
         (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(mockDetailDbData);
 
-        const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+        const result = await getPortfolioDetailService(mockAuthHeader, mockUserId, mockPortfolioId);
 
         // 1. DTO 인스턴스 확인
         expect(result).toBeInstanceOf(GetPortfolioDetailResponseDto);
@@ -326,14 +328,18 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
           result.simulationResult.goalAnalysis.monthlyDividendGoal.expectedMonthsToTarget
         ).toBe(96);
 
-        expect(getPortfolioDetailRepo).toHaveBeenCalledWith(mockUserId, mockPortfolioId);
+        expect(getPortfolioDetailRepo).toHaveBeenCalledWith(
+          mockAuthHeader,
+          mockUserId,
+          mockPortfolioId
+        );
       });
 
       it('존재하지 않거나 권한이 없는 ID 조회 시 NOT_FOUND 에러를 던진다', async () => {
         (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(null);
-        await expect(getPortfolioDetailService(mockUserId, 'invalid-id')).rejects.toThrow(
-          'NOT_FOUND'
-        );
+        await expect(
+          getPortfolioDetailService(mockAuthHeader, mockUserId, 'invalid-id')
+        ).rejects.toThrow('NOT_FOUND');
       });
 
       it('DB 데이터의 분석 결과에 확률값이 없을 경우 기본값 0을 적용한다', async () => {
@@ -349,7 +355,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
         };
         (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(dataWithoutProb);
 
-        const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+        const result = await getPortfolioDetailService(mockAuthHeader, mockUserId, mockPortfolioId);
         expect(result.simulationResult.goalAnalysis.portfolioValueGoal.achievementProbability).toBe(
           0
         );
@@ -362,7 +368,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
         };
         (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(noAssetData);
 
-        const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+        const result = await getPortfolioDetailService(mockAuthHeader, mockUserId, mockPortfolioId);
         expect(result.simulationInput.assets).toHaveLength(0);
       });
 
@@ -379,7 +385,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
         };
         (getPortfolioDetailRepo as jest.Mock).mockResolvedValue(nullMonthsData);
 
-        const result = await getPortfolioDetailService(mockUserId, mockPortfolioId);
+        const result = await getPortfolioDetailService(mockAuthHeader, mockUserId, mockPortfolioId);
         expect(
           result.simulationResult.goalAnalysis.portfolioValueGoal.expectedMonthsToTarget
         ).toBeNull();
@@ -436,28 +442,28 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       it('portfolioSnapshotId 기반 조회 시 GetPortfolioDetailResponseDto를 반환한다', async () => {
         (getPortfolioSnapshotDetailRepo as jest.Mock).mockResolvedValue(mockSnapshotDbData);
 
-        const result = await getPortfolioSnapshotDetailService(mockSnapshotId);
+        const result = await getPortfolioSnapshotDetailService(mockAuthHeader, mockSnapshotId);
 
         expect(result).toBeInstanceOf(GetPortfolioDetailResponseDto);
         expect(result.name).toBe('스냅샷 포트폴리오');
         expect(result.simulationInput.goal.investmentPeriodMonths).toBe(24);
         expect(result.simulationResult.percentiles.portfolioValue.p50).toBe(2500000);
 
-        expect(getPortfolioSnapshotDetailRepo).toHaveBeenCalledWith(mockSnapshotId);
+        expect(getPortfolioSnapshotDetailRepo).toHaveBeenCalledWith(mockAuthHeader, mockSnapshotId);
       });
 
       it('존재하지 않는 snapshot 조회 시 NOT_FOUND 에러를 던진다', async () => {
         (getPortfolioSnapshotDetailRepo as jest.Mock).mockResolvedValue(null);
 
-        await expect(getPortfolioSnapshotDetailService('invalid-snap')).rejects.toThrow(
-          'NOT_FOUND'
-        );
+        await expect(
+          getPortfolioSnapshotDetailService(mockAuthHeader, 'invalid-snap')
+        ).rejects.toThrow('NOT_FOUND');
       });
 
       it('Response 구조가 GetPortfolioDetailResponseDto와 동일하다', async () => {
         (getPortfolioSnapshotDetailRepo as jest.Mock).mockResolvedValue(mockSnapshotDbData);
 
-        const result = await getPortfolioSnapshotDetailService(mockSnapshotId);
+        const result = await getPortfolioSnapshotDetailService(mockAuthHeader, mockSnapshotId);
 
         const expectedDto = new GetPortfolioDetailResponseDto(
           '',
@@ -512,7 +518,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue(mockDbData);
 
       // 2. 서비스 함수 호출
-      const result = await getRecentPortfoliosService(mockUserId);
+      const result = await getRecentPortfoliosService(mockAuthHeader, mockUserId);
 
       // 3. 응답 구조 및 값 엄격하게 검증
       expect(result).toBeInstanceOf(GetRecentPortfoliosResponseDto);
@@ -527,13 +533,13 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       expect(recent.updatedAt).toBe('2026-05-17T21:45:00Z');
 
       // 리포지토리 최신 1개 조회 제약 준수 확인
-      expect(getRecentPortfoliosRepo).toHaveBeenCalledWith(mockUserId, 1);
+      expect(getRecentPortfoliosRepo).toHaveBeenCalledWith(mockAuthHeader, mockUserId, 1);
     });
 
     it('최근 포트폴리오 데이터가 전혀 존재하지 않으면 빈 portfolios 리스트가 포함된 DTO를 정상 반환한다', async () => {
       (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue([]);
 
-      const result = await getRecentPortfoliosService(mockUserId);
+      const result = await getRecentPortfoliosService(mockAuthHeader, mockUserId);
 
       expect(result).toBeInstanceOf(GetRecentPortfoliosResponseDto);
       expect(result.portfolios).toEqual([]);
@@ -543,7 +549,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
     it('리포지토리 조회 중 데이터베이스 에러 발생 시(null 리턴) DATABASE_ERROR를 발생시킨다', async () => {
       (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue(null);
 
-      await expect(getRecentPortfoliosService(mockUserId)).rejects.toThrow(
+      await expect(getRecentPortfoliosService(mockAuthHeader, mockUserId)).rejects.toThrow(
         'DATABASE_ERROR: 최근 포트폴리오 조회 실패'
       );
     });
@@ -559,7 +565,7 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
       ];
       (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue(incompleteDbData);
 
-      const result = await getRecentPortfoliosService(mockUserId);
+      const result = await getRecentPortfoliosService(mockAuthHeader, mockUserId);
 
       expect(result.portfolios[0].assetCount).toBe(0);
       expect(result.portfolios[0].investmentPeriodMonths).toBe(0);

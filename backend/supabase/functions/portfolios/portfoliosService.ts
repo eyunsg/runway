@@ -147,6 +147,7 @@ function mapRawDetailToDto(raw: {
 }
 
 export async function addPortfolioService(
+  authHeader: string,
   userId: string,
   dto: AddPortfolioRequestDto
 ): Promise<string> {
@@ -155,7 +156,7 @@ export async function addPortfolioService(
   const portfolio = new Portfolio(userId, dto.name, dto.simulationInput, dto.simulationResult);
 
   // 2. 도메인 객체를 리포지토리에 전달하여 저장 위임
-  const portfolioId = await savePortfolioRepo(portfolio);
+  const portfolioId = await savePortfolioRepo(authHeader, portfolio);
 
   // 3. 저장 실패 시 예외 발생 (Entry Point에서 500 에러로 처리됨)
   if (!portfolioId) {
@@ -166,6 +167,7 @@ export async function addPortfolioService(
 }
 
 export async function updatePortfolioService(
+  authHeader: string,
   userId: string,
   portfolioId: string,
   dto: AddPortfolioRequestDto
@@ -174,7 +176,7 @@ export async function updatePortfolioService(
   const portfolio = new Portfolio(userId, dto.name, dto.simulationInput, dto.simulationResult);
 
   // 2. 리포지토리를 호출하여 업데이트 수행
-  const isUpdated = await updatePortfolioRepo(portfolio, portfolioId);
+  const isUpdated = await updatePortfolioRepo(authHeader, portfolio, portfolioId);
 
   // 3. 실패 시 예외 발생 (해당 ID가 없거나 본인 소유가 아닐 경우)
   if (!isUpdated) {
@@ -182,9 +184,13 @@ export async function updatePortfolioService(
   }
 }
 
-export async function deletePortfolioService(userId: string, portfolioId: string): Promise<void> {
+export async function deletePortfolioService(
+  authHeader: string,
+  userId: string,
+  portfolioId: string
+): Promise<void> {
   // 1. 리포지토리 호출하여 삭제 수행
-  const isDeleted = await deletePortfolioRepo(userId, portfolioId);
+  const isDeleted = await deletePortfolioRepo(authHeader, userId, portfolioId);
 
   // 2. 실패 시 예외 발생 (데이터가 없거나 본인 소유가 아닐 경우)
   // 에러 응답 명세의 "리소스 없음" 정책에 따라 NOT_FOUND 키워드 사용
@@ -193,9 +199,12 @@ export async function deletePortfolioService(userId: string, portfolioId: string
   }
 }
 
-export async function getPortfoliosService(userId: string): Promise<GetPortfoliosResponseDto> {
+export async function getPortfoliosService(
+  authHeader: string,
+  userId: string
+): Promise<GetPortfoliosResponseDto> {
   // 1. 리포지토리에서 해당 사용자의 데이터 조회 (배열 형태)
-  const rawData = await getPortfoliosRepo(userId);
+  const rawData = await getPortfoliosRepo(authHeader, userId);
 
   if (!rawData) {
     throw new Error('DATABASE_ERROR: 포트폴리오 목록 조회 실패');
@@ -224,10 +233,11 @@ export async function getPortfoliosService(userId: string): Promise<GetPortfolio
 }
 
 export async function getPortfolioDetailService(
+  authHeader: string,
   userId: string,
   portfolioId: string
 ): Promise<GetPortfolioDetailResponseDto> {
-  const rawData = await getPortfolioDetailRepo(userId, portfolioId);
+  const rawData = await getPortfolioDetailRepo(authHeader, userId, portfolioId);
 
   // 데이터가 없거나 권한이 없는 경우
   if (!rawData) {
@@ -243,9 +253,10 @@ export async function getPortfolioDetailService(
 }
 
 export async function getPortfolioSnapshotDetailService(
+  authHeader: string,
   portfolioSnapshotId: string
 ): Promise<GetPortfolioDetailResponseDto> {
-  const rawData = await getPortfolioSnapshotDetailRepo(portfolioSnapshotId);
+  const rawData = await getPortfolioSnapshotDetailRepo(authHeader, portfolioSnapshotId);
 
   if (!rawData) {
     throw new Error('NOT_FOUND: 요청하신 포트폴리오 스냅샷을 찾을 수 없습니다.');
@@ -262,10 +273,11 @@ export async function getPortfolioSnapshotDetailService(
 }
 
 export async function getRecentPortfoliosService(
+  authHeader: string,
   userId: string
 ): Promise<GetRecentPortfoliosResponseDto> {
   // 1. 리포지토리에서 최신 업데이트 포트폴리오를 최대 1개 조회
-  const rawData = await getRecentPortfoliosRepo(userId, 1);
+  const rawData = await getRecentPortfoliosRepo(authHeader, userId, 1);
 
   if (!rawData) {
     throw new Error('DATABASE_ERROR: 최근 포트폴리오 조회 실패');
