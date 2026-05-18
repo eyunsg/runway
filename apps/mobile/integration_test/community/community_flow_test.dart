@@ -308,6 +308,15 @@ void main() {
 
       expect(deleteRes.status, 204);
 
+      final post = await adminClient
+          .from('posts')
+          .select()
+          .eq('id', postId)
+          .single();
+
+      print(post);
+      print('login user id = ${user.userId}');
+
       final deletedPost = await adminClient
           .from('posts')
           .select('id, deleted_at')
