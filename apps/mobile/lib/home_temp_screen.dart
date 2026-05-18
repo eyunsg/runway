@@ -28,7 +28,7 @@ class _HomeTempScreenState extends ConsumerState<HomeTempScreen> {
           .read(getRecentPortfolioControllerProvider.notifier)
           .fetchRecentPortfolio();
 
-      ref.read(getPostControllerProvider.notifier).fetchPost();
+      ref.read(getRecentPostControllerProvider.notifier).fetchRecentPost();
     });
   }
 
@@ -44,7 +44,7 @@ class _HomeTempScreenState extends ConsumerState<HomeTempScreen> {
   @override
   Widget build(BuildContext context) {
     final portfolioState = ref.watch(getRecentPortfolioControllerProvider);
-    final postState = ref.watch(getPostControllerProvider);
+    final postState = ref.watch(getRecentPostControllerProvider);
 
     final Portfolio? portfolioItem = portfolioState.portfolio;
 
