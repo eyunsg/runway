@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:runway/features/comment/dto/comment_response_dto.dart';
 import 'package:runway/features/post/dto/create_comment_request_dto.dart';
@@ -20,13 +19,11 @@ void main() {
   const password = '123456';
 
   setUpAll(() async {
-    await dotenv.load(fileName: '.env');
-
     client = await initTestSupabase();
 
     adminClient = SupabaseClient(
-      dotenv.env['SUPABASE_URL']!,
-      dotenv.env['SUPABASE_SERVICE_ROLE_KEY']!,
+      const String.fromEnvironment('SUPABASE_URL'),
+      const String.fromEnvironment('SUPABASE_SERVICE_ROLE_KEY'),
     );
   });
 

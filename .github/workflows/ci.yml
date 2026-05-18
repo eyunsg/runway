@@ -25,11 +25,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++6
 
-      - name: Create env file
-        run: |
-          mkdir -p apps/mobile/assets/env
-          cp apps/mobile/.env.example apps/mobile/assets/env/.env
-
       - name: Install dependencies
         run: |
           cd apps/mobile
