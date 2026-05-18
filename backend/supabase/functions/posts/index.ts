@@ -5,6 +5,7 @@ import {
   handleGetPostDetail,
   handlePatchPost,
   handleDeletePost,
+  handleGetRecentPosts,
   UnauthorizedError,
   ValidationError,
 } from './postsController.ts';
@@ -52,12 +53,26 @@ Deno.serve(async (req: Request) => {
 
     const isMyPostsPath = lastPart === 'me' && secondLastPart === 'posts';
     const isPostsPath = pathParts.length === 1 && lastPart === 'posts';
+    // 최근 게시글 조회 경로 식별 (/posts/recent)
+    const isPostRecentPath = lastPart === 'recent' && secondLastPart === 'posts';
+    // 게시글 상세 조회 경로 식별 (recent 및 me 예외 조건을 등록하여 라우팅 충돌 원천 방어)
     const isPostDetailPath =
-      pathParts.length === 2 && secondLastPart === 'posts' && lastPart !== 'me';
+      pathParts.length === 2 &&
+      secondLastPart === 'posts' &&
+      lastPart !== 'me' &&
+      lastPart !== 'recent';
 
     if (isMyPostsPath) {
       if (req.method === 'GET') {
         return await handleGetMyPosts(req);
+      }
+      return errorResponse('허용되지 않은 메서드입니다.', 405);
+    }
+
+    // 최근 게시글 조회 라우팅 분기 (/posts/recent)
+    if (isPostRecentPath) {
+      if (req.method === 'GET') {
+        return await handleGetRecentPosts(req);
       }
       return errorResponse('허용되지 않은 메서드입니다.', 405);
     }
@@ -75,20 +90,6 @@ Deno.serve(async (req: Request) => {
 
       if (req.method === 'DELETE') {
         return await handleDeletePost(req, postId);
-      }
-
-      return errorResponse('허용되지 않은 메서드입니다.', 405);
-    }
-
-    if (isPostDetailPath) {
-      const postId = lastPart;
-
-      if (req.method === 'GET') {
-        return await handleGetPostDetail(req, postId);
-      }
-
-      if (req.method === 'POST') {
-        return await handlePatchPost(req, postId);
       }
 
       return errorResponse('허용되지 않은 메서드입니다.', 405);

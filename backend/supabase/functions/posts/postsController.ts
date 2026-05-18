@@ -6,6 +6,7 @@ import {
   getPostDetailService,
   updatePostService,
   deletePostService,
+  getRecentPostsService,
 } from './postsService.ts';
 import { PostPostsRequestDto } from '../../../shared/dto/posts/PostPostsRequest.dto.ts';
 import { UpdatePostsRequestDto } from '../../../shared/dto/posts/UpdatePostsRequest.dto.ts';
@@ -138,6 +139,22 @@ export async function handleGetMyPosts(req: Request) {
   const responseDto = await getMyPostsService(authHeader, user.id);
 
   // 3. 성공 응답 반환
+  return new Response(JSON.stringify({ data: responseDto }), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+export async function handleGetRecentPosts(req: Request) {
+  const authHeader = req.headers.get('authorization') ?? '';
+
+  // 1. 최근 게시글 비즈니스 서비스 레이어 호출
+  const responseDto = await getRecentPostsService(authHeader);
+
+  // 2. 성공 응답 반환 (커뮤니티 전역 표준 래핑 방식인 { data: responseDto } 준수)
   return new Response(JSON.stringify({ data: responseDto }), {
     status: 200,
     headers: {
