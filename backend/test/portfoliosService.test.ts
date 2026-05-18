@@ -5,6 +5,7 @@ import {
   getPortfolioSnapshotDetailService,
   updatePortfolioService,
   deletePortfolioService,
+  getRecentPortfoliosService,
 } from '../supabase/functions/portfolios/portfoliosService.ts';
 import {
   savePortfolioRepo,
@@ -13,6 +14,7 @@ import {
   getPortfolioSnapshotDetailRepo,
   updatePortfolioRepo,
   deletePortfolioRepo,
+  getRecentPortfoliosRepo,
 } from '../supabase/functions/portfolios/portfoliosRepository.ts';
 import { AddPortfolioRequestDto } from '../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 import { AssetType } from '../shared/domain/AssetType.ts';
@@ -21,6 +23,10 @@ import {
   GetPortfoliosResponseDto,
 } from '../shared/dto/portfolios/GetPortfoliosResponse.dto.ts';
 import { GetPortfolioDetailResponseDto } from '../shared/dto/portfolios/GetPortfoliosDetailResponse.dto.ts';
+import {
+  GetRecentPortfoliosResponseDto,
+  RecentPortfolioDto,
+} from '../shared/dto/portfolios/GetRecentPortfoliosResponse.dto.ts';
 
 // 리포지토리 모킹
 jest.mock('../supabase/functions/portfolios/portfoliosRepository.ts', () => ({
@@ -30,6 +36,7 @@ jest.mock('../supabase/functions/portfolios/portfoliosRepository.ts', () => ({
   getPortfolioSnapshotDetailRepo: jest.fn(),
   updatePortfolioRepo: jest.fn(),
   deletePortfolioRepo: jest.fn(),
+  getRecentPortfoliosRepo: jest.fn(),
 }));
 
 describe('PortfolioService - 포트폴리오 생성 테스트', () => {
@@ -484,6 +491,78 @@ describe('PortfolioService - 포트폴리오 생성 테스트', () => {
 
         expect(Object.keys(result).sort()).toEqual(Object.keys(expectedDto).sort());
       });
+    });
+  });
+
+  /// ---------------- API-PORT-007: 최근 포트폴리오 조회 테스트 ----------------
+  describe('getRecentPortfoliosService', () => {
+    it('최근에 생성/수정된 포트폴리오를 성공적으로 조회하여 GetRecentPortfoliosResponseDto로 변환한다', async () => {
+      // 1. 리포지토리 응답 모킹 (최신 레코드 1개 목록 리턴)
+      const mockDbData = [
+        {
+          id: 'port-recent-1',
+          name: '최근 수정한 연금 포트폴리오',
+          simulation_input: {
+            goal: { investment_period_months: 180 },
+            assets: [{}, {}, {}], // 자산 3개
+          },
+          updated_at: '2026-05-17T21:45:00Z',
+        },
+      ];
+      (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue(mockDbData);
+
+      // 2. 서비스 함수 호출
+      const result = await getRecentPortfoliosService(mockUserId);
+
+      // 3. 응답 구조 및 값 엄격하게 검증
+      expect(result).toBeInstanceOf(GetRecentPortfoliosResponseDto);
+      expect(result.portfolios).toHaveLength(1);
+
+      const recent = result.portfolios[0];
+      expect(recent).toBeInstanceOf(RecentPortfolioDto);
+      expect(recent.portfolioId).toBe('port-recent-1');
+      expect(recent.name).toBe('최근 수정한 연금 포트폴리오');
+      expect(recent.assetCount).toBe(3);
+      expect(recent.investmentPeriodMonths).toBe(180);
+      expect(recent.updatedAt).toBe('2026-05-17T21:45:00Z');
+
+      // 리포지토리 최신 1개 조회 제약 준수 확인
+      expect(getRecentPortfoliosRepo).toHaveBeenCalledWith(mockUserId, 1);
+    });
+
+    it('최근 포트폴리오 데이터가 전혀 존재하지 않으면 빈 portfolios 리스트가 포함된 DTO를 정상 반환한다', async () => {
+      (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue([]);
+
+      const result = await getRecentPortfoliosService(mockUserId);
+
+      expect(result).toBeInstanceOf(GetRecentPortfoliosResponseDto);
+      expect(result.portfolios).toEqual([]);
+      expect(result.portfolios).toHaveLength(0);
+    });
+
+    it('리포지토리 조회 중 데이터베이스 에러 발생 시(null 리턴) DATABASE_ERROR를 발생시킨다', async () => {
+      (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue(null);
+
+      await expect(getRecentPortfoliosService(mockUserId)).rejects.toThrow(
+        'DATABASE_ERROR: 최근 포트폴리오 조회 실패'
+      );
+    });
+
+    it('DB 데이터에 simulation_input 데이터가 소실되었어도 에러 없이 기본값을 채워 반환한다', async () => {
+      const incompleteDbData = [
+        {
+          id: 'port-broken',
+          name: '구조 깨진 최근 포트폴리오',
+          simulation_input: null,
+          updated_at: '2026-05-17T21:45:00Z',
+        },
+      ];
+      (getRecentPortfoliosRepo as jest.Mock).mockResolvedValue(incompleteDbData);
+
+      const result = await getRecentPortfoliosService(mockUserId);
+
+      expect(result.portfolios[0].assetCount).toBe(0);
+      expect(result.portfolios[0].investmentPeriodMonths).toBe(0);
     });
   });
 });

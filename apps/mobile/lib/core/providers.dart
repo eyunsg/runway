@@ -110,6 +110,10 @@ import 'package:runway/features/comment/repository/delete_comment_repository.dar
 import 'package:runway/features/comment/types/delete_comment_state.dart';
 import 'package:runway/features/comment/usecase/delete_comment_usecase.dart';
 
+import 'package:runway/features/portfolio/controller/get_recent_portfolio_controller.dart';
+import 'package:runway/features/portfolio/types/get_recent_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/get_recent_portfolio_usecase.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -554,4 +558,24 @@ final deleteCommentControllerProvider =
     StateNotifierProvider<DeleteCommentController, DeleteCommentState>((ref) {
       final usecase = ref.read(deleteCommentUsecaseProvider);
       return DeleteCommentController(useCase: usecase);
+    });
+
+/// ---------------- GET RECENT PORTFOLIO ----------------
+
+final getRecentPortfolioUsecaseProvider = Provider<GetRecentPortfolioUseCase>((
+  ref,
+) {
+  final repository = ref.read(getPortfolioRepositoryProvider);
+
+  return GetRecentPortfolioUseCase(repository);
+});
+
+final getRecentPortfolioControllerProvider =
+    StateNotifierProvider<
+      GetRecentPortfolioController,
+      GetRecentPortfolioState
+    >((ref) {
+      final useCase = ref.read(getRecentPortfolioUsecaseProvider);
+
+      return GetRecentPortfolioController(useCase: useCase);
     });

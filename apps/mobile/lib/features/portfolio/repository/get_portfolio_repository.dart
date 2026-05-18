@@ -35,4 +35,35 @@ class GetPortfolioRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
+
+  Future<Either<Failure, Portfolio?>> getRecentPortfolio() async {
+    try {
+      final response = await _client.functions.invoke(
+        'portfolios/recent',
+        method: HttpMethod.get,
+      );
+
+      if (response.status != 200) {
+        return Left(ServerFailure('최신 포트폴리오 조회 실패'));
+      }
+
+      final portfoliosJson = response.data['portfolios'] as List;
+
+      if (portfoliosJson.isEmpty) {
+        return const Right(null);
+      }
+
+      final portfolio = PortfolioResponseDto.fromJson(
+        portfoliosJson.first,
+      ).toModel();
+
+      return Right(portfolio);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(e.message));
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
 }

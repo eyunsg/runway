@@ -43,12 +43,15 @@ export async function handleAddPost(req: Request) {
   const dto = new PostPostsRequestDto(body);
 
   // 3. 서비스 레이어 호출 (비즈니스 로직 및 DB 저장 수행)
-  await addPostService(user.id, dto);
+  const postId = await addPostService(user.id, dto);
 
-  // 4. 성공 응답 반환
-  return new Response(null, {
+  // 4. 성공 응답 반환 (테스트/클라이언트에서 즉시 식별 가능하도록 postId 반환)
+  return new Response(JSON.stringify({ data: { postId } }), {
     status: 201,
-    headers: corsHeaders,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
   });
 }
 
