@@ -26,6 +26,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/env/.env
   fonts:
     - family: Inter
       fonts:
