@@ -6,6 +6,7 @@ import {
   getPortfolioSnapshotDetailService,
   updatePortfolioService,
   deletePortfolioService,
+  getRecentPortfoliosService,
 } from './portfoliosService.ts';
 import { AddPortfolioRequestDto } from '../../../shared/dto/portfolios/PostPortfoliosRequest.dto.ts';
 
@@ -110,7 +111,7 @@ export async function handleGetPortfolioDetail(req: Request, portfolioId: string
   });
 }
 
-export async function handleGetPortfolioSnapshotDetail(req: Request, portfolioSnapshotId: string) {
+export async function handleGetPortfolioSnapshotDetail(_req: Request, portfolioSnapshotId: string) {
   const result = await getPortfolioSnapshotDetailService(portfolioSnapshotId);
 
   return new Response(JSON.stringify(result), {
@@ -178,5 +179,35 @@ export async function handleDeletePortfolio(req: Request, portfolioId: string) {
   return new Response(null, {
     status: 204,
     headers: corsHeaders,
+  });
+}
+
+export async function handleGetRecentPortfolios(req: Request) {
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: {
+      headers: { Authorization: req.headers.get('authorization') ?? '' },
+    },
+  });
+
+  // 1. 사용자 인증 확인
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new UnauthorizedError('인증에 실패했습니다. 다시 로그인해주세요.');
+  }
+
+  // 2. 최근 포트폴리오 비즈니스 서비스 레이어 호출
+  const result = await getRecentPortfoliosService(user.id);
+
+  // 3. 성공 응답 반환 (200 OK)
+  return new Response(JSON.stringify(result), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
   });
 }

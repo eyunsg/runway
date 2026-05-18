@@ -195,3 +195,24 @@ export async function deletePortfolioRepo(userId: string, portfolioId: string): 
 
   return true;
 }
+
+//특정 사용자의 최신 포트폴리오를 지정한 수량(limit)만큼 가져옴
+//deleted_at이 null이고, updated_at 컬럼을 기준으로 내림차순 정렬하여 최신 데이터를 우선 조회
+export async function getRecentPortfoliosRepo(userId: string, limit: number) {
+  const client = createAdminClient();
+
+  const { data, error } = await client
+    .from('portfolios')
+    .select('id, name, simulation_input, updated_at')
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error(`[PortfolioRepo Error - Recent Fetch]: ${error.message}`);
+    return null;
+  }
+
+  return data;
+}

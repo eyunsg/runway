@@ -122,7 +122,11 @@ export async function deletePostRepo(authHeader: string, postId: string): Promis
     throw new Error('DATABASE_ERROR: 삭제 트랜잭션 실패');
   }
 
-  return data === true;
+  if (data !== true) {
+    throw new Error('FORBIDDEN');
+  }
+
+  return true;
 }
 
 export async function findAllMyPostsRepo(authHeader: string, userId: string) {
