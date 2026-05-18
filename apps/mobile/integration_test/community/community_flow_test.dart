@@ -158,20 +158,36 @@ void main() {
 
     expect(res.status, 201);
 
-    final getPostsRes = await client.functions.invoke(
-      'posts',
-      method: HttpMethod.get,
-    );
+    // Edge Function이 postId를 반환하도록 변경했으므로 목록 조회에 의존하지 않는다.
+    // (테스트 병렬 실행/환경 리셋 등으로 인한 플래키를 줄임)
+    final bodyMap = toMap(res.data, context: 'POST /posts');
+    final data = bodyMap['data'];
+    if (data is! Map) {
+      fail('POST /posts: data가 Map이 아닙니다. actual=${data.runtimeType}');
+    }
+    final postId = (data['postId'] as String?) ?? '';
+    expect(postId.isNotEmpty, true);
+    expect(isUuidV4Like(postId), true);
 
-    expect(getPostsRes.status, 200);
+    // GET /posts/{id}가 가능해질 때까지 짧게 retry (eventual consistency/트리거 지연 대비)
+    for (var i = 0; i < 10; i++) {
+      final detailRes = await client.functions.invoke(
+        'posts/$postId',
+        method: HttpMethod.get,
+      );
 
-    final postsMap = toMap(getPostsRes.data, context: 'GET /posts');
+      if (detailRes.status == 200) {
+        final detailMap = toMap(detailRes.data, context: 'GET /posts/{id}');
+        final dto = PostDetailResponseDto.fromJson(detailMap);
+        if (dto.post.postId == postId && dto.post.content == postContent) {
+          return postId;
+        }
+      }
 
-    final posts = PostResponseDto.listFromResponseJson(postsMap);
+      await Future<void>.delayed(Duration(milliseconds: 200 * (i + 1)));
+    }
 
-    final createdPost = posts.firstWhere((e) => e.content == postContent);
-
-    return createdPost.postId;
+    fail('POST /posts 이후 상세 조회에서 게시글을 찾지 못했습니다. postId=$postId');
   }
 
   Future<String> createComment({required String postId}) async {
