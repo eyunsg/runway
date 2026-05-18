@@ -38,6 +38,15 @@ class HttpError extends Error {
   }
 }
 
+class HttpError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 // 리포지토리 모킹
 jest.mock('../supabase/functions/posts/postsRepository.ts', () => ({
   createPortfolioSnapshotRepo: jest.fn(),
