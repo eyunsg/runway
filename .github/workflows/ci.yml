@@ -48,7 +48,8 @@ jobs:
             xvfb-run --auto-servernum flutter test "$test_file" \
               -d linux \
               --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL_TEST }} \
-              --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }} || exit 1
+              --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY_TEST }} \
+              --dart-define=SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY_TEST }} || exit 1
           done
 
   supabase-test:

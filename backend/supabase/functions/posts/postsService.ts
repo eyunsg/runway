@@ -168,8 +168,7 @@ export async function deletePostService(authHeader: string, postId: string): Pro
   const isDeleted = await deletePostRepo(authHeader, postId);
 
   if (!isDeleted) {
-    // RLS 정책에 의해 업데이트된 행이 없거나(본인 아님) 이미 삭제된 경우
-    throw new Error('NOT_FOUND: 게시글을 찾을 수 없거나 삭제 권한이 없습니다.');
+    throw new Error('FORBIDDEN');
   }
 }
 
