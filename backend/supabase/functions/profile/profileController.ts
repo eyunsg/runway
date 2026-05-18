@@ -15,10 +15,11 @@ export async function handleGetProfile(req: Request) {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
+    const authHeader = req.headers.get('authorization') ?? '';
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: req.headers.get('authorization') ?? '' } } }
+      { global: { headers: { Authorization: authHeader } } }
     );
 
     const {
@@ -31,7 +32,7 @@ export async function handleGetProfile(req: Request) {
     }
 
     // 1. 서비스에서 순수 엔티티를 받아옴
-    const profile = await getProfile(user.id);
+    const profile = await getProfile(authHeader, user.id);
 
     // 2. 컨트롤러에서 DTO와 매핑
     const responseDto = new GetProfileResponseDto(user.email ?? '', profile.displayName);
@@ -51,10 +52,11 @@ export async function handleUpdateProfile(req: Request) {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
+    const authHeader = req.headers.get('authorization') ?? '';
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: req.headers.get('authorization') ?? '' } } }
+      { global: { headers: { Authorization: authHeader } } }
     );
 
     const {
@@ -71,7 +73,7 @@ export async function handleUpdateProfile(req: Request) {
 
     const dto = new UpdateProfileRequestDto(requestData.displayName);
 
-    const result = await updateProfile(user.id, dto);
+    const result = await updateProfile(authHeader, user.id, dto);
 
     if (!result) {
       return new Response('Update failed', {
@@ -100,13 +102,14 @@ export async function handleDeleteProfile(req: Request) {
       });
     }
 
+    const authHeader = req.headers.get('authorization') ?? '';
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       {
         global: {
           headers: {
-            Authorization: req.headers.get('authorization') ?? '',
+            Authorization: authHeader,
           },
         },
       }
@@ -124,7 +127,7 @@ export async function handleDeleteProfile(req: Request) {
       });
     }
 
-    const result = await deleteProfile(user.id);
+    const result = await deleteProfile(authHeader, user.id);
 
     if (!result) {
       return new Response('Delete failed', {
