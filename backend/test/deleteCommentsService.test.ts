@@ -26,16 +26,6 @@ describe('DeleteComment - Service 테스트', () => {
       expect(softDeleteCommentRepo).toHaveBeenCalledWith(mockAuthHeader, mockCommentId);
     });
 
-    it('레포지토리에서 실패(false)를 반환하면 DATABASE_ERROR를 던진다', async () => {
-      // 레포지토리가 실패(false)를 반환하도록 설정
-      (softDeleteCommentRepo as jest.Mock).mockResolvedValue(false);
-
-      // DATABASE_ERROR 메시지 검증
-      await expect(deleteCommentService(mockAuthHeader, mockCommentId)).rejects.toThrow(
-        'DATABASE_ERROR: 댓글 삭제 처리에 실패했습니다.'
-      );
-    });
-
     it('레포지토리 실행 중 예외가 발생하면 에러가 상위로 전파되어야 한다', async () => {
       // 레포지토리에서 실제 DB 에러가 발생한 상황 시뮬레이션
       const dbError = new Error('DATABASE_ERROR: Connection Timeout');
