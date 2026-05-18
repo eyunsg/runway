@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:runway/features/comment/dto/comment_response_dto.dart';
 import 'package:runway/features/post/dto/create_comment_request_dto.dart';
@@ -14,11 +15,17 @@ import '../helpers/test_utils.dart';
 
 void main() {
   late SupabaseClient client;
+  late SupabaseClient adminClient;
 
   const password = '123456';
 
   setUpAll(() async {
     client = await initTestSupabase();
+
+    adminClient = SupabaseClient(
+      dotenv.env['SUPABASE_URL']!,
+      dotenv.env['SUPABASE_SERVICE_ROLE_KEY']!,
+    );
   });
 
   setUp(() async {
@@ -277,12 +284,15 @@ void main() {
 
       expect(userB.userId != userA.userId, true);
 
-      final deleteRes = await client.functions.invoke(
-        'posts/$postId',
-        method: HttpMethod.delete,
+      expect(
+        () async => await client.functions.invoke(
+          'posts/$postId',
+          method: HttpMethod.delete,
+        ),
+        throwsA(
+          isA<FunctionException>().having((e) => e.status, 'status', 403),
+        ),
       );
-
-      expect(deleteRes.status, anyOf(401, 403, 404));
     });
 
     test('게시글 삭제 시 soft delete 처리된다', () async {
@@ -299,7 +309,7 @@ void main() {
 
       expect(deleteRes.status, 204);
 
-      final deletedPost = await client
+      final deletedPost = await adminClient
           .from('posts')
           .select('id, deleted_at')
           .eq('id', postId)
@@ -373,12 +383,15 @@ void main() {
 
       expect(userB.userId != userA.userId, true);
 
-      final deleteRes = await client.functions.invoke(
-        'delete-comments/comments/$commentId',
-        method: HttpMethod.delete,
+      expect(
+        () async => await client.functions.invoke(
+          'delete-comments/comments/$commentId',
+          method: HttpMethod.delete,
+        ),
+        throwsA(
+          isA<FunctionException>().having((e) => e.status, 'status', 403),
+        ),
       );
-
-      expect(deleteRes.status, isNot(204));
     });
 
     test('작성자는 자신의 댓글을 soft delete 할 수 있다', () async {
@@ -397,7 +410,7 @@ void main() {
 
       expect(deleteRes.status, 204);
 
-      final deletedComment = await client
+      final deletedComment = await adminClient
           .from('comments')
           .select('id, deleted_at')
           .eq('id', commentId)
