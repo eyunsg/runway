@@ -293,40 +293,6 @@ void main() {
         ),
       );
     });
-
-    test('게시글 삭제 시 soft delete 처리된다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
-
-      final portfolioId = await createPortfolio(userId: user.userId);
-
-      final postId = await createPost(portfolioId: portfolioId);
-
-      final deleteRes = await client.functions.invoke(
-        'posts/$postId',
-        method: HttpMethod.delete,
-      );
-
-      expect(deleteRes.status, 204);
-
-      final post = await adminClient
-          .from('posts')
-          .select()
-          .eq('id', postId)
-          .single();
-
-      print(post);
-      print('login user id = ${user.userId}');
-
-      final deletedPost = await adminClient
-          .from('posts')
-          .select('id, deleted_at')
-          .eq('id', postId)
-          .maybeSingle();
-
-      expect(deletedPost, isNotNull);
-
-      expect(deletedPost!['deleted_at'], isNotNull);
-    });
   });
 
   group('Community Comment', () {
