@@ -20,6 +20,8 @@ void main() {
   const password = '123456';
 
   setUpAll(() async {
+    await dotenv.load(fileName: '.env');
+
     client = await initTestSupabase();
 
     adminClient = SupabaseClient(
