@@ -5,6 +5,7 @@ import {
   handleGetPortfolioSnapshotDetail,
   handleUpdatePortfolio,
   handleDeletePortfolio,
+  handleGetRecentPortfolios,
   UnauthorizedError,
   ValidationError,
 } from './portfoliosController.ts';
@@ -51,12 +52,21 @@ Deno.serve(async (req: Request) => {
     const secondLastPart = pathParts[pathParts.length - 2];
 
     const isPortfoliosPath = lastPart === 'portfolios';
-    const isPortfolioDetailPath = secondLastPart === 'portfolios' && lastPart !== 'snapshots';
+    // 최근 포트폴리오 조회 경로 판정 (/portfolios/recent)
+    const isPortfolioRecentPath = secondLastPart === 'portfolios' && lastPart === 'recent';
+    // 포트폴리오 상세 조회 경로 판정 (recent 및 snapshots 예외 필터링 추가로 라우팅 충돌 원천 해결)
+    const isPortfolioDetailPath =
+      secondLastPart === 'portfolios' && lastPart !== 'snapshots' && lastPart !== 'recent';
     const isPortfolioSnapshotDetailPath =
       secondLastPart === 'snapshots' && pathParts.includes('portfolios');
 
     // 2. GET 요청 라우팅
     if (req.method === 'GET') {
+      // 최근 포트폴리오 조회: /portfolios/recent
+      if (isPortfolioRecentPath) {
+        return await handleGetRecentPortfolios(req);
+      }
+
       // 스냅샷 상세 조회: /portfolios/snapshots/{snapshotId}
       if (isPortfolioSnapshotDetailPath) {
         const snapshotId = lastPart;

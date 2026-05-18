@@ -7,12 +7,17 @@ import {
   getPortfolioSnapshotDetailRepo,
   updatePortfolioRepo,
   deletePortfolioRepo,
+  getRecentPortfoliosRepo,
 } from './portfoliosRepository.ts';
 import {
   GetPortfoliosResponseDto,
   PortfolioSummaryDto,
 } from '../../../shared/dto/portfolios/GetPortfoliosResponse.dto.ts';
 import { GetPortfolioDetailResponseDto } from '../../../shared/dto/portfolios/GetPortfoliosDetailResponse.dto.ts';
+import {
+  GetRecentPortfoliosResponseDto,
+  RecentPortfolioDto,
+} from '../../../shared/dto/portfolios/GetRecentPortfoliosResponse.dto.ts';
 
 interface RawPortfolioRecord {
   id: string;
@@ -254,4 +259,36 @@ export async function getPortfolioSnapshotDetailService(
     simulation_input: snapshot.simulation_input,
     simulation_result: snapshot.simulation_result,
   });
+}
+
+export async function getRecentPortfoliosService(
+  userId: string
+): Promise<GetRecentPortfoliosResponseDto> {
+  // 1. 리포지토리에서 최신 업데이트 포트폴리오를 최대 1개 조회
+  const rawData = await getRecentPortfoliosRepo(userId, 1);
+
+  if (!rawData) {
+    throw new Error('DATABASE_ERROR: 최근 포트폴리오 조회 실패');
+  }
+
+  // 2. Raw DB 데이터를 RecentPortfolioDto 인스턴스로 바인딩
+  const portfolios = (rawData as RawPortfolioRecord[]).map((item: RawPortfolioRecord) => {
+    const assets = item.simulation_input?.assets || [];
+    const goal = item.simulation_input?.goal || {};
+
+    const assetCount = assets.length;
+    const investmentPeriodMonths = goal.investment_period_months || 0;
+
+    // 생성자 패턴을 통해 도메인 정합성을 유지하며 가공
+    return new RecentPortfolioDto(
+      item.id,
+      item.name,
+      assetCount,
+      investmentPeriodMonths,
+      item.updated_at
+    );
+  });
+
+  // 3. portfolios 리스트를 감싸는 최종 GetRecentPortfoliosResponseDto 인스턴스를 생성하여 반환합니다.
+  return new GetRecentPortfoliosResponseDto(portfolios);
 }
