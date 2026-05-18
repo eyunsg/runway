@@ -114,6 +114,9 @@ import 'package:runway/features/portfolio/controller/get_recent_portfolio_contro
 import 'package:runway/features/portfolio/types/get_recent_portfolio_state.dart';
 import 'package:runway/features/portfolio/usecase/get_recent_portfolio_usecase.dart';
 
+import 'package:runway/features/post/usecase/get_recent_post_usecase.dart';
+import 'package:runway/features/post/controller/get_recent_post_controller.dart';
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -578,4 +581,22 @@ final getRecentPortfolioControllerProvider =
       final useCase = ref.read(getRecentPortfolioUsecaseProvider);
 
       return GetRecentPortfolioController(useCase: useCase);
+    });
+
+/// ---------------- GET RECENT POST ----------------
+
+final getRecentPostRepositoryProvider = Provider<GetPostRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPostRepository(client: client);
+});
+
+final getRecentPostUsecaseProvider = Provider<GetRecentPostUsecase>((ref) {
+  final repository = ref.read(getRecentPostRepositoryProvider);
+  return GetRecentPostUsecase(repository);
+});
+
+final getRecentPostControllerProvider =
+    StateNotifierProvider<GetRecentPostController, GetPostState>((ref) {
+      final useCase = ref.read(getRecentPostUsecaseProvider);
+      return GetRecentPostController(useCase: useCase);
     });
