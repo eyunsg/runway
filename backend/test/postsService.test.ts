@@ -74,12 +74,17 @@ describe('PostsService 테스트', () => {
       (savePostRepo as jest.Mock).mockResolvedValue(mockPostId);
 
       const dto = new PostPostsRequestDto(validRequestData);
-      const result = await addPostService(mockUserId, dto);
+      const result = await addPostService(mockAuthHeader, mockUserId, dto);
 
       expect(result).toBe(mockPostId);
 
-      expect(createPortfolioSnapshotRepo).toHaveBeenCalledWith(mockUserId, mockPortfolioId);
+      expect(createPortfolioSnapshotRepo).toHaveBeenCalledWith(
+        mockAuthHeader,
+        mockUserId,
+        mockPortfolioId
+      );
       expect(savePostRepo).toHaveBeenCalledWith(
+        mockAuthHeader,
         expect.objectContaining({
           userId: mockUserId,
           portfolioSnapshotId: mockSnapshotId,
@@ -93,7 +98,7 @@ describe('PostsService 테스트', () => {
 
       const dto = new PostPostsRequestDto(validRequestData);
 
-      await expect(addPostService(mockUserId, dto)).rejects.toThrow(
+      await expect(addPostService(mockAuthHeader, mockUserId, dto)).rejects.toThrow(
         'NOT_FOUND: 게시할 포트폴리오를 찾을 수 없거나 접근 권한이 없습니다.'
       );
 
@@ -106,7 +111,7 @@ describe('PostsService 테스트', () => {
 
       const dto = new PostPostsRequestDto(validRequestData);
 
-      await expect(addPostService(mockUserId, dto)).rejects.toThrow(
+      await expect(addPostService(mockAuthHeader, mockUserId, dto)).rejects.toThrow(
         'DATABASE_ERROR: 게시물 저장 중 오류가 발생했습니다.'
       );
     });
@@ -118,7 +123,7 @@ describe('PostsService 테스트', () => {
 
       await expect(async () => {
         const dto = new PostPostsRequestDto(invalidData);
-        await addPostService(mockUserId, dto);
+        await addPostService(mockAuthHeader, mockUserId, dto);
       }).rejects.toThrow('VALIDATION_ERROR: 게시물 내용은 필수이며 비어있을 수 없습니다.');
 
       expect(savePostRepo).not.toHaveBeenCalled();
@@ -131,7 +136,7 @@ describe('PostsService 테스트', () => {
 
       await expect(async () => {
         const dto = new PostPostsRequestDto(invalidData);
-        await addPostService(mockUserId, dto);
+        await addPostService(mockAuthHeader, mockUserId, dto);
       }).rejects.toThrow('VALIDATION_ERROR: 게시물 내용은 5000자 이내여야 합니다.');
 
       expect(savePostRepo).not.toHaveBeenCalled();
@@ -143,7 +148,7 @@ describe('PostsService 테스트', () => {
       await expect(async () => {
         // @ts-ignore
         const dto = new PostPostsRequestDto(invalidData);
-        await addPostService(mockUserId, dto);
+        await addPostService(mockAuthHeader, mockUserId, dto);
       }).rejects.toThrow('VALIDATION_ERROR');
     });
 
@@ -152,7 +157,9 @@ describe('PostsService 테스트', () => {
       const dto = new PostPostsRequestDto(validRequestData);
 
       // @ts-ignore
-      await expect(addPostService(undefined, dto)).rejects.toThrow('VALIDATION_ERROR');
+      await expect(addPostService(mockAuthHeader, undefined, dto)).rejects.toThrow(
+        'VALIDATION_ERROR'
+      );
     });
   });
 

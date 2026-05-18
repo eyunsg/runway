@@ -1,10 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Post } from '../../../shared/domain/posts/Post.ts';
 
-function createAdminClient() {
-  return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-}
-
 //마이그레이션에 정의된 RLS 정책을 활성화하여 조회할 때 사용
 function createAuthClient(authHeader: string) {
   return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -162,10 +158,11 @@ export async function findAllMyPostsRepo(authHeader: string, userId: string) {
 }
 
 export async function createPortfolioSnapshotRepo(
+  authHeader: string,
   userId: string,
   portfolioId: string
 ): Promise<string | null> {
-  const client = createAdminClient();
+  const client = createAuthClient(authHeader);
 
   // 1. 원본 포트폴리오 데이터 조회
   const { data: portfolio, error: fetchError } = await client
@@ -203,8 +200,8 @@ export async function createPortfolioSnapshotRepo(
   return snapshot.id;
 }
 
-export async function savePostRepo(post: Post): Promise<string | null> {
-  const client = createAdminClient();
+export async function savePostRepo(authHeader: string, post: Post): Promise<string | null> {
+  const client = createAuthClient(authHeader);
 
   const { data, error } = await client
     .from('posts')
