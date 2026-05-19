@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-class ValidationError extends Error {}
-class StatisticalError extends Error {}
 class MethodNotAllowedError extends Error {}
 
 function errorResponse(message: string, status: number) {
@@ -46,13 +44,14 @@ Deno.serve(async (req: Request) => {
     let status = 500;
     let message = 'Unknown Internal Error';
 
-    if (err instanceof ValidationError || err instanceof StatisticalError) {
-      status = 400;
-      message = err.message;
-    } else if (err instanceof MethodNotAllowedError) {
+    if (err instanceof MethodNotAllowedError) {
       status = 405;
       message = err.message;
     } else if (err instanceof Error) {
+      // VALIDATION_ERROR prefix → 400, 그 외 모든 Error(Statistical 포함) → 500
+      if (err.message.startsWith('VALIDATION_ERROR')) {
+        status = 400;
+      }
       message = err.message;
     }
 
