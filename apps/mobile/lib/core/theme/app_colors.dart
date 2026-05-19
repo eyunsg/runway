@@ -8,9 +8,9 @@ abstract final class AppColors {
 }
 
 class Highlight {
-  final Color dark = Color(0xFF9C3530);
-  final Color medium = Color(0xFFB7413E);
-  final Color light = Color(0xFFD46A60);
+  final Color dark = Color(0xFF3B495E);
+  final Color medium = Color(0xFF3F5E91);
+  final Color light = Color(0xFF2D68C4);
 }
 
 class Natural {
