@@ -20,10 +20,11 @@ export class UnauthorizedError extends Error {}
 export class ValidationError extends Error {}
 
 export async function handleAddPortfolio(req: Request) {
+  const authHeader = req.headers.get('authorization') ?? '';
   // Supabase 클라이언트 초기화
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: {
-      headers: { Authorization: req.headers.get('authorization') ?? '' },
+      headers: { Authorization: authHeader },
     },
   });
 
@@ -42,7 +43,7 @@ export async function handleAddPortfolio(req: Request) {
   const dto = new AddPortfolioRequestDto(body);
 
   // 3. 서비스 레이어 호출 (비즈니스 로직 및 DB 저장 수행)
-  await addPortfolioService(user.id, dto);
+  await addPortfolioService(authHeader, user.id, dto);
 
   // 4. 성공 응답 반환
   return new Response(null, {
@@ -52,10 +53,11 @@ export async function handleAddPortfolio(req: Request) {
 }
 
 export async function handleGetPortfolios(req: Request) {
+  const authHeader = req.headers.get('authorization') ?? '';
   // Supabase 클라이언트 초기화
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: {
-      headers: { Authorization: req.headers.get('authorization') ?? '' },
+      headers: { Authorization: authHeader },
     },
   });
 
@@ -70,7 +72,7 @@ export async function handleGetPortfolios(req: Request) {
   }
 
   // 2. 서비스 레이어 호출 (목록 조회 비즈니스 로직 수행)
-  const result = await getPortfoliosService(user.id);
+  const result = await getPortfoliosService(authHeader, user.id);
 
   // 3. 성공 응답 반환 (200 OK)
   return new Response(JSON.stringify(result), {
@@ -83,9 +85,10 @@ export async function handleGetPortfolios(req: Request) {
 }
 
 export async function handleGetPortfolioDetail(req: Request, portfolioId: string) {
+  const authHeader = req.headers.get('authorization') ?? '';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: {
-      headers: { Authorization: req.headers.get('authorization') ?? '' },
+      headers: { Authorization: authHeader },
     },
   });
 
@@ -99,7 +102,7 @@ export async function handleGetPortfolioDetail(req: Request, portfolioId: string
   }
 
   // 서비스 레이어 호출
-  const result = await getPortfolioDetailService(user.id, portfolioId);
+  const result = await getPortfolioDetailService(authHeader, user.id, portfolioId);
 
   // 결과 객체를 직접 반환
   return new Response(JSON.stringify(result), {
@@ -111,8 +114,9 @@ export async function handleGetPortfolioDetail(req: Request, portfolioId: string
   });
 }
 
-export async function handleGetPortfolioSnapshotDetail(_req: Request, portfolioSnapshotId: string) {
-  const result = await getPortfolioSnapshotDetailService(portfolioSnapshotId);
+export async function handleGetPortfolioSnapshotDetail(req: Request, portfolioSnapshotId: string) {
+  const authHeader = req.headers.get('authorization') ?? '';
+  const result = await getPortfolioSnapshotDetailService(authHeader, portfolioSnapshotId);
 
   return new Response(JSON.stringify(result), {
     status: 200,
@@ -124,9 +128,10 @@ export async function handleGetPortfolioSnapshotDetail(_req: Request, portfolioS
 }
 
 export async function handleUpdatePortfolio(req: Request, portfolioId: string) {
+  const authHeader = req.headers.get('authorization') ?? '';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: {
-      headers: { Authorization: req.headers.get('authorization') ?? '' },
+      headers: { Authorization: authHeader },
     },
   });
 
@@ -146,7 +151,7 @@ export async function handleUpdatePortfolio(req: Request, portfolioId: string) {
   const dto = new AddPortfolioRequestDto(body);
 
   // 3. 서비스 레이어 호출 (비즈니스 로직 수행)
-  await updatePortfolioService(user.id, portfolioId, dto);
+  await updatePortfolioService(authHeader, user.id, portfolioId, dto);
 
   // 4. 성공 응답 반환 (204 No Content)
   return new Response(null, {
@@ -156,9 +161,10 @@ export async function handleUpdatePortfolio(req: Request, portfolioId: string) {
 }
 
 export async function handleDeletePortfolio(req: Request, portfolioId: string) {
+  const authHeader = req.headers.get('authorization') ?? '';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: {
-      headers: { Authorization: req.headers.get('authorization') ?? '' },
+      headers: { Authorization: authHeader },
     },
   });
 
@@ -173,7 +179,7 @@ export async function handleDeletePortfolio(req: Request, portfolioId: string) {
   }
 
   // 2. 서비스 레이어 호출 (삭제 비즈니스 로직 수행)
-  await deletePortfolioService(user.id, portfolioId);
+  await deletePortfolioService(authHeader, user.id, portfolioId);
 
   // 3. 성공 응답 반환 (API 명세서 준수: 204 No Content)
   return new Response(null, {
@@ -183,9 +189,10 @@ export async function handleDeletePortfolio(req: Request, portfolioId: string) {
 }
 
 export async function handleGetRecentPortfolios(req: Request) {
+  const authHeader = req.headers.get('authorization') ?? '';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: {
-      headers: { Authorization: req.headers.get('authorization') ?? '' },
+      headers: { Authorization: authHeader },
     },
   });
 
@@ -200,7 +207,7 @@ export async function handleGetRecentPortfolios(req: Request) {
   }
 
   // 2. 최근 포트폴리오 비즈니스 서비스 레이어 호출
-  const result = await getRecentPortfoliosService(user.id);
+  const result = await getRecentPortfoliosService(authHeader, user.id);
 
   // 3. 성공 응답 반환 (200 OK)
   return new Response(JSON.stringify(result), {

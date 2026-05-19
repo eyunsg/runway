@@ -299,11 +299,9 @@ void main() {
 
       expect(userB.userId != userA.userId, true);
 
-      expect(
-        () async => await client.functions.invoke(
-          'posts/$postId',
-          method: HttpMethod.delete,
-        ),
+      await expectLater(
+        () =>
+            client.functions.invoke('posts/$postId', method: HttpMethod.delete),
         throwsA(
           isA<FunctionException>().having((e) => e.status, 'status', 403),
         ),

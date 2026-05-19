@@ -20,6 +20,16 @@ export async function softDeleteCommentRepo(
   commentId: string
 ): Promise<boolean> {
   const client = createAuthClient(authHeader);
+  const token = authHeader.replace('Bearer ', '');
+
+  const {
+    data: { user },
+    error: authError,
+  } = await client.auth.getUser(token);
+
+  if (authError || !user) {
+    throw new HttpError(401, 'UNAUTHORIZED');
+  }
 
   // 1. 댓글 조회
   const { data: comment, error: findError } = await client
@@ -37,21 +47,12 @@ export async function softDeleteCommentRepo(
     throw new HttpError(400, 'COMMENT_ALREADY_DELETED');
   }
 
-  // 3. 현재 유저 확인
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-
-  if (!user) {
-    throw new HttpError(401, 'UNAUTHORIZED');
-  }
-
-  // 4. 작성자 검증
+  // 3. 작성자 검증
   if (comment.user_id !== user.id) {
     throw new HttpError(403, 'COMMENT_DELETE_FORBIDDEN');
   }
 
-  // 5. soft delete
+  // 4. soft delete
   const { error: deleteError } = await client
     .from('comments')
     .update({

@@ -7,8 +7,8 @@ import {
 } from './profileRepository.ts';
 import { Profile } from '../../../shared/domain/profile/Profile.ts';
 
-export async function getProfile(userId: string): Promise<Profile> {
-  const user = await findUserById(userId);
+export async function getProfile(authHeader: string, userId: string): Promise<Profile> {
+  const user = await findUserById(authHeader, userId);
 
   if (!user) {
     throw new Error('User not found');
@@ -18,12 +18,16 @@ export async function getProfile(userId: string): Promise<Profile> {
   return user;
 }
 
-export async function updateProfile(userId: string, dto: UpdateProfileRequestDto) {
+export async function updateProfile(
+  authHeader: string,
+  userId: string,
+  dto: UpdateProfileRequestDto
+) {
   if (dto.displayName && (dto.displayName.length < 2 || dto.displayName.length > 20)) {
     throw new Error('VALIDATION_ERROR: 닉네임은 2자 이상 20자 이하로 입력해주세요.');
   }
 
-  const profileUpdated = await updateProfileRepo(userId, {
+  const profileUpdated = await updateProfileRepo(authHeader, userId, {
     display_name: dto.displayName,
   });
   if (!profileUpdated) return false;
@@ -31,8 +35,8 @@ export async function updateProfile(userId: string, dto: UpdateProfileRequestDto
   return true;
 }
 
-export async function deleteProfile(userId: string) {
-  const profileDeleted = await deleteProfileRepo(userId);
+export async function deleteProfile(authHeader: string, userId: string) {
+  const profileDeleted = await deleteProfileRepo(authHeader, userId);
   if (!profileDeleted) return false;
 
   const authDeleted = await deleteAuthRepo(userId);

@@ -22,9 +22,10 @@ export class ValidationError extends Error {}
 
 export async function handleAddPost(req: Request) {
   // Supabase 클라이언트 초기화 (사용자 인증 토큰 포함)
+  const authHeader = req.headers.get('authorization') ?? '';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: {
-      headers: { Authorization: req.headers.get('authorization') ?? '' },
+      headers: { Authorization: authHeader },
     },
   });
 
@@ -43,7 +44,7 @@ export async function handleAddPost(req: Request) {
   const dto = new PostPostsRequestDto(body);
 
   // 3. 서비스 레이어 호출 (비즈니스 로직 및 DB 저장 수행)
-  const postId = await addPostService(user.id, dto);
+  const postId = await addPostService(authHeader, user.id, dto);
 
   // 4. 성공 응답 반환 (테스트/클라이언트에서 즉시 식별 가능하도록 postId 반환)
   return new Response(JSON.stringify({ data: { postId } }), {

@@ -1,12 +1,21 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Portfolio } from '../../../shared/domain/portfolios/Portfolios.ts';
 
-function createAdminClient() {
-  return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+function createAuthClient(authHeader: string) {
+  return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: {
+      headers: {
+        Authorization: authHeader,
+      },
+    },
+  });
 }
 
-export async function savePortfolioRepo(portfolio: Portfolio): Promise<string | null> {
-  const client = createAdminClient();
+export async function savePortfolioRepo(
+  authHeader: string,
+  portfolio: Portfolio
+): Promise<string | null> {
+  const client = createAuthClient(authHeader);
   type PortfolioAsset = Portfolio['simulationInput']['assets'][number];
 
   const { data, error } = await client
@@ -64,13 +73,14 @@ export async function savePortfolioRepo(portfolio: Portfolio): Promise<string | 
 }
 
 export async function updatePortfolioRepo(
+  authHeader: string,
   portfolio: Portfolio,
   portfolioId: string
 ): Promise<boolean> {
-  const client = createAdminClient();
+  const client = createAuthClient(authHeader);
   type PortfolioAsset = Portfolio['simulationInput']['assets'][number];
 
-  const { error } = await client
+  const { data, error } = await client
     .from('portfolios')
     .update({
       name: portfolio.name,
@@ -114,17 +124,18 @@ export async function updatePortfolioRepo(
     })
     .eq('id', portfolioId)
     .eq('user_id', portfolio.userId) // 보안: 본인 소유 확인
-    .is('deleted_at', null);
+    .is('deleted_at', null)
+    .select();
 
-  if (error) {
-    console.error(`[PortfolioRepo Error - Update]: ${error.message}`);
+  if (error || !data || data.length === 0) {
+    console.error(`[PortfolioRepo Error - Update]: ${error?.message}`);
     return false;
   }
   return true;
 }
 
-export async function getPortfoliosRepo(userId: string) {
-  const client = createAdminClient();
+export async function getPortfoliosRepo(authHeader: string, userId: string) {
+  const client = createAuthClient(authHeader);
 
   const { data, error } = await client
     .from('portfolios')
@@ -141,8 +152,12 @@ export async function getPortfoliosRepo(userId: string) {
   return data;
 }
 
-export async function getPortfolioDetailRepo(userId: string, portfolioId: string) {
-  const client = createAdminClient();
+export async function getPortfolioDetailRepo(
+  authHeader: string,
+  userId: string,
+  portfolioId: string
+) {
+  const client = createAuthClient(authHeader);
 
   const { data, error } = await client
     .from('portfolios')
@@ -160,8 +175,11 @@ export async function getPortfolioDetailRepo(userId: string, portfolioId: string
   return data;
 }
 
-export async function getPortfolioSnapshotDetailRepo(portfolioSnapshotId: string) {
-  const client = createAdminClient();
+export async function getPortfolioSnapshotDetailRepo(
+  authHeader: string,
+  portfolioSnapshotId: string
+) {
+  const client = createAuthClient(authHeader);
 
   const { data, error } = await client
     .from('portfolio_snapshots')
@@ -178,18 +196,23 @@ export async function getPortfolioSnapshotDetailRepo(portfolioSnapshotId: string
   return data;
 }
 
-export async function deletePortfolioRepo(userId: string, portfolioId: string): Promise<boolean> {
-  const client = createAdminClient();
+export async function deletePortfolioRepo(
+  authHeader: string,
+  userId: string,
+  portfolioId: string
+): Promise<boolean> {
+  const client = createAuthClient(authHeader);
 
-  const { error } = await client
+  const { data, error } = await client
     .from('portfolios')
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', portfolioId)
     .eq('user_id', userId) // 보안: 본인 소유 확인
-    .is('deleted_at', null);
+    .is('deleted_at', null)
+    .select();
 
-  if (error) {
-    console.error(`[PortfolioRepo Error - Delete]: ${error.message}`);
+  if (error || !data || data.length === 0) {
+    console.error(`[PortfolioRepo Error - Delete]: ${error?.message}`);
     return false;
   }
 
@@ -198,8 +221,8 @@ export async function deletePortfolioRepo(userId: string, portfolioId: string): 
 
 //특정 사용자의 최신 포트폴리오를 지정한 수량(limit)만큼 가져옴
 //deleted_at이 null이고, updated_at 컬럼을 기준으로 내림차순 정렬하여 최신 데이터를 우선 조회
-export async function getRecentPortfoliosRepo(userId: string, limit: number) {
-  const client = createAdminClient();
+export async function getRecentPortfoliosRepo(authHeader: string, userId: string, limit: number) {
+  const client = createAuthClient(authHeader);
 
   const { data, error } = await client
     .from('portfolios')
