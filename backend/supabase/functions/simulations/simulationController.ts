@@ -10,7 +10,12 @@ const corsHeaders = {
 
 export async function handleSimulation(req: Request) {
   // 1. 요청 바디 파싱
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    throw new Error('VALIDATION_ERROR: 요청 본문이 유효한 JSON 형식이 아닙니다.');
+  }
 
   // 2. 통합 요청 DTO 생성 및 검증
   const requestDto = new SimulationRequestDto(body);
