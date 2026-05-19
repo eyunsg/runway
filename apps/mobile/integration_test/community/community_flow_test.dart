@@ -299,15 +299,12 @@ void main() {
 
       expect(userB.userId != userA.userId, true);
 
-      expect(
-        () async => await client.functions.invoke(
-          'posts/$postId',
-          method: HttpMethod.delete,
-        ),
-        throwsA(
-          isA<FunctionException>().having((e) => e.status, 'status', 403),
-        ),
+      final response = await client.functions.invoke(
+        'posts/$postId',
+        method: HttpMethod.delete,
       );
+
+      expect(response.status, 403);
     });
   });
 
