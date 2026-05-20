@@ -14,17 +14,17 @@ class Highlight {
 }
 
 class Natural {
-  final Text text = Text();
-  final Background background = Background();
+  final TextColors textColors = TextColors();
+  final BackgroundColors backgroundColors = BackgroundColors();
 }
 
-class Text {
+class TextColors {
   final Color primary = Color(0xFFE7EEF4);
   final Color secondary = Color(0xFFB2B8BD);
   final Color disabled = Color(0xFF7B8083);
 }
 
-class Background {
+class BackgroundColors {
   final Color primary = Color(0xFF272C33);
   final Color secondary = Color(0xFF2A2E33);
 }
