@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:runway/core/theme/app_colors.dart' hide Text;
+import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 
 /// 메시지 타입 정의
@@ -47,7 +47,7 @@ class AppToast extends StatelessWidget {
             child: Text(
               title,
               style: AppTypography.heading.h5.copyWith(
-                color: AppColors.natural.text.primary,
+                color: AppColors.natural.textColors.primary,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

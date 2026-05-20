@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:runway/core/theme/app_colors.dart' hide Text;
+import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 import './button.dart';
 
@@ -63,7 +63,7 @@ class AppDialog extends StatelessWidget {
                   title,
                   textAlign: TextAlign.center,
                   style: AppTypography.heading.h3.copyWith(
-                    color: AppColors.natural.text.primary,
+                    color: AppColors.natural.textColors.primary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -71,7 +71,7 @@ class AppDialog extends StatelessWidget {
                   description,
                   textAlign: TextAlign.center,
                   style: AppTypography.body.s.copyWith(
-                    color: AppColors.natural.text.secondary,
+                    color: AppColors.natural.textColors.secondary,
                   ),
                 ),
               ],

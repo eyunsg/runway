@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:runway/core/theme/app_colors.dart' hide Text;
+import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 
 enum ButtonVariant { primary, secondary }
@@ -48,7 +48,7 @@ class AppButton extends StatelessWidget {
   Color get _textColor {
     switch (variant) {
       case ButtonVariant.primary:
-        return AppColors.natural.text.primary;
+        return AppColors.natural.textColors.primary;
       case ButtonVariant.secondary:
         return AppColors.highlight.light;
     }

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:runway/core/providers.dart';
 import 'package:runway/core/state/async_state.dart';
+import 'package:runway/core/theme/app_colors.dart';
+import 'package:runway/core/theme/app_typography.dart';
 
 class ProfileTempScreen extends ConsumerStatefulWidget {
   const ProfileTempScreen({super.key});
@@ -42,25 +44,55 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
     final profileState = ref.watch(profileControllerProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.natural.backgroundColors.primary,
+      appBar: AppBar(
+        backgroundColor: AppColors.natural.backgroundColors.primary,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: GestureDetector(
+            onTap: () {
+              context.pop();
+            },
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Center(
+                child: Image.asset(
+                  'icons/arrow_left.png',
+                  width: 20,
+                  height: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+        centerTitle: true,
+        title: Text(
+          '설정',
+          style: AppTypography.heading.h4.copyWith(
+            color: AppColors.natural.textColors.primary,
+          ),
+        ),
+      ),
       body: profileState.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppColors.highlight.light,
+              ),
+            )
           : profileState.error != null
           ? Center(child: Text(profileState.error!))
           : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 children: [
-                  const SizedBox(height: 30),
-
-                  /// 프로필 영역
+                  /// profile section
                   Center(
                     child: Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        const CircleAvatar(
-                          radius: 50,
-                          child: Icon(Icons.person, size: 50),
-                        ),
+                        Image.asset('icons/avatar.png', width: 80, height: 80),
 
                         Material(
                           color: Colors.transparent,
@@ -68,11 +100,21 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                             onTap: () {
                               context.push('/profile/update');
                             },
-                            borderRadius: BorderRadius.circular(20),
-                            child: const CircleAvatar(
-                              radius: 15,
-                              backgroundColor: Colors.white,
-                              child: Icon(Icons.edit, size: 18),
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.highlight.light,
+                              ),
+                              child: Center(
+                                child: Image.asset(
+                                  'icons/edit.png',
+                                  width: 10,
+                                  height: 10,
+                                  color: AppColors.natural.textColors.primary,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -80,38 +122,67 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 16),
 
-                  Text(profileState.displayName ?? ''),
-                  const SizedBox(height: 5),
+                  Text(
+                    profileState.displayName ?? '',
+                    style: AppTypography.heading.h3.copyWith(
+                      color: AppColors.natural.textColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
 
                   Text(
                     profileState.email ?? '',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  /// 메뉴 영역
-                  ListTile(
-                    title: const Text('앱 정보'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {},
-                  ),
-
-                  const Divider(),
-
-                  ListTile(
-                    title: const Text(
-                      '로그아웃',
-                      style: TextStyle(color: Colors.red),
+                    style: AppTypography.body.s.copyWith(
+                      color: AppColors.natural.textColors.secondary,
                     ),
-                    onTap: () async {
-                      final controller = ref.read(
-                        logoutControllerProvider.notifier,
-                      );
-                      await controller.logout();
-                    },
+                  ),
+
+                  /// list item section
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          onTap: () {
+                            // TODO
+                          },
+                          title: Text(
+                            '앱 정보',
+                            style: AppTypography.body.m.copyWith(
+                              color: AppColors.natural.textColors.primary,
+                            ),
+                          ),
+                          trailing: Image.asset(
+                            'icons/arrow_right.png',
+                            width: 12,
+                            height: 12,
+                            color: AppColors.natural.textColors.secondary,
+                          ),
+                        ),
+
+                        Divider(
+                          color: AppColors.natural.textColors.disabled,
+                          thickness: 0.5,
+                        ),
+
+                        ListTile(
+                          title: Text(
+                            '로그아웃',
+                            style: AppTypography.body.m.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
+                          onTap: () async {
+                            final controller = ref.read(
+                              logoutControllerProvider.notifier,
+                            );
+                            await controller.logout();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
