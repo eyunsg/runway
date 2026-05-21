@@ -7,14 +7,14 @@ import 'package:runway/core/state/async_state.dart';
 import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 
-class ProfileTempScreen extends ConsumerStatefulWidget {
-  const ProfileTempScreen({super.key});
+class ProfileScreen extends ConsumerStatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  ConsumerState<ProfileTempScreen> createState() => _ProfileTempScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen(logoutControllerProvider, (previous, next) {
@@ -146,7 +146,7 @@ class _ProfileTempScreenState extends ConsumerState<ProfileTempScreen> {
                       children: [
                         ListTile(
                           onTap: () {
-                            // TODO
+                            context.push('/app-info');
                           },
                           title: Text(
                             '앱 정보',

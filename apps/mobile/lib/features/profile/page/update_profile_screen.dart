@@ -9,16 +9,15 @@ import '../types/profile_state.dart';
 import 'package:runway/core/providers.dart';
 import 'package:go_router/go_router.dart';
 
-class UpdateProfileTempScreen extends ConsumerStatefulWidget {
-  const UpdateProfileTempScreen({super.key});
+class UpdateProfileScreen extends ConsumerStatefulWidget {
+  const UpdateProfileScreen({super.key});
 
   @override
-  ConsumerState<UpdateProfileTempScreen> createState() =>
-      _UpdateProfileTempScreenState();
+  ConsumerState<UpdateProfileScreen> createState() =>
+      _UpdateProfileScreenState();
 }
 
-class _UpdateProfileTempScreenState
-    extends ConsumerState<UpdateProfileTempScreen> {
+class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
   late final TextEditingController _nicknameController;
 
   late final ProviderSubscription<ProfileState> _updateSub;
