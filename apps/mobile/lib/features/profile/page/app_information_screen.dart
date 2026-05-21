@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:runway/core/theme/app_colors.dart';
@@ -132,11 +131,11 @@ class _AppInformationScreenState extends State<AppInformationScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               onTap: () {
-                // showLicensePage(
-                //   context: context,
-                //   applicationName: 'Runway',
-                //   applicationVersion: _version.isEmpty ? null : _version,
-                // );
+                showLicensePage(
+                  context: context,
+                  applicationName: 'Runway',
+                  applicationVersion: _version.isEmpty ? null : _version,
+                );
               },
               title: Text(
                 '오픈소스 라이선스',
