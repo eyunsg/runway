@@ -26,7 +26,7 @@ class Avatar extends StatelessWidget {
       width: _iconDimension,
       height: _iconDimension,
       child: Image.asset(
-        '/icons/Avatar.png',
+        '/icons/avatar.png',
         width: _iconDimension,
         height: _iconDimension,
       ),
