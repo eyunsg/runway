@@ -1,7 +1,7 @@
 name: runway
-description: 'A new Flutter project.'
+description: '2026 PBL'
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0
 
 environment:
   sdk: ^3.11.0
@@ -15,6 +15,7 @@ dependencies:
   go_router: ^17.1.0
   http: ^1.6.0
   dartz: ^0.10.1
+  package_info_plus: ^10.1.0
 
 dev_dependencies:
   flutter_test:

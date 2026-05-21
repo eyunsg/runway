@@ -8,14 +8,15 @@ import 'package:runway/shared/widgets/button.dart';
 import '../../../core/state/async_state.dart';
 import '../../../core/providers.dart';
 
-class PasswordChangePage extends ConsumerStatefulWidget {
-  const PasswordChangePage({super.key});
+class PasswordChangeScreen extends ConsumerStatefulWidget {
+  const PasswordChangeScreen({super.key});
 
   @override
-  ConsumerState<PasswordChangePage> createState() => _PasswordChangePageState();
+  ConsumerState<PasswordChangeScreen> createState() =>
+      _PasswordChangeScreenState();
 }
 
-class _PasswordChangePageState extends ConsumerState<PasswordChangePage> {
+class _PasswordChangeScreenState extends ConsumerState<PasswordChangeScreen> {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();

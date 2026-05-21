@@ -4,11 +4,12 @@ import 'package:runway/features/login/page/login_temp_screen.dart';
 import 'package:runway/features/password_reset/page/request_password_reset_temp_screen.dart';
 import 'package:runway/features/password_reset/page/password_reset_temp_screen.dart';
 import 'package:runway/features/logout/page/logout_temp_screen.dart';
+import 'package:runway/features/profile/page/app_information_screen.dart';
 import 'package:runway/home_temp_screen.dart';
 import '../features/register/page/register_temp_screen.dart';
-import 'package:runway/features/profile/page/profile_temp_screen.dart';
-import '../features/password_change/page/password_change_temp_screen.dart';
-import '../features/profile/page/update_profile_temp_screen.dart';
+import 'package:runway/features/profile/page/profile_screen.dart';
+import '../features/password_change/page/password_change_screen.dart';
+import '../features/profile/page/update_profile_screen.dart';
 import '../features/simulation/page/simulation_temp_screen.dart';
 import '../features/portfolio/page/get_portfolio_temp_screen.dart';
 import '../features/portfolio/page/create_portfolio_temp_screen.dart';
@@ -30,17 +31,14 @@ class AppRouter {
         builder: (context, state) => RegisterTempScreen(),
       ),
       GoRoute(path: '/login', builder: (context, state) => LoginTempScreen()),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => ProfileTempScreen(),
-      ),
+      GoRoute(path: '/profile', builder: (context, state) => ProfileScreen()),
       GoRoute(
         path: '/profile/update',
-        builder: (context, state) => UpdateProfileTempScreen(),
+        builder: (context, state) => UpdateProfileScreen(),
       ),
       GoRoute(
         path: '/password-change',
-        builder: (context, state) => PasswordChangePage(),
+        builder: (context, state) => PasswordChangeScreen(),
       ),
       GoRoute(path: '/logout', builder: (context, state) => LogoutTempScreen()),
       GoRoute(
@@ -123,6 +121,10 @@ class AppRouter {
       GoRoute(
         path: '/devhome',
         builder: (context, state) => const HomeTempScreen(),
+      ),
+      GoRoute(
+        path: '/app-info',
+        builder: (context, state) => const AppInformationScreen(),
       ),
     ],
   );
