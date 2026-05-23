@@ -1,12 +1,12 @@
 import 'package:go_router/go_router.dart';
 
-import 'package:runway/features/login/page/login_temp_screen.dart';
-import 'package:runway/features/password_reset/page/request_password_reset_temp_screen.dart';
-import 'package:runway/features/password_reset/page/password_reset_temp_screen.dart';
+import 'package:runway/features/login/page/login_screen.dart';
+import 'package:runway/features/password_reset/page/request_password_reset_screen.dart';
+import 'package:runway/features/password_reset/page/password_reset_screen.dart';
 import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import 'package:runway/features/profile/page/app_information_screen.dart';
 import 'package:runway/home_temp_screen.dart';
-import '../features/register/page/register_temp_screen.dart';
+import '../features/register/page/register_screen.dart';
 import 'package:runway/features/profile/page/profile_screen.dart';
 import '../features/password_change/page/password_change_screen.dart';
 import '../features/profile/page/update_profile_screen.dart';
@@ -26,11 +26,8 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/login',
     routes: [
-      GoRoute(
-        path: '/register',
-        builder: (context, state) => RegisterTempScreen(),
-      ),
-      GoRoute(path: '/login', builder: (context, state) => LoginTempScreen()),
+      GoRoute(path: '/register', builder: (context, state) => RegisterScreen()),
+      GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
       GoRoute(path: '/profile', builder: (context, state) => ProfileScreen()),
       GoRoute(
         path: '/profile/update',
@@ -43,11 +40,11 @@ class AppRouter {
       GoRoute(path: '/logout', builder: (context, state) => LogoutTempScreen()),
       GoRoute(
         path: '/reset-password',
-        builder: (context, state) => RequestPasswordResetTempScreen(),
+        builder: (context, state) => RequestPasswordResetScreen(),
       ),
       GoRoute(
         path: '/reset-password/new',
-        builder: (context, state) => PasswordResetTempScreen(),
+        builder: (context, state) => PasswordResetScreen(),
       ),
       GoRoute(
         path: '/simulation',
