@@ -156,7 +156,7 @@ class RegisterScreen extends ConsumerWidget {
                 ),
 
                 decoration: InputDecoration(
-                  labelText: '비밀번호',
+                  labelText: '비밀번호 확인',
 
                   labelStyle: AppTypography.body.m.copyWith(
                     color: AppColors.natural.textColors.secondary,
