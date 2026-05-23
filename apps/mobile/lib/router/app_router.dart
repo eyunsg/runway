@@ -6,7 +6,7 @@ import 'package:runway/features/password_reset/page/password_reset_temp_screen.d
 import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import 'package:runway/features/profile/page/app_information_screen.dart';
 import 'package:runway/home_temp_screen.dart';
-import '../features/register/page/register_temp_screen.dart';
+import '../features/register/page/register_screen.dart';
 import 'package:runway/features/profile/page/profile_screen.dart';
 import '../features/password_change/page/password_change_screen.dart';
 import '../features/profile/page/update_profile_screen.dart';
@@ -26,10 +26,7 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/login',
     routes: [
-      GoRoute(
-        path: '/register',
-        builder: (context, state) => RegisterTempScreen(),
-      ),
+      GoRoute(path: '/register', builder: (context, state) => RegisterScreen()),
       GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
       GoRoute(path: '/profile', builder: (context, state) => ProfileScreen()),
       GoRoute(
