@@ -2,7 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:runway/features/login/page/login_screen.dart';
 import 'package:runway/features/password_reset/page/request_password_reset_screen.dart';
-import 'package:runway/features/password_reset/page/password_reset_temp_screen.dart';
+import 'package:runway/features/password_reset/page/password_reset_screen.dart';
 import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import 'package:runway/features/profile/page/app_information_screen.dart';
 import 'package:runway/home_temp_screen.dart';
@@ -44,7 +44,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/reset-password/new',
-        builder: (context, state) => PasswordResetTempScreen(),
+        builder: (context, state) => PasswordResetScreen(),
       ),
       GoRoute(
         path: '/simulation',
