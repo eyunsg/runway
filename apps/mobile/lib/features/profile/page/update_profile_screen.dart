@@ -4,6 +4,7 @@ import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 import 'package:runway/shared/widgets/avatar.dart';
 import 'package:runway/shared/widgets/button.dart';
+import 'package:runway/shared/widgets/dialog.dart';
 
 import '../types/profile_state.dart';
 import 'package:runway/core/providers.dart';
@@ -214,9 +215,33 @@ class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
                         text: '회원탈퇴',
                         variant: ButtonVariant.danger,
                         onPressed: () {
-                          ref
-                              .read(deleteProfileControllerProvider.notifier)
-                              .deleteProfile();
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Dialog(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                                child: AppDialog(
+                                  title: '회원탈퇴 하시겠습니까?',
+                                  description: '탈퇴 시 회원 정보 및 이용 기록이 모두 삭제됩니다.',
+                                  secondaryButtonText: '취소',
+                                  primaryButtonText: '탈퇴',
+                                  onSecondaryPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  onPrimaryPressed: () {
+                                    Navigator.of(context).pop();
+                                    ref
+                                        .read(
+                                          deleteProfileControllerProvider
+                                              .notifier,
+                                        )
+                                        .deleteProfile();
+                                  },
+                                ),
+                              );
+                            },
+                          );
                         },
                       ),
                     ],

@@ -5,7 +5,7 @@ import 'package:runway/features/password_reset/page/request_password_reset_scree
 import 'package:runway/features/password_reset/page/password_reset_screen.dart';
 import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import 'package:runway/features/profile/page/app_information_screen.dart';
-import 'package:runway/home_temp_screen.dart';
+import 'package:runway/features/home/page/home_screen.dart';
 import '../features/register/page/register_screen.dart';
 import 'package:runway/features/profile/page/profile_screen.dart';
 import '../features/password_change/page/password_change_screen.dart';
@@ -115,10 +115,7 @@ class AppRouter {
           return GetPostDetailTempScreen(postId: postId);
         },
       ),
-      GoRoute(
-        path: '/devhome',
-        builder: (context, state) => const HomeTempScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/app-info',
         builder: (context, state) => const AppInformationScreen(),
