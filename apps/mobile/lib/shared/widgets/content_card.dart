@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
-import 'package:runway/shared/widgets/avator.dart';
+import 'package:runway/shared/widgets/avatar.dart';
 
 //제출예정
 class ContentPortfolioData {

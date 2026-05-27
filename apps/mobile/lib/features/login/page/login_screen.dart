@@ -20,7 +20,7 @@ class LoginScreen extends ConsumerWidget {
 
     ref.listen(loginControllerProvider, (prev, next) {
       if (next.status == AsyncStatus.success) {
-        context.go('/devhome');
+        context.go('/home');
       }
 
       if (next.status == AsyncStatus.error && next.error != null) {

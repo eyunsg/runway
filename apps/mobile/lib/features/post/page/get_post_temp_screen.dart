@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
+import 'package:runway/core/theme/app_colors.dart';
+import 'package:runway/core/theme/app_typography.dart';
 import 'package:runway/features/post/model/post.dart';
+import 'package:runway/shared/widgets/content_card.dart';
+import 'package:runway/shared/widgets/post_composer_trigger.dart';
 
 class GetPostTempScreen extends ConsumerStatefulWidget {
   const GetPostTempScreen({super.key});
@@ -26,32 +30,65 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
     final state = ref.watch(getPostControllerProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.natural.backgroundColors.primary,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-              return;
-            }
-            Navigator.of(context).maybePop();
-          },
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+        backgroundColor: AppColors.natural.backgroundColors.primary,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          // 터치 영역을 40x40으로 확실하게 확보하기 위해 SizedBox를 최외각으로 배치
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: GestureDetector(
+              onTap: () {
+                context.pop();
+              },
+              child: Center(
+                child: Image.asset(
+                  'icons/arrow_left.png',
+                  width: 20,
+                  height: 20,
+                ),
+              ),
+            ),
+          ),
         ),
-        title: const Text('커뮤니티'),
         centerTitle: true,
+        title: Text(
+          '커뮤니티',
+          style: AppTypography.heading.h4.copyWith(
+            color: AppColors.natural.textColors.primary,
+          ),
+        ),
         actions: [
-          TextButton(
-            onPressed: () {
-              context.push('/post/get/me');
-            },
-            child: const Text('내 게시물'),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: GestureDetector(
+              onTap: () {
+                context.go('/post/get/me');
+              },
+              child: Text(
+                "내 게시물",
+                style: AppTypography.action.m.copyWith(
+                  color: AppColors.natural.textColors.secondary,
+                ),
+              ),
+            ),
           ),
         ],
       ),
-      body: Column(
+      body: Column(children: [Expanded(child: _buildBody(state))]),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(child: _buildBody(state)),
-          _buildBottomInputArea(),
+          Container(height: 0.5, color: AppColors.natural.textColors.disabled),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: PostComposerTrigger(
+              onTap: () => context.push('/post/create'),
+            ),
+          ),
         ],
       ),
     );
@@ -102,121 +139,35 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
         final post = posts[index];
         return _buildPostItem(post: post);
       },
-      separatorBuilder: (context, index) => const Divider(height: 1),
+      separatorBuilder: (context, index) =>
+          Divider(color: AppColors.natural.textColors.disabled, thickness: 0.5),
     );
   }
 
-  // 게시글 기본 아이템 구성
   Widget _buildPostItem({required Post post}) {
     final hasPortfolio = post.portfolioName.trim().isNotEmpty;
 
-    return InkWell(
-      onTap: () {
-        context.push('/post/get/detail/${post.postId}');
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const CircleAvatar(child: Icon(Icons.person)),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post.authorDisplayName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      _formatDate(post.createdAt),
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            Text(post.content),
-
-            if (hasPortfolio) ...[
-              const SizedBox(height: 12),
-              _buildPortfolioCard(post: post),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 중앙 포트폴리오 카드 위젯
-  Widget _buildPortfolioCard({required Post post}) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.blueGrey.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                post.portfolioName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '자산 ${post.assetCount}개 · 투자 기간 ${_formatInvestmentPeriod(post.investmentPeriodMonths)}',
-                style: const TextStyle(fontSize: 12),
-              ),
-            ],
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16),
-        ],
-      ),
-    );
-  }
-
-  // 하단 입력 창 영역
-  Widget _buildBottomInputArea() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                context.push('/post/create');
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  '무슨 생각을 하고 있나요?',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            ),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: AppContentCard(
+        displayName: post.authorDisplayName,
+        dateText: _formatDate(post.createdAt),
+        content: post.content,
+        onTap: () {
+          context.push('/post/get/detail/${post.postId}');
+        },
+        portfolioData: hasPortfolio
+            ? ContentPortfolioData(
+                title: post.portfolioName,
+                subtitle:
+                    '자산 ${post.assetCount}개 · 투자 기간 ${_formatInvestmentPeriod(post.investmentPeriodMonths)}',
+              )
+            : null,
+        onPortfolioTap: hasPortfolio
+            ? () {
+                context.push('/post/get/detail/${post.postId}');
+              }
+            : null,
       ),
     );
   }
