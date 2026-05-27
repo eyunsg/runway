@@ -3,7 +3,6 @@ import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 import 'package:runway/shared/widgets/avatar.dart';
 
-//제출예정
 class ContentPortfolioData {
   final String title;
   final String subtitle;
@@ -21,6 +20,8 @@ class AppContentCard extends StatelessWidget {
   final ContentPortfolioData? portfolioData;
   final VoidCallback? onPortfolioTap;
 
+  final IconSize avatarSize;
+
   const AppContentCard({
     super.key,
     required this.displayName,
@@ -31,6 +32,7 @@ class AppContentCard extends StatelessWidget {
     this.onMoreTap,
     this.portfolioData,
     this.onPortfolioTap,
+    this.avatarSize = IconSize.s,
   });
 
   static const double _headerBodyGap = 8;
@@ -47,6 +49,7 @@ class AppContentCard extends StatelessWidget {
           dateText: dateText,
           showMoreAction: showMoreAction,
           onMoreTap: onMoreTap,
+          avatarSize: avatarSize,
         ),
         const SizedBox(height: _headerBodyGap),
         _ContentCardBody(content: content),
@@ -85,11 +88,14 @@ class _ContentCardHeader extends StatelessWidget {
   final bool showMoreAction;
   final VoidCallback? onMoreTap;
 
+  final IconSize avatarSize;
+
   const _ContentCardHeader({
     required this.displayName,
     required this.dateText,
     required this.showMoreAction,
     required this.onMoreTap,
+    required this.avatarSize,
   });
 
   static const double _avatarTextGap = 16;
@@ -101,36 +107,33 @@ class _ContentCardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Avatar(size: IconSize.s),
+        Avatar(size: avatarSize),
         const SizedBox(width: _avatarTextGap),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 1.5),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.heading.h4.copyWith(
-                    color: AppColors.natural.textColors.primary,
-                  ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.heading.h4.copyWith(
+                  color: AppColors.natural.textColors.primary,
                 ),
-                const SizedBox(height: _nameDateGap),
-                Text(
-                  dateText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.body.s.copyWith(
-                    color: AppColors.natural.textColors.secondary,
-                  ),
+              ),
+              const SizedBox(height: _nameDateGap),
+              Text(
+                dateText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.body.s.copyWith(
+                  color: AppColors.natural.textColors.secondary,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         if (showMoreAction) ...[

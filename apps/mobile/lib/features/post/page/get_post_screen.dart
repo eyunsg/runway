@@ -8,14 +8,14 @@ import 'package:runway/features/post/model/post.dart';
 import 'package:runway/shared/widgets/content_card.dart';
 import 'package:runway/shared/widgets/post_composer_trigger.dart';
 
-class GetPostTempScreen extends ConsumerStatefulWidget {
-  const GetPostTempScreen({super.key});
+class GetPostScreen extends ConsumerStatefulWidget {
+  const GetPostScreen({super.key});
 
   @override
-  ConsumerState<GetPostTempScreen> createState() => _GetPostTempScreenState();
+  ConsumerState<GetPostScreen> createState() => _GetPostScreenState();
 }
 
-class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
+class _GetPostScreenState extends ConsumerState<GetPostScreen> {
   @override
   void initState() {
     super.initState();
@@ -96,7 +96,9 @@ class _GetPostTempScreenState extends ConsumerState<GetPostTempScreen> {
 
   Widget _buildBody(dynamic state) {
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(color: AppColors.highlight.light),
+      );
     }
 
     if (state.error != null) {
