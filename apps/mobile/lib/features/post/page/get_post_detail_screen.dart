@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
 import 'package:runway/core/theme/app_colors.dart';
+import 'package:runway/core/theme/app_typography.dart';
 import 'package:runway/features/comment/model/comment.dart';
 import 'package:runway/features/post/model/post.dart';
 import 'package:runway/features/post/types/create_comment_state.dart';
@@ -235,7 +236,7 @@ class _GetPostDetailScreenState extends ConsumerState<GetPostDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       children: [
         _buildPostItem(post: post),
-        const Divider(height: 1),
+        Divider(color: AppColors.natural.textColors.disabled, thickness: 0.5),
         _buildCommentSection(deleteCommentState),
       ],
     );
@@ -316,9 +317,17 @@ class _GetPostDetailScreenState extends ConsumerState<GetPostDetailScreen> {
     final comments = commentState.comments;
 
     if (comments.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 24.0),
-        child: Center(child: Text('댓글이 없습니다.')),
+        child: Center(
+          child: Text(
+            '댓글이 없습니다.',
+            textAlign: TextAlign.center,
+            style: AppTypography.body.s.copyWith(
+              color: AppColors.natural.textColors.primary,
+            ),
+          ),
+        ),
       );
     }
 

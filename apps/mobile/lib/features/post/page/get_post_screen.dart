@@ -36,7 +36,6 @@ class _GetPostScreenState extends ConsumerState<GetPostScreen> {
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
-          // 터치 영역을 40x40으로 확실하게 확보하기 위해 SizedBox를 최외각으로 배치
           child: SizedBox(
             width: 40,
             height: 40,
