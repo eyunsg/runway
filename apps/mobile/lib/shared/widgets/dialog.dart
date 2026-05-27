@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
-import './button.dart';
+import 'button.dart';
 
 /// - 타이틀, 설명, 2개의 액션 버튼으로 구성된 공통 Dialog 위젯입니다.
 /// ```dart
