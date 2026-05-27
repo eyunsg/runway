@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
+import 'button.dart';
 
 class AppTargetInputCard extends StatelessWidget {
   final TextEditingController? targetAgeController;
@@ -56,8 +57,8 @@ class AppAssetInputCard extends StatefulWidget {
   final List<String> assetTypeOptions;
   final List<String> dividendCycleOptions;
 
-  final ValueChanged<String>? onAssetTypeChanged;
-  final ValueChanged<String>? onDividendCycleChanged;
+  final ValueChanged<String?>? onAssetTypeChanged;
+  final ValueChanged<String?>? onDividendCycleChanged;
   final VoidCallback? onRemoveTap;
 
   final bool initialIsDividendAsset;
@@ -73,8 +74,8 @@ class AppAssetInputCard extends StatefulWidget {
     this.dividendGrowthRateController,
     this.selectedAssetType,
     this.selectedDividendCycle,
-    this.assetTypeOptions = const ['국내주식', '미국주식', 'ETF'],
-    this.dividendCycleOptions = const ['월배당', '분기배당', '반기배당', '연배당'],
+    required this.assetTypeOptions,
+    required this.dividendCycleOptions,
     this.onAssetTypeChanged,
     this.onDividendCycleChanged,
     this.onRemoveTap,
@@ -136,9 +137,7 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
             options: widget.assetTypeOptions,
             onChanged: (value) {
               setState(() => _assetType = value);
-              if (value != null) {
-                widget.onAssetTypeChanged?.call(value);
-              }
+              widget.onAssetTypeChanged?.call(value);
             },
           ),
           const SizedBox(height: 16),
@@ -177,9 +176,7 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
               isDividendReinvestment: _isDividendReinvestment,
               onDividendCycleChanged: (value) {
                 setState(() => _dividendCycle = value);
-                if (value != null) {
-                  widget.onDividendCycleChanged?.call(value);
-                }
+                widget.onDividendCycleChanged?.call(value);
               },
               onDividendReinvestmentChanged: (value) {
                 setState(() => _isDividendReinvestment = value);
@@ -358,29 +355,10 @@ class _InputCardBottomAction extends StatelessWidget {
     return SizedBox(
       height: 40,
       width: double.infinity,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.error, width: 1),
-            ),
-            child: Center(
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: AppColors.highlight.light,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Icon(Icons.close, size: 12, color: AppColors.error),
-              ),
-            ),
-          ),
-        ),
+      child: AppButton(
+        text: 'X',
+        variant: ButtonVariant.danger,
+        onPressed: onTap ?? () {},
       ),
     );
   }
@@ -512,45 +490,6 @@ class _DividendSection extends StatelessWidget {
           onChanged: onDividendReinvestmentChanged,
         ),
       ],
-    );
-  }
-}
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: AppColors.natural.backgroundColors.primary,
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 375),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AppTargetInputCard(),
-                      const SizedBox(height: 20),
-                      AppAssetInputCard(),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
