@@ -12,6 +12,135 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../helpers/test_setup.dart';
 import '../helpers/test_utils.dart';
 
+const _pollingInterval = Duration(milliseconds: 200);
+const _defaultPollingTimeout = Duration(seconds: 5);
+
+typedef _CreateAndLoginUser =
+    Future<({String email, String userId})> Function({
+      required String displayName,
+    });
+typedef _CreatePortfolio = Future<String> Function({required String userId});
+typedef _CreatePost = Future<String> Function({required String portfolioId});
+
+String _uniqueDisplayName(String prefix) {
+  return '$prefix-${DateTime.now().microsecondsSinceEpoch}';
+}
+
+Future<void> _waitUntilFound({
+  required Future<Object?> Function() query,
+  required String timeoutMessage,
+  Duration timeout = _defaultPollingTimeout,
+}) async {
+  final startedAt = DateTime.now();
+
+  while (DateTime.now().difference(startedAt) < timeout) {
+    final row = await query();
+    if (row != null) return;
+
+    await Future<void>.delayed(_pollingInterval);
+  }
+
+  throw Exception(timeoutMessage);
+}
+
+Future<void> _waitUntilProfileExists(
+  SupabaseClient adminClient, {
+  required String userId,
+  Duration timeout = _defaultPollingTimeout,
+}) {
+  return _waitUntilFound(
+    timeout: timeout,
+    timeoutMessage: 'Timed out waiting for profile row. userId=$userId',
+    query: () => adminClient
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle(),
+  );
+}
+
+Future<void> _waitUntilPortfolioExists(
+  SupabaseClient client, {
+  required String portfolioId,
+  required String userId,
+  Duration timeout = _defaultPollingTimeout,
+}) {
+  return _waitUntilFound(
+    timeout: timeout,
+    timeoutMessage:
+        'Timed out waiting for portfolio row. portfolioId=$portfolioId userId=$userId',
+    query: () => client
+        .from('portfolios')
+        .select('id')
+        .eq('id', portfolioId)
+        .eq('user_id', userId)
+        .maybeSingle(),
+  );
+}
+
+Future<void> _waitUntilPostExists(
+  SupabaseClient client, {
+  required String postId,
+  Duration timeout = _defaultPollingTimeout,
+}) {
+  return _waitUntilFound(
+    timeout: timeout,
+    timeoutMessage: 'Timed out waiting for post row. postId=$postId',
+    query: () =>
+        client.from('posts').select('id').eq('id', postId).maybeSingle(),
+  );
+}
+
+Future<({String email, String userId})> _createAndLoginUserStable({
+  required SupabaseClient adminClient,
+  required _CreateAndLoginUser createAndLoginUser,
+  required String displayName,
+}) async {
+  final user = await createAndLoginUser(displayName: displayName);
+
+  await _waitUntilProfileExists(adminClient, userId: user.userId);
+
+  return user;
+}
+
+Future<String> _createPortfolioStable({
+  required SupabaseClient client,
+  required SupabaseClient adminClient,
+  required _CreatePortfolio createPortfolio,
+  required String userId,
+}) async {
+  await _waitUntilProfileExists(adminClient, userId: userId);
+
+  final portfolioId = await createPortfolio(userId: userId);
+
+  await _waitUntilPortfolioExists(
+    client,
+    portfolioId: portfolioId,
+    userId: userId,
+  );
+
+  return portfolioId;
+}
+
+Future<String> _createPostStable({
+  required SupabaseClient client,
+  required _CreatePost createPost,
+  required String portfolioId,
+  required String userId,
+}) async {
+  await _waitUntilPortfolioExists(
+    client,
+    portfolioId: portfolioId,
+    userId: userId,
+  );
+
+  final postId = await createPost(portfolioId: portfolioId);
+
+  await _waitUntilPostExists(client, postId: postId);
+
+  return postId;
+}
+
 void main() {
   late SupabaseClient client;
   late SupabaseClient adminClient;
@@ -221,11 +350,25 @@ void main() {
 
   group('Community Post', () {
     test('게시글 생성 후 목록 조회에 포함된다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
+      final user = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: user.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: user.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: user.userId,
+      );
 
       final getPostsRes = await client.functions.invoke(
         'posts',
@@ -242,11 +385,25 @@ void main() {
     });
 
     test('생성한 게시글은 내 게시글 목록에 포함된다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
+      final user = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: user.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: user.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: user.userId,
+      );
 
       final myPostsRes = await client.functions.invoke(
         'posts/me',
@@ -263,11 +420,25 @@ void main() {
     });
 
     test('게시글 상세 조회 시 snapshot 정보가 포함된다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
+      final user = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: user.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: user.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: user.userId,
+      );
 
       final detailRes = await client.functions.invoke(
         'posts/$postId',
@@ -287,15 +458,33 @@ void main() {
     });
 
     test('다른 사용자는 타인의 게시글을 삭제할 수 없다', () async {
-      final userA = await createAndLoginUser(displayName: 'communityUserA');
+      final userA = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: userA.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: userA.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: userA.userId,
+      );
 
       await client.auth.signOut();
 
-      final userB = await createAndLoginUser(displayName: 'communityUserB');
+      final userB = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserB'),
+      );
 
       expect(userB.userId != userA.userId, true);
 
@@ -311,11 +500,25 @@ void main() {
 
   group('Community Comment', () {
     test('댓글 생성 시 commentCount가 증가한다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
+      final user = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: user.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: user.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: user.userId,
+      );
 
       await createComment(postId: postId);
 
@@ -334,11 +537,25 @@ void main() {
     });
 
     test('댓글 생성 후 목록 조회에 포함된다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
+      final user = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: user.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: user.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: user.userId,
+      );
 
       final commentId = await createComment(postId: postId);
 
@@ -357,17 +574,35 @@ void main() {
     });
 
     test('다른 사용자는 타인의 댓글을 삭제할 수 없다', () async {
-      final userA = await createAndLoginUser(displayName: 'communityUserA');
+      final userA = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: userA.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: userA.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: userA.userId,
+      );
 
       final commentId = await createComment(postId: postId);
 
       await client.auth.signOut();
 
-      final userB = await createAndLoginUser(displayName: 'communityUserB');
+      final userB = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserB'),
+      );
 
       expect(userB.userId != userA.userId, true);
 
@@ -383,11 +618,25 @@ void main() {
     });
 
     test('작성자는 자신의 댓글을 soft delete 할 수 있다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
+      final user = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: user.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: user.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: user.userId,
+      );
 
       final commentId = await createComment(postId: postId);
 
@@ -410,11 +659,25 @@ void main() {
     });
 
     test('댓글 삭제 시 commentCount가 감소한다', () async {
-      final user = await createAndLoginUser(displayName: 'communityUserA');
+      final user = await _createAndLoginUserStable(
+        adminClient: adminClient,
+        createAndLoginUser: createAndLoginUser,
+        displayName: _uniqueDisplayName('communityUserA'),
+      );
 
-      final portfolioId = await createPortfolio(userId: user.userId);
+      final portfolioId = await _createPortfolioStable(
+        client: client,
+        adminClient: adminClient,
+        createPortfolio: createPortfolio,
+        userId: user.userId,
+      );
 
-      final postId = await createPost(portfolioId: portfolioId);
+      final postId = await _createPostStable(
+        client: client,
+        createPost: createPost,
+        portfolioId: portfolioId,
+        userId: user.userId,
+      );
 
       final commentId = await createComment(postId: postId);
 
