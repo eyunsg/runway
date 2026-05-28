@@ -27,6 +27,16 @@ class GetPortfolioDetailTempScreen extends ConsumerStatefulWidget {
 
 class _GetPortfolioDetailTempScreenState
     extends ConsumerState<GetPortfolioDetailTempScreen> {
+  String _providerKey() {
+    final snapshotId = (widget.portfolioSnapshotId ?? '').trim();
+
+    if (snapshotId.isNotEmpty) {
+      return 'snapshot:$snapshotId';
+    }
+
+    return 'portfolio:${widget.portfolioId!}';
+  }
+
   // 포트폴리오 삭제 다이얼로그
   Future<void> _onDeletePressed() async {
     final String? portfolioId = widget.portfolioId;
@@ -69,21 +79,25 @@ class _GetPortfolioDetailTempScreenState
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.microtask(() {
+      if (!mounted) return;
+
       final controller = ref.read(
-        getPortfolioDetailControllerProvider.notifier,
+        getPortfolioDetailControllerProvider(_providerKey()).notifier,
       );
       final String snapshotId = (widget.portfolioSnapshotId ?? '').trim();
 
       if (snapshotId.isNotEmpty) {
         controller.getPortfolioSnapshotDetail(snapshotId);
-        return;
+      } else {
+        controller.getPortfolioDetail(widget.portfolioId!);
       }
-
-      controller.getPortfolioDetail(widget.portfolioId!);
     });
 
-    ref.listenManual(getPortfolioDetailControllerProvider, (previous, next) {
+    ref.listenManual(getPortfolioDetailControllerProvider(_providerKey()), (
+      previous,
+      next,
+    ) {
       final hasNewError = previous?.error != next.error && next.error != null;
 
       if (hasNewError && mounted) {
@@ -116,7 +130,9 @@ class _GetPortfolioDetailTempScreenState
 
   @override
   Widget build(BuildContext context) {
-    final detailState = ref.watch(getPortfolioDetailControllerProvider);
+    final detailState = ref.watch(
+      getPortfolioDetailControllerProvider(_providerKey()),
+    );
     final bool isSnapshotDetail = widget.portfolioId == null;
     final bool canDelete = widget.portfolioId != null && !isSnapshotDetail;
     final bool canEditAssets = !isSnapshotDetail;

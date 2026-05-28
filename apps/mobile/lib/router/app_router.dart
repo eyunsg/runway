@@ -11,7 +11,7 @@ import 'package:runway/features/profile/page/profile_screen.dart';
 import '../features/password_change/page/password_change_screen.dart';
 import '../features/profile/page/update_profile_screen.dart';
 import '../features/simulation/page/simulation_temp_screen.dart';
-import '../features/portfolio/page/get_portfolio_temp_screen.dart';
+import '../features/portfolio/page/get_portfolio_screen.dart';
 import '../features/portfolio/page/create_portfolio_temp_screen.dart';
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
@@ -57,7 +57,7 @@ class AppRouter {
               ? state.extra as bool
               : false;
 
-          return GetPortfolioTempScreen(isSelectionMode: isSelectionMode);
+          return GetPortfolioScreen(isSelectionMode: isSelectionMode);
         },
       ),
       GoRoute(

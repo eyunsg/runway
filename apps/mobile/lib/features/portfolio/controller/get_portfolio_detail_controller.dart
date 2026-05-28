@@ -13,7 +13,12 @@ class GetPortfolioDetailController
   Future<void> getPortfolioDetail(String portfolioId) async {
     if (state.isLoading) return;
 
-    state = state.copyWith(isLoading: true, isSuccess: false, clearError: true);
+    state = state.copyWith(
+      isLoading: true,
+      isSuccess: false,
+      clearError: true,
+      portfolioDetail: null,
+    );
 
     final result = await useCase.execute(portfolioId: portfolioId);
 
@@ -46,7 +51,12 @@ class GetPortfolioDetailController
   Future<void> getPortfolioSnapshotDetail(String portfolioSnapshotId) async {
     if (state.isLoading) return;
 
-    state = state.copyWith(isLoading: true, isSuccess: false, clearError: true);
+    state = state.copyWith(
+      isLoading: true,
+      isSuccess: false,
+      clearError: true,
+      portfolioDetail: null,
+    );
 
     final result = await useCase.executeBySnapshotId(
       portfolioSnapshotId: portfolioSnapshotId,
