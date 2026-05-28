@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 
-enum ButtonVariant { primary, secondary, danger }
+enum ButtonVariant { primary, secondary, danger, disabled }
 
 class AppButton extends StatelessWidget {
   final String text;
@@ -24,6 +24,8 @@ class AppButton extends StatelessWidget {
         return Colors.transparent;
       case ButtonVariant.danger:
         return Colors.transparent;
+      case ButtonVariant.disabled:
+        return Colors.transparent;
     }
   }
 
@@ -35,6 +37,11 @@ class AppButton extends StatelessWidget {
         return BorderSide(color: AppColors.highlight.light, width: 1.5);
       case ButtonVariant.danger:
         return BorderSide(color: AppColors.error, width: 1.5);
+      case ButtonVariant.disabled:
+        return BorderSide(
+          color: AppColors.natural.textColors.disabled,
+          width: 1.5,
+        );
     }
   }
 
@@ -46,6 +53,8 @@ class AppButton extends StatelessWidget {
         return AppColors.highlight.light;
       case ButtonVariant.danger:
         return AppColors.error;
+      case ButtonVariant.disabled:
+        return AppColors.natural.textColors.disabled;
     }
   }
 

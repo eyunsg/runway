@@ -18,7 +18,7 @@ import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
 import '../features/post/page/create_post_screen.dart';
 import '../features/post/page/get_my_post_temp_screen.dart';
 import '../features/post/page/get_post_screen.dart';
-import '../features/post/page/update_post_temp_screen.dart';
+import '../features/post/page/update_post_screen.dart';
 import 'package:runway/features/post/model/post.dart';
 import '../features/post/page/get_post_detail_screen.dart';
 
@@ -105,7 +105,7 @@ class AppRouter {
         path: '/post/update',
         builder: (context, state) {
           final Post post = state.extra as Post;
-          return UpdatePostTempScreen(post: post);
+          return UpdatePostScreen(post: post);
         },
       ),
       GoRoute(
