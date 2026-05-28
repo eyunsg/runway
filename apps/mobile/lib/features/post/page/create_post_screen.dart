@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
+import 'package:runway/core/theme/app_colors.dart';
+import 'package:runway/core/theme/app_typography.dart';
 import 'package:runway/domain/entity/portfolio.dart';
 import 'package:runway/features/post/model/create_post_selected_portfolio.dart';
 import 'package:runway/features/post/controller/create_post_controller.dart';
+import 'package:runway/shared/widgets/button.dart';
 
-class CreatePostTempScreen extends ConsumerStatefulWidget {
-  const CreatePostTempScreen({super.key});
+class CreatePostScreen extends ConsumerStatefulWidget {
+  const CreatePostScreen({super.key});
 
   @override
-  ConsumerState<CreatePostTempScreen> createState() => _CreatePostPageState();
+  ConsumerState<CreatePostScreen> createState() => _CreatePostPageState();
 }
 
-class _CreatePostPageState extends ConsumerState<CreatePostTempScreen> {
+class _CreatePostPageState extends ConsumerState<CreatePostScreen> {
   late final TextEditingController _contentController;
   late final CreatePostController _createPostController;
   bool _isSyncingFromState = false;
@@ -73,49 +76,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostTempScreen> {
         .selectPortfolio(createPostSelectedPortfolio);
   }
 
-  Future<void> _showPortfolioEditDialog() async {
-    final String? action = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('포트폴리오 설정'),
-          content: const Text('포트폴리오를 변경하거나 삭제할 수 있어요.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop('delete');
-              },
-              child: const Text('삭제'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop('change');
-              },
-              child: const Text('변경'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('취소'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (!mounted) return;
-
-    if (action == 'change') {
-      await _navigateToPortfolioSelection();
-      return;
-    }
-
-    if (action == 'delete') {
-      ref.read(createPostControllerProvider.notifier).clearSelectedPortfolio();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final createPostState = ref.watch(createPostControllerProvider);
@@ -147,22 +107,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostTempScreen> {
         });
       }
 
-      final bool shouldShowDeletedMessage =
-          previousState?.shouldShowPortfolioDeletedMessage !=
-              nextState.shouldShowPortfolioDeletedMessage &&
-          nextState.shouldShowPortfolioDeletedMessage;
-
-      if (shouldShowDeletedMessage) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('포트폴리오 태그가 삭제되었어요.')));
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          createPostController.clearDeletedMessage();
-        });
-      }
-
       final bool hasNewSuccess =
           previousState?.isSuccess != nextState.isSuccess &&
           nextState.isSuccess;
@@ -170,7 +114,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostTempScreen> {
       if (hasNewSuccess) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('게시글이 등록되었습니다.')));
+        ).showSnackBar(const SnackBar(content: Text('게시물이 등록되었습니다.')));
 
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
@@ -186,33 +130,53 @@ class _CreatePostPageState extends ConsumerState<CreatePostTempScreen> {
     });
 
     return Scaffold(
+      backgroundColor: AppColors.natural.backgroundColors.primary,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            final didPop = await Navigator.of(context).maybePop();
-
-            if (!didPop) return;
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(createPostControllerProvider.notifier).reset();
-            });
-          },
+        backgroundColor: AppColors.natural.backgroundColors.primary,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: GestureDetector(
+              onTap: () {
+                context.pop();
+              },
+              child: Center(
+                child: Image.asset(
+                  'icons/arrow_left.png',
+                  width: 20,
+                  height: 20,
+                ),
+              ),
+            ),
+          ),
         ),
         actions: [
-          TextButton(
-            onPressed: createPostState.isSubmitting
-                ? null
-                : () async {
-                    await createPostController.submitPost();
-                  },
-            child: createPostState.isSubmitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('남기기'),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: GestureDetector(
+              onTap: createPostState.isSubmitting
+                  ? null
+                  : () async {
+                      await createPostController.submitPost();
+                    },
+              child: Center(
+                child: createPostState.isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        "남기기",
+                        style: AppTypography.action.m.copyWith(
+                          color: AppColors.natural.textColors.secondary,
+                        ),
+                      ),
+              ),
+            ),
           ),
         ],
       ),
@@ -223,38 +187,48 @@ class _CreatePostPageState extends ConsumerState<CreatePostTempScreen> {
               controller: _contentController,
               maxLines: null,
               autofocus: true,
-              decoration: const InputDecoration(
+              style: AppTypography.body.l.copyWith(
+                color: AppColors.natural.textColors.primary,
+              ),
+              decoration: InputDecoration(
                 hintText:
                     '광고, 비난, 도배성 글을 남기면 영구적으로 활동이 제한될 수 있어요. 건강한 커뮤니티 문화를 함께 만들어가요.',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.all(16),
+                contentPadding: const EdgeInsets.all(24),
+
+                hintStyle: AppTypography.body.l.copyWith(
+                  color: AppColors.natural.textColors.secondary,
+                  height: 1.5,
+                ),
               ),
             ),
           ),
-          const Divider(height: 1),
+        ],
+      ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(height: 0.5, color: AppColors.natural.textColors.disabled),
+
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: createPostState.selectedPortfolio != null
                 ? _buildPortfolioCard(createPostState.selectedPortfolio!)
-                : _buildTagButton(),
+                : AppButton(
+                    text: '포트폴리오 태그',
+                    onPressed: _navigateToPortfolioSelection,
+                    variant: ButtonVariant.secondary,
+                  ),
           ),
         ],
       ),
     );
   }
 
-  // 포트폴리오 태그 버튼
-  Widget _buildTagButton() {
-    return OutlinedButton(
-      onPressed: _navigateToPortfolioSelection,
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 50),
-      ),
-      child: const Text('포트폴리오 태그'),
-    );
+  void _deleteSelectedPortfolio() {
+    ref.read(createPostControllerProvider.notifier).clearSelectedPortfolio();
   }
 
-  // 포트폴리오 카드, 편집 아이콘
   Widget _buildPortfolioCard(CreatePostSelectedPortfolio selectedPortfolio) {
     final String formattedInvestmentPeriod = _formatInvestmentPeriod(
       selectedPortfolio.periodMonths,
@@ -266,32 +240,58 @@ class _CreatePostPageState extends ConsumerState<CreatePostTempScreen> {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  selectedPortfolio.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+          child: GestureDetector(
+            onTap: _navigateToPortfolioSelection,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.highlight.dark,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.natural.textColors.disabled.withOpacity(0.3),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  portfolioDescription,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedPortfolio.name,
+                    style: AppTypography.heading.h4.copyWith(
+                      color: AppColors.natural.textColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    portfolioDescription,
+                    style: AppTypography.body.s.copyWith(
+                      color: AppColors.natural.textColors.secondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: _showPortfolioEditDialog,
-          icon: const Icon(Icons.edit),
+        const SizedBox(width: 10),
+        // 👇 우측 동그란 버튼은 이제 바로 '삭제' 액션을 실행하도록 변경
+        GestureDetector(
+          onTap: _deleteSelectedPortfolio,
+          child: Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.natural.textColors.disabled,
+            ),
+            child: Center(
+              child: Image.asset(
+                'icons/trash.png',
+                width: 15,
+                height: 15,
+                color: AppColors.natural.textColors.primary,
+              ),
+            ),
+          ),
         ),
       ],
     );

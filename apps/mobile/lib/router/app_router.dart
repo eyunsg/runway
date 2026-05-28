@@ -15,12 +15,12 @@ import '../features/portfolio/page/get_portfolio_temp_screen.dart';
 import '../features/portfolio/page/create_portfolio_temp_screen.dart';
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
-import '../features/post/page/create_post_temp_screen.dart';
-import '../features/post/page/get_my_post_temp_screen.dart';
-import '../features/post/page/get_post_temp_screen.dart';
-import '../features/post/page/update_post_temp_screen.dart';
+import '../features/post/page/create_post_screen.dart';
+import '../features/post/page/get_my_post_screen.dart';
+import '../features/post/page/get_post_screen.dart';
+import '../features/post/page/update_post_screen.dart';
 import 'package:runway/features/post/model/post.dart';
-import '../features/post/page/get_post_detail_temp_screen.dart';
+import '../features/post/page/get_post_detail_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -91,28 +91,28 @@ class AppRouter {
       ),
       GoRoute(
         path: '/post/create',
-        builder: (context, state) => const CreatePostTempScreen(),
+        builder: (context, state) => const CreatePostScreen(),
       ),
       GoRoute(
         path: '/post/get/me',
-        builder: (context, state) => const GetMyPostTempScreen(),
+        builder: (context, state) => const GetMyPostScreen(),
       ),
       GoRoute(
         path: '/post/get',
-        builder: (context, state) => const GetPostTempScreen(),
+        builder: (context, state) => const GetPostScreen(),
       ),
       GoRoute(
         path: '/post/update',
         builder: (context, state) {
           final Post post = state.extra as Post;
-          return UpdatePostTempScreen(post: post);
+          return UpdatePostScreen(post: post);
         },
       ),
       GoRoute(
         path: '/post/get/detail/:postId',
         builder: (context, state) {
           final String postId = state.pathParameters['postId']!;
-          return GetPostDetailTempScreen(postId: postId);
+          return GetPostDetailScreen(postId: postId);
         },
       ),
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),

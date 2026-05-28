@@ -6,62 +6,81 @@ import 'package:runway/shared/widgets/avatar.dart';
 
 class CommentInputWidget extends StatelessWidget {
   final TextEditingController controller;
-  final VoidCallback onSubmit;
+  final VoidCallback? onSubmit;
+  final bool isSubmitting;
+  final bool enabled;
 
   const CommentInputWidget({
     super.key,
     required this.controller,
     required this.onSubmit,
+    this.isSubmitting = false,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Avatar(size: IconSize.s),
-
-          const SizedBox(width: 16),
-
-          Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.highlight.dark,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      style: AppTypography.body.m.copyWith(
-                        color: AppColors.natural.textColors.primary,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: '댓글로 의견을 남겨보세요',
-                        hintStyle: AppTypography.body.m.copyWith(
-                          color: AppColors.natural.textColors.secondary,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: AppColors.natural.textColors.disabled,
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Avatar(size: IconSize.s),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.highlight.dark,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: TextField(
+                  controller: controller,
+                  minLines: 1,
+                  maxLines: 5,
+                  enabled: enabled,
+                  style: AppTypography.body.m.copyWith(
+                    color: AppColors.natural.textColors.primary,
                   ),
-
-                  const SizedBox(width: 16),
-
-                  GestureDetector(
-                    onTap: onSubmit,
+                  decoration: InputDecoration(
+                    hintText: '댓글로 의견을 남겨보세요',
+                    hintStyle: AppTypography.body.m.copyWith(
+                      color: AppColors.natural.textColors.secondary,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            isSubmitting
+                ? const SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Padding(
+                      padding: EdgeInsets.all(4.0),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: enabled ? onSubmit : null,
                     child: Container(
                       width: 30,
                       height: 30,
-                      margin: const EdgeInsets.only(right: 16),
                       decoration: BoxDecoration(
                         color: AppColors.natural.textColors.disabled,
                         shape: BoxShape.circle,
@@ -75,11 +94,8 @@ class CommentInputWidget extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
