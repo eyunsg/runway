@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 
-//제출예정
 class AppPercentileResult extends StatelessWidget {
   final String leftValue;
   final String centerValue;
@@ -15,27 +14,19 @@ class AppPercentileResult extends StatelessWidget {
     required this.rightValue,
   });
 
-  static const double _designWidth = 316;
   static const double _designHeight = 83;
   static const double _barHeight = 8;
   static const double _outerCircleSize = 20;
-  static const double _circleGap = 130;
-  static const double _circleStart = 18;
-  static const double _valueBoxWidth = 56;
+  static const double _valueBoxWidth = 62;
   static const double _valueBoxHeight = 40;
   static const double _verticalGap = 16;
+  static const double _horizontalInset = 18;
 
-  double get _leftPointCenterX => _circleStart + (_outerCircleSize / 2);
-  double get _centerPointCenterX =>
-      _circleStart + _circleGap + (_outerCircleSize / 2);
-  double get _rightPointCenterX =>
-      _circleStart + (_circleGap * 2) + (_outerCircleSize / 2);
-
-  double _valueBoxLeft(double centerX) {
+  double _valueBoxLeft({required double centerX, required double layoutWidth}) {
     final double left = centerX - (_valueBoxWidth / 2);
     if (left < 0) return 0;
-    if (left + _valueBoxWidth > _designWidth) {
-      return _designWidth - _valueBoxWidth;
+    if (left + _valueBoxWidth > layoutWidth) {
+      return layoutWidth - _valueBoxWidth;
     }
     return left;
   }
@@ -44,86 +35,94 @@ class AppPercentileResult extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double availableWidth = constraints.maxWidth.isFinite
+        final double layoutWidth = constraints.maxWidth.isFinite
             ? constraints.maxWidth
-            : _designWidth;
-        final double actualWidth = availableWidth < _designWidth
-            ? availableWidth
-            : _designWidth;
+            : 316;
+
+        final double leftCenterX = _horizontalInset + (_outerCircleSize / 2);
+        final double rightCenterX =
+            layoutWidth - _horizontalInset - (_outerCircleSize / 2);
+        final double centerX = layoutWidth / 2;
 
         return SizedBox(
-          width: actualWidth,
-          child: FittedBox(
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: _designWidth,
-              height: _designHeight,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: _designWidth,
-                    height: _outerCircleSize,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          left: _leftPointCenterX,
-                          top: (_outerCircleSize - _barHeight) / 2,
-                          child: Container(
-                            width: _rightPointCenterX - _leftPointCenterX,
-                            height: _barHeight,
-                            decoration: BoxDecoration(
-                              color: AppColors.highlight.light,
-                              borderRadius: BorderRadius.circular(
-                                _barHeight / 2,
-                              ),
-                            ),
-                          ),
+          width: layoutWidth,
+          height: _designHeight,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: layoutWidth,
+                height: _outerCircleSize,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: leftCenterX,
+                      top: (_outerCircleSize - _barHeight) / 2,
+                      child: Container(
+                        width: rightCenterX - leftCenterX,
+                        height: _barHeight,
+                        decoration: BoxDecoration(
+                          color: AppColors.highlight.light,
+                          borderRadius: BorderRadius.circular(_barHeight / 2),
                         ),
-                        Positioned(
-                          left: _circleStart,
-                          top: 0,
-                          child: const _PercentilePoint(),
-                        ),
-                        Positioned(
-                          left: _circleStart + _circleGap,
-                          top: 0,
-                          child: const _PercentilePoint(),
-                        ),
-                        Positioned(
-                          left: _circleStart + (_circleGap * 2),
-                          top: 0,
-                          child: const _PercentilePoint(),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: _verticalGap),
-                  SizedBox(
-                    width: _designWidth,
-                    height: _valueBoxHeight,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          left: _valueBoxLeft(_leftPointCenterX),
-                          child: _PercentileValueBox(value: leftValue),
-                        ),
-                        Positioned(
-                          left: _valueBoxLeft(_centerPointCenterX),
-                          child: _PercentileValueBox(value: centerValue),
-                        ),
-                        Positioned(
-                          left: _valueBoxLeft(_rightPointCenterX),
-                          child: _PercentileValueBox(value: rightValue),
-                        ),
-                      ],
+                    Positioned(
+                      left: leftCenterX - (_outerCircleSize / 2),
+                      top: 0,
+                      child: const _PercentilePoint(
+                        innerColor: AppColors.error,
+                      ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      left: centerX - (_outerCircleSize / 2),
+                      top: 0,
+                      child: _PercentilePoint(
+                        innerColor: AppColors.natural.textColors.primary,
+                      ),
+                    ),
+                    Positioned(
+                      left: rightCenterX - (_outerCircleSize / 2),
+                      top: 0,
+                      child: const _PercentilePoint(
+                        innerColor: AppColors.success,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: _verticalGap),
+              SizedBox(
+                width: layoutWidth,
+                height: _valueBoxHeight,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: _valueBoxLeft(
+                        centerX: leftCenterX,
+                        layoutWidth: layoutWidth,
+                      ),
+                      child: _PercentileValueBox(value: leftValue),
+                    ),
+                    Positioned(
+                      left: _valueBoxLeft(
+                        centerX: centerX,
+                        layoutWidth: layoutWidth,
+                      ),
+                      child: _PercentileValueBox(value: centerValue),
+                    ),
+                    Positioned(
+                      left: _valueBoxLeft(
+                        centerX: rightCenterX,
+                        layoutWidth: layoutWidth,
+                      ),
+                      child: _PercentileValueBox(value: rightValue),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -132,7 +131,9 @@ class AppPercentileResult extends StatelessWidget {
 }
 
 class _PercentilePoint extends StatelessWidget {
-  const _PercentilePoint();
+  final Color innerColor;
+
+  const _PercentilePoint({required this.innerColor});
 
   static const double _outerCircleSize = 20;
   static const double _innerCircleSize = 10;
@@ -155,7 +156,7 @@ class _PercentilePoint extends StatelessWidget {
               width: _innerCircleSize,
               height: _innerCircleSize,
               decoration: BoxDecoration(
-                color: AppColors.highlight.light,
+                color: innerColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -171,28 +172,85 @@ class _PercentileValueBox extends StatelessWidget {
 
   const _PercentileValueBox({required this.value});
 
-  static const double _width = 56;
+  static const double _width = 62;
   static const double _height = 40;
   static const double _radius = 12;
 
+  void _showValueBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.highlight.dark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.natural.textColors.secondary.withValues(
+                      alpha: 0.3,
+                    ),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  '금액',
+                  style: AppTypography.heading.h4.copyWith(
+                    color: AppColors.natural.textColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  value,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.body.m.copyWith(
+                    color: AppColors.natural.textColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: _width,
-      height: _height,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.natural.textColors.disabled,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showValueBottomSheet(context),
         borderRadius: BorderRadius.circular(_radius),
-      ),
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            maxLines: 1,
-            style: AppTypography.body.s.copyWith(
-              color: AppColors.natural.textColors.primary,
+        splashColor: AppColors.natural.textColors.primary.withValues(
+          alpha: 0.05,
+        ),
+        highlightColor: Colors.transparent,
+        child: Container(
+          width: _width,
+          height: _height,
+          padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.natural.textColors.disabled,
+            borderRadius: BorderRadius.circular(_radius),
+          ),
+          child: Center(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: AppTypography.body.s.copyWith(
+                color: AppColors.natural.textColors.primary,
+              ),
             ),
           ),
         ),

@@ -14,7 +14,7 @@ import '../features/simulation/page/simulation_temp_screen.dart';
 import '../features/portfolio/page/get_portfolio_screen.dart';
 import '../features/portfolio/page/create_portfolio_temp_screen.dart';
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
-import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
+import '../features/portfolio/page/get_portfolio_detail_screen.dart';
 import '../features/post/page/create_post_temp_screen.dart';
 import '../features/post/page/get_my_post_temp_screen.dart';
 import '../features/post/page/get_post_temp_screen.dart';
@@ -75,7 +75,7 @@ class AppRouter {
         builder: (context, state) {
           final String portfolioId = state.pathParameters['portfolioId']!;
 
-          return GetPortfolioDetailTempScreen(portfolioId: portfolioId);
+          return GetPortfolioDetailScreen(portfolioId: portfolioId);
         },
       ),
       GoRoute(
@@ -84,7 +84,7 @@ class AppRouter {
           final String portfolioSnapshotId =
               state.pathParameters['portfolioSnapshotId']!;
 
-          return GetPortfolioDetailTempScreen.snapshot(
+          return GetPortfolioDetailScreen.snapshot(
             portfolioSnapshotId: portfolioSnapshotId,
           );
         },
