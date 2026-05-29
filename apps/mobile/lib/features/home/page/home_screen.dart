@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,37 +53,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final Portfolio? portfolioItem = portfolioState.portfolio;
 
-    final bool isInitialLoading =
-        portfolioState.isLoading && portfolioItem == null;
+    String portfolioDescription = '';
 
-    final bool isEmptyState =
-        !portfolioState.isLoading &&
-        portfolioState.error == null &&
-        portfolioItem == null;
-
-    if (isInitialLoading) {
-      return Scaffold(
-        backgroundColor: AppColors.natural.backgroundColors.primary,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.highlight.light),
-        ),
+    if (portfolioItem != null) {
+      final formattedInvestmentPeriod = _formatInvestmentPeriod(
+        portfolioItem.periodMonths,
       );
+
+      portfolioDescription =
+          '자산 ${portfolioItem.assetCount}개 · 투자 기간 $formattedInvestmentPeriod';
     }
-
-    if (isEmptyState) {
-      return const Scaffold(body: Center(child: Text('조회된 포트폴리오가 없습니다.')));
-    }
-
-    if (portfolioItem == null) {
-      return const SizedBox.shrink();
-    }
-
-    final String formattedInvestmentPeriod = _formatInvestmentPeriod(
-      portfolioItem.periodMonths,
-    );
-
-    final String portfolioDescription =
-        '자산 ${portfolioItem.assetCount}개 · 투자 기간 $formattedInvestmentPeriod';
 
     final List<Post> posts = postState.posts.cast<Post>();
 
@@ -114,11 +94,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GestureDetector(
-                onTap: () {
-                  context.push('/portfolio/get/detail/${portfolioItem.id}');
-                },
-                child: Container(
+              if (portfolioState.isLoading)
+                Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(minHeight: 69),
                   padding: const EdgeInsets.symmetric(
@@ -129,46 +106,74 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     color: AppColors.highlight.dark,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              portfolioItem.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.heading.h4.copyWith(
-                                color: AppColors.natural.textColors.primary,
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.highlight.light,
+                      ),
+                    ),
+                  ),
+                )
+              else if (portfolioItem != null)
+                GestureDetector(
+                  onTap: () {
+                    context.push('/portfolio/get/detail/${portfolioItem.id}');
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(minHeight: 69),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.highlight.dark,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                portfolioItem.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.heading.h4.copyWith(
+                                  color: AppColors.natural.textColors.primary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              portfolioDescription,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTypography.body.s.copyWith(
-                                color: AppColors.natural.textColors.secondary,
+                              const SizedBox(height: 4),
+                              Text(
+                                portfolioDescription,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.body.s.copyWith(
+                                  color: AppColors.natural.textColors.secondary,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Image.asset(
-                        'assets/icons/arrow_right.png',
-                        width: 12,
-                        height: 12,
-                        color: AppColors.natural.textColors.secondary,
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Image.asset(
+                          'assets/icons/arrow_right.png',
+                          width: 12,
+                          height: 12,
+                          color: AppColors.natural.textColors.secondary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 8),
+              if (portfolioState.isLoading) const SizedBox(height: 8),
+              if (portfolioItem != null) const SizedBox(height: 8),
 
               AppButton(
                 text: '새 포트폴리오 구성하기',
@@ -224,8 +229,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               if (postState.isLoading)
                 Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.highlight.light,
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.highlight.light,
+                    ),
                   ),
                 )
               else if (postState.error != null)
@@ -236,12 +246,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 )
               else if (posts.isEmpty)
-                const Center(child: Text('게시물이 없습니다.'))
+                Center(
+                  child: Text(
+                    '게시물이 없습니다.',
+                    style: AppTypography.body.l.copyWith(
+                      color: AppColors.natural.textColors.secondary,
+                    ),
+                  ),
+                )
               else
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: posts.length > 3 ? 3 : posts.length,
+                  itemCount: math.min(posts.length, 3),
                   itemBuilder: (context, index) {
                     final post = posts[index];
                     return _buildPostItem(context, post: post);
@@ -283,39 +300,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
-  // Widget _buildPortfolioCard({required Post post}) {
-  //   return Container(
-  //     padding: const EdgeInsets.all(16.0),
-  //     decoration: BoxDecoration(
-  //       color: Colors.blueGrey.withOpacity(0.2),
-  //       borderRadius: BorderRadius.circular(12),
-  //     ),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //       children: [
-  //         Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Text(
-  //               post.portfolioName,
-  //               style: const TextStyle(fontWeight: FontWeight.bold),
-  //             ),
-
-  //             const SizedBox(height: 4),
-
-  //             Text(
-  //               '자산 ${post.assetCount}개 · 투자 기간 ${_formatInvestmentPeriodText(post.investmentPeriodMonths)}',
-  //               style: const TextStyle(fontSize: 12),
-  //             ),
-  //           ],
-  //         ),
-
-  //         const Icon(Icons.arrow_forward_ios, size: 16),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   String _formatDate(DateTime dateTime) {
     final year = dateTime.year;
