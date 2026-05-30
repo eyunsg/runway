@@ -12,7 +12,7 @@ import '../features/password_change/page/password_change_screen.dart';
 import '../features/profile/page/update_profile_screen.dart';
 import '../features/simulation/page/simulation_temp_screen.dart';
 import '../features/portfolio/page/get_portfolio_screen.dart';
-import '../features/portfolio/page/create_portfolio_temp_screen.dart';
+import '../features/portfolio/page/create_portfolio_screen.dart';
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 import '../features/portfolio/page/get_portfolio_detail_screen.dart';
 import '../features/post/page/create_post_temp_screen.dart';
@@ -65,7 +65,7 @@ class AppRouter {
         builder: (context, state) {
           final createPortfolioInput = state.extra as CreatePortfolioInput;
 
-          return CreatePortfolioTempScreen(
+          return CreatePortfolioScreen(
             createPortfolioInput: createPortfolioInput,
           );
         },

@@ -179,6 +179,7 @@ class _PercentileValueBox extends StatelessWidget {
   void _showValueBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       backgroundColor: AppColors.highlight.dark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
