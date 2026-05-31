@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
+import 'package:runway/core/theme/app_colors.dart';
+import 'package:runway/core/theme/app_typography.dart';
 import 'package:runway/features/comment/model/comment.dart';
 import 'package:runway/features/post/model/post.dart';
 import 'package:runway/features/post/types/create_comment_state.dart';
 import 'package:runway/features/comment/types/delete_comment_state.dart';
+import 'package:runway/shared/widgets/avatar.dart';
+import 'package:runway/shared/widgets/comment_input.dart';
+import 'package:runway/shared/widgets/content_card.dart';
+import 'package:runway/shared/widgets/dialog.dart';
 
-class GetPostDetailTempScreen extends ConsumerStatefulWidget {
-  const GetPostDetailTempScreen({super.key, required this.postId});
+class GetPostDetailScreen extends ConsumerStatefulWidget {
+  const GetPostDetailScreen({super.key, required this.postId});
 
   final String postId;
 
   @override
-  ConsumerState<GetPostDetailTempScreen> createState() =>
-      _GetPostDetailTempScreenState();
+  ConsumerState<GetPostDetailScreen> createState() =>
+      _GetPostDetailScreenState();
 }
 
-class _GetPostDetailTempScreenState
-    extends ConsumerState<GetPostDetailTempScreen> {
+class _GetPostDetailScreenState extends ConsumerState<GetPostDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
 
   @override
@@ -93,10 +98,6 @@ class _GetPostDetailTempScreenState
             .read(getCommentsControllerProvider.notifier)
             .fetchComments(widget.postId);
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('댓글이 등록되었습니다.')));
-
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           createCommentController.clearSuccess();
@@ -131,10 +132,6 @@ class _GetPostDetailTempScreenState
             .read(getCommentsControllerProvider.notifier)
             .fetchComments(widget.postId);
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('댓글이 삭제되었습니다.')));
-
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           deleteCommentController.clearSuccess();
@@ -142,36 +139,52 @@ class _GetPostDetailTempScreenState
       }
     });
 
-    final double keyboardInset = MediaQuery.of(context).viewInsets.bottom;
-
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        backgroundColor: AppColors.natural.backgroundColors.primary,
         appBar: AppBar(
-          leading: IconButton(
-            onPressed: () {
-              FocusManager.instance.primaryFocus?.unfocus();
-              if (context.canPop()) {
+          backgroundColor: AppColors.natural.backgroundColors.primary,
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: GestureDetector(
+              onTap: () {
                 context.pop();
-                return;
-              }
-              Navigator.of(context).maybePop();
-            },
-            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              },
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: Image.asset(
+                    'icons/arrow_left.png',
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
         body: Column(
+          children: [Expanded(child: _buildBody(state, deleteCommentState))],
+        ),
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(child: _buildBody(state, deleteCommentState)),
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.only(bottom: keyboardInset),
-              child: _buildBottomInputArea(createCommentState),
+            CommentInputWidget(
+              controller: _commentController,
+              isSubmitting: createCommentState.isSubmitting,
+              enabled: !createCommentState.isSubmitting,
+              onSubmit: () async {
+                FocusManager.instance.primaryFocus?.unfocus();
+                await ref
+                    .read(createCommentControllerProvider.notifier)
+                    .submitComment(postId: widget.postId);
+              },
             ),
           ],
         ),
@@ -223,7 +236,7 @@ class _GetPostDetailTempScreenState
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       children: [
         _buildPostItem(post: post),
-        const Divider(height: 1),
+        Divider(color: AppColors.natural.textColors.disabled, thickness: 0.5),
         _buildCommentSection(deleteCommentState),
       ],
     );
@@ -234,94 +247,30 @@ class _GetPostDetailTempScreenState
     final String portfolioSnapshotId = (post.portfolioSnapshotId ?? '').trim();
     final bool isPortfolioCardTappable = portfolioSnapshotId.isNotEmpty;
 
+    ContentPortfolioData? portfolioData;
+    if (hasPortfolioCard) {
+      portfolioData = ContentPortfolioData(
+        title: post.portfolioName,
+        subtitle:
+            '자산 ${post.assetCount}개 · 투자 기간 ${_formatInvestmentPeriod(post.investmentPeriodMonths)}',
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const CircleAvatar(child: Icon(Icons.person)),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.authorDisplayName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    _formatDate(post.createdAt),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(post.content),
-          if (hasPortfolioCard) ...[
-            const SizedBox(height: 12),
-            _buildPortfolioCard(
-              post: post,
-              isEnabled: isPortfolioCardTappable,
-              onTap: isPortfolioCardTappable
-                  ? () {
-                      context.push(
-                        '/portfolio/get/detail/snapshot/$portfolioSnapshotId',
-                      );
-                    }
-                  : null,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPortfolioCard({
-    required Post post,
-    required bool isEnabled,
-    required VoidCallback? onTap,
-  }) {
-    final BorderRadius borderRadius = BorderRadius.circular(12);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: borderRadius,
-        child: Ink(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.blueGrey.withOpacity(isEnabled ? 0.2 : 0.12),
-            borderRadius: borderRadius,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.portfolioName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '자산 ${post.assetCount}개 · 투자 기간 ${_formatInvestmentPeriod(post.investmentPeriodMonths)}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: isEnabled ? null : Colors.black26,
-              ),
-            ],
-          ),
-        ),
+      child: AppContentCard(
+        displayName: post.authorDisplayName,
+        dateText: _formatDate(post.createdAt),
+        content: post.content,
+        showMoreAction: false,
+        portfolioData: portfolioData,
+        onPortfolioTap: isPortfolioCardTappable
+            ? () {
+                context.push(
+                  '/portfolio/get/detail/snapshot/$portfolioSnapshotId',
+                );
+              }
+            : null,
       ),
     );
   }
@@ -368,9 +317,17 @@ class _GetPostDetailTempScreenState
     final comments = commentState.comments;
 
     if (comments.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 24.0),
-        child: Center(child: Text('댓글이 없습니다.')),
+        child: Center(
+          child: Text(
+            '댓글이 없습니다.',
+            textAlign: TextAlign.center,
+            style: AppTypography.body.s.copyWith(
+              color: AppColors.natural.textColors.primary,
+            ),
+          ),
+        ),
       );
     }
 
@@ -394,44 +351,17 @@ class _GetPostDetailTempScreenState
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const CircleAvatar(child: Icon(Icons.person)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      comment.authorDisplayName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      _formatDate(comment.createdAt),
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: isDeleteSubmitting
-                    ? null
-                    : () {
-                        _showDeleteCommentDialog(comment.commentId);
-                      },
-                icon: const Icon(Icons.more_horiz),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.only(left: 52.0),
-            child: Text(comment.content),
-          ),
-        ],
+      child: AppContentCard(
+        displayName: comment.authorDisplayName,
+        dateText: _formatDate(comment.createdAt),
+        content: comment.content,
+        showMoreAction: true,
+        onMoreTap: isDeleteSubmitting
+            ? null
+            : () {
+                _showDeleteCommentDialog(comment.commentId);
+              },
+        avatarSize: IconSize.xs,
       ),
     );
   }
@@ -440,22 +370,20 @@ class _GetPostDetailTempScreenState
     final bool? shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('댓글을 삭제할까요?', textAlign: TextAlign.center),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-              },
-              child: const Text('삭제'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(false);
-              },
-              child: const Text('취소'),
-            ),
-          ],
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+          child: AppDialog(
+            title: '댓글을 삭제할까요?',
+            secondaryButtonText: '삭제',
+            primaryButtonText: '취소',
+            onSecondaryPressed: () {
+              Navigator.of(dialogContext).pop(true);
+            },
+            onPrimaryPressed: () {
+              Navigator.of(dialogContext).pop(false);
+            },
+          ),
         );
       },
     );
@@ -466,66 +394,6 @@ class _GetPostDetailTempScreenState
     await ref
         .read(deleteCommentControllerProvider.notifier)
         .deleteComment(commentId: commentId);
-  }
-
-  Widget _buildBottomInputArea(CreateCommentState createCommentState) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 20)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: TextField(
-                  controller: _commentController,
-                  minLines: 1,
-                  maxLines: 5,
-
-                  enabled: !createCommentState.isSubmitting,
-                  decoration: const InputDecoration(
-                    hintText: '댓글로 의견을 남겨보세요',
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: createCommentState.isSubmitting
-                  ? null
-                  : () async {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      await ref
-                          .read(createCommentControllerProvider.notifier)
-                          .submitComment(postId: widget.postId);
-                    },
-              icon: createCommentState.isSubmitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   String _formatDate(DateTime dateTime) {

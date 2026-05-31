@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:runway/core/providers.dart';
+import 'package:runway/core/theme/app_colors.dart';
+import 'package:runway/core/theme/app_typography.dart';
 import 'package:runway/features/post/controller/update_post_controller.dart';
 import 'package:runway/features/post/model/post.dart';
+import 'package:runway/shared/widgets/button.dart';
 
-class UpdatePostTempScreen extends ConsumerStatefulWidget {
-  const UpdatePostTempScreen({super.key, required this.post});
+class UpdatePostScreen extends ConsumerStatefulWidget {
+  const UpdatePostScreen({super.key, required this.post});
 
   final Post post;
 
   @override
-  ConsumerState createState() => _UpdatePostTempScreenState();
+  ConsumerState createState() => _UpdatePostScreenState();
 }
 
-class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
+class _UpdatePostScreenState extends ConsumerState<UpdatePostScreen> {
   late final TextEditingController _contentController;
   late final UpdatePostController _updatePostController;
   bool _isSyncingFromState = false;
@@ -86,22 +89,6 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
         });
       }
 
-      final bool shouldShowDeletedMessage =
-          previousState?.shouldShowPortfolioDeletedMessage !=
-              nextState.shouldShowPortfolioDeletedMessage &&
-          nextState.shouldShowPortfolioDeletedMessage;
-
-      if (shouldShowDeletedMessage) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('포트폴리오 태그가 삭제되었어요.')));
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          updatePostController.clearDeletedMessage();
-        });
-      }
-
       final bool hasNewSuccess =
           previousState?.isSuccess != nextState.isSuccess &&
           nextState.isSuccess;
@@ -117,39 +104,59 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
           updatePostController.clearSuccess();
           ref.read(updatePostControllerProvider.notifier).reset();
 
-          context.go('/post/get/me');
+          context.pop();
         });
       }
     });
 
     return Scaffold(
+      backgroundColor: AppColors.natural.backgroundColors.primary,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            final didPop = await Navigator.of(context).maybePop();
-
-            if (!didPop) return;
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(updatePostControllerProvider.notifier).reset();
-            });
-          },
+        backgroundColor: AppColors.natural.backgroundColors.primary,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: GestureDetector(
+              onTap: () {
+                context.pop();
+              },
+              child: Center(
+                child: Image.asset(
+                  'icons/arrow_left.png',
+                  width: 20,
+                  height: 20,
+                ),
+              ),
+            ),
+          ),
         ),
         actions: [
-          TextButton(
-            onPressed: updatePostState.isSubmitting
-                ? null
-                : () async {
-                    await updatePostController.submitUpdate();
-                  },
-            child: updatePostState.isSubmitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('수정하기'),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: GestureDetector(
+              onTap: updatePostState.isSubmitting
+                  ? null
+                  : () async {
+                      await updatePostController.submitUpdate();
+                    },
+              child: Center(
+                child: updatePostState.isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        "수정하기",
+                        style: AppTypography.action.m.copyWith(
+                          color: AppColors.natural.textColors.secondary,
+                        ),
+                      ),
+              ),
+            ),
           ),
         ],
       ),
@@ -160,28 +167,29 @@ class _UpdatePostTempScreenState extends ConsumerState<UpdatePostTempScreen> {
               controller: _contentController,
               maxLines: null,
               autofocus: true,
-              decoration: const InputDecoration(
+              style: AppTypography.body.l.copyWith(
+                color: AppColors.natural.textColors.primary,
+              ),
+              decoration: InputDecoration(
                 hintText:
                     '광고, 비난, 도배성 글을 남기면 영구적으로 활동이 제한될 수 있어요. 건강한 커뮤니티 문화를 함께 만들어가요.',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.all(16),
+                contentPadding: const EdgeInsets.all(24),
+
+                hintStyle: AppTypography.body.l.copyWith(
+                  color: AppColors.natural.textColors.secondary,
+                  height: 1.5,
+                ),
               ),
             ),
           ),
-          const Divider(height: 1),
+          Container(height: 0.5, color: AppColors.natural.textColors.disabled),
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '포트폴리오는 수정할 수 없어요.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+            padding: const EdgeInsets.all(16),
+            child: AppButton(
+              text: "포트폴리오는 수정할 수 없어요",
+              onPressed: () {},
+              variant: ButtonVariant.disabled,
             ),
           ),
         ],
