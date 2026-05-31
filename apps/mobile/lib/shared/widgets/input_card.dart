@@ -1,9 +1,113 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:runway/core/theme/app_colors.dart';
 import 'package:runway/core/theme/app_typography.dart';
 import 'button.dart';
 
-class AppTargetInputCard extends StatelessWidget {
+String _formatCurrency(String value) {
+  if (value.isEmpty) return '';
+  final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+  if (digits.isEmpty) return '';
+  final buffer = StringBuffer();
+  for (int i = 0; i < digits.length; i++) {
+    final reverseIndex = digits.length - i;
+    buffer.write(digits[i]);
+    if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+      buffer.write(',');
+    }
+  }
+  return buffer.toString();
+}
+
+String _unformatCurrency(String value) {
+  return value.replaceAll(RegExp(r'[^0-9]'), '');
+}
+
+class _DigitsOnlySafeFormatter extends TextInputFormatter {
+  const _DigitsOnlySafeFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final sanitized = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (sanitized == newValue.text) {
+      return newValue;
+    }
+
+    return TextEditingValue(
+      text: sanitized,
+      selection: TextSelection.collapsed(offset: sanitized.length),
+      composing: TextRange.empty,
+    );
+  }
+}
+
+class _DecimalNumberFormatter extends TextInputFormatter {
+  const _DecimalNumberFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final source = newValue.text;
+
+    if (source.isEmpty) {
+      return newValue;
+    }
+
+    final buffer = StringBuffer();
+    bool hasDot = false;
+
+    for (int i = 0; i < source.length; i++) {
+      final char = source[i];
+
+      if (RegExp(r'[0-9]').hasMatch(char)) {
+        buffer.write(char);
+        continue;
+      }
+
+      if (char == '.' && !hasDot && buffer.isNotEmpty) {
+        hasDot = true;
+        buffer.write(char);
+      }
+    }
+
+    final sanitized = buffer.toString();
+
+    if (sanitized == newValue.text) {
+      return newValue;
+    }
+
+    return TextEditingValue(
+      text: sanitized,
+      selection: TextSelection.collapsed(offset: sanitized.length),
+      composing: TextRange.empty,
+    );
+  }
+}
+
+class AppPortfolioNameInputCard extends StatelessWidget {
+  final TextEditingController? portfolioNameController;
+
+  const AppPortfolioNameInputCard({super.key, this.portfolioNameController});
+
+  @override
+  Widget build(BuildContext context) {
+    return _InputCardContainer(
+      minHeight: 76,
+      child: _InputCardTextField(
+        controller: portfolioNameController,
+        hintText: '포트폴리오 이름',
+      ),
+    );
+  }
+}
+
+class AppTargetInputCard extends StatefulWidget {
   final TextEditingController? targetAgeController;
   final TextEditingController? targetEvaluationController;
   final TextEditingController? targetDividendController;
@@ -16,6 +120,73 @@ class AppTargetInputCard extends StatelessWidget {
   });
 
   @override
+  State<AppTargetInputCard> createState() => _AppTargetInputCardState();
+}
+
+class _AppTargetInputCardState extends State<AppTargetInputCard> {
+  late FocusNode _targetEvaluationFocusNode;
+  late FocusNode _targetDividendFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _targetEvaluationFocusNode = FocusNode();
+    _targetDividendFocusNode = FocusNode();
+
+    _targetEvaluationFocusNode.addListener(() {
+      final controller = widget.targetEvaluationController;
+      if (controller == null) return;
+
+      if (_targetEvaluationFocusNode.hasFocus) {
+        controller.value = controller.value.copyWith(
+          text: _unformatCurrency(controller.text),
+          selection: TextSelection.collapsed(
+            offset: _unformatCurrency(controller.text).length,
+          ),
+          composing: TextRange.empty,
+        );
+      } else {
+        final formatted = _formatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+          composing: TextRange.empty,
+        );
+      }
+    });
+
+    _targetDividendFocusNode.addListener(() {
+      final controller = widget.targetDividendController;
+      if (controller == null) return;
+
+      if (_targetDividendFocusNode.hasFocus) {
+        controller.value = controller.value.copyWith(
+          text: _unformatCurrency(controller.text),
+          selection: TextSelection.collapsed(
+            offset: _unformatCurrency(controller.text).length,
+          ),
+          composing: TextRange.empty,
+        );
+      } else {
+        final formatted = _formatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+          composing: TextRange.empty,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _targetEvaluationFocusNode.dispose();
+    _targetDividendFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _InputCardContainer(
       minHeight: 196,
@@ -23,20 +194,28 @@ class AppTargetInputCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _InputCardTextField(
-            controller: targetAgeController,
+            controller: widget.targetAgeController,
             hintText: '투자 기간 (년)',
+            keyboardType: TextInputType.number,
+            inputFormatters: const [_DigitsOnlySafeFormatter()],
           ),
           const SizedBox(height: 16),
           _InputCardTextField(
-            controller: targetEvaluationController,
+            controller: widget.targetEvaluationController,
             hintText: '목표 평가금 (₩)',
+            focusNode: _targetEvaluationFocusNode,
             keyboardType: TextInputType.number,
+            inputFormatters: const [_DigitsOnlySafeFormatter()],
+            prefixText: '₩',
           ),
           const SizedBox(height: 16),
           _InputCardTextField(
-            controller: targetDividendController,
+            controller: widget.targetDividendController,
             hintText: '목표 배당금 (₩)',
+            focusNode: _targetDividendFocusNode,
             keyboardType: TextInputType.number,
+            inputFormatters: const [_DigitsOnlySafeFormatter()],
+            prefixText: '₩',
           ),
         ],
       ),
@@ -48,6 +227,9 @@ class AppAssetInputCard extends StatefulWidget {
   final TextEditingController? assetNameController;
   final TextEditingController? assetPriceController;
   final TextEditingController? initialInvestmentController;
+
+  final TextEditingController? monthlyContributionController;
+
   final TextEditingController? annualGrowthRateController;
   final TextEditingController? dividendPerShareController;
   final TextEditingController? dividendGrowthRateController;
@@ -59,6 +241,11 @@ class AppAssetInputCard extends StatefulWidget {
 
   final ValueChanged<String?>? onAssetTypeChanged;
   final ValueChanged<String?>? onDividendCycleChanged;
+
+  final VoidCallback? onAssetFieldsChanged;
+  final ValueChanged<bool>? onDividendAssetChanged;
+  final ValueChanged<bool>? onDividendReinvestmentChanged;
+
   final VoidCallback? onRemoveTap;
 
   final bool initialIsDividendAsset;
@@ -69,6 +256,7 @@ class AppAssetInputCard extends StatefulWidget {
     this.assetNameController,
     this.assetPriceController,
     this.initialInvestmentController,
+    this.monthlyContributionController,
     this.annualGrowthRateController,
     this.dividendPerShareController,
     this.dividendGrowthRateController,
@@ -78,6 +266,9 @@ class AppAssetInputCard extends StatefulWidget {
     required this.dividendCycleOptions,
     this.onAssetTypeChanged,
     this.onDividendCycleChanged,
+    this.onAssetFieldsChanged,
+    this.onDividendAssetChanged,
+    this.onDividendReinvestmentChanged,
     this.onRemoveTap,
     this.initialIsDividendAsset = false,
     this.initialIsDividendReinvestment = false,
@@ -93,10 +284,19 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
   String? _assetType;
   String? _dividendCycle;
 
+  late FocusNode _assetPriceFocusNode;
+  late FocusNode _initialInvestmentFocusNode;
+  late FocusNode _monthlyContributionFocusNode;
+  late FocusNode _dividendPerShareFocusNode;
+
   TextEditingController? get _dividendPerShareController =>
       widget.dividendPerShareController;
   TextEditingController? get _dividendGrowthRateController =>
       widget.dividendGrowthRateController;
+
+  void _notifyAssetFieldsChanged() {
+    widget.onAssetFieldsChanged?.call();
+  }
 
   @override
   void initState() {
@@ -105,6 +305,131 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
     _isDividendReinvestment = widget.initialIsDividendReinvestment;
     _assetType = widget.selectedAssetType;
     _dividendCycle = widget.selectedDividendCycle;
+
+    _assetPriceFocusNode = FocusNode();
+    _initialInvestmentFocusNode = FocusNode();
+    _monthlyContributionFocusNode = FocusNode();
+    _dividendPerShareFocusNode = FocusNode();
+
+    _assetPriceFocusNode.addListener(() {
+      final controller = widget.assetPriceController;
+      if (controller == null) return;
+
+      if (_assetPriceFocusNode.hasFocus) {
+        final unformatted = _unformatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: unformatted,
+          selection: TextSelection.collapsed(offset: unformatted.length),
+          composing: TextRange.empty,
+        );
+      } else {
+        final formatted = _formatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+          composing: TextRange.empty,
+        );
+      }
+
+      _notifyAssetFieldsChanged();
+    });
+
+    _initialInvestmentFocusNode.addListener(() {
+      final controller = widget.initialInvestmentController;
+      if (controller == null) return;
+
+      if (_initialInvestmentFocusNode.hasFocus) {
+        final unformatted = _unformatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: unformatted,
+          selection: TextSelection.collapsed(offset: unformatted.length),
+          composing: TextRange.empty,
+        );
+      } else {
+        final formatted = _formatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+          composing: TextRange.empty,
+        );
+      }
+
+      _notifyAssetFieldsChanged();
+    });
+
+    _monthlyContributionFocusNode.addListener(() {
+      final controller = widget.monthlyContributionController;
+      if (controller == null) return;
+
+      if (_monthlyContributionFocusNode.hasFocus) {
+        final unformatted = _unformatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: unformatted,
+          selection: TextSelection.collapsed(offset: unformatted.length),
+          composing: TextRange.empty,
+        );
+      } else {
+        final formatted = _formatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+          composing: TextRange.empty,
+        );
+      }
+
+      _notifyAssetFieldsChanged();
+    });
+
+    _dividendPerShareFocusNode.addListener(() {
+      final controller = widget.dividendPerShareController;
+      if (controller == null) return;
+
+      if (_dividendPerShareFocusNode.hasFocus) {
+        final unformatted = _unformatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: unformatted,
+          selection: TextSelection.collapsed(offset: unformatted.length),
+          composing: TextRange.empty,
+        );
+      } else {
+        final formatted = _formatCurrency(controller.text);
+        controller.value = controller.value.copyWith(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+          composing: TextRange.empty,
+        );
+      }
+
+      _notifyAssetFieldsChanged();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant AppAssetInputCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.selectedAssetType != widget.selectedAssetType) {
+      _assetType = widget.selectedAssetType;
+    }
+    if (oldWidget.selectedDividendCycle != widget.selectedDividendCycle) {
+      _dividendCycle = widget.selectedDividendCycle;
+    }
+    if (oldWidget.initialIsDividendAsset != widget.initialIsDividendAsset) {
+      _isDividendAsset = widget.initialIsDividendAsset;
+    }
+    if (oldWidget.initialIsDividendReinvestment !=
+        widget.initialIsDividendReinvestment) {
+      _isDividendReinvestment = widget.initialIsDividendReinvestment;
+    }
+  }
+
+  @override
+  void dispose() {
+    _assetPriceFocusNode.dispose();
+    _initialInvestmentFocusNode.dispose();
+    _monthlyContributionFocusNode.dispose();
+    _dividendPerShareFocusNode.dispose();
+    super.dispose();
   }
 
   void _handleDividendAssetChanged(bool value) {
@@ -118,6 +443,14 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
         _dividendGrowthRateController?.clear();
       }
     });
+
+    widget.onDividendAssetChanged?.call(value);
+
+    if (!value) {
+      widget.onDividendCycleChanged?.call(null);
+      widget.onDividendReinvestmentChanged?.call(false);
+      _notifyAssetFieldsChanged();
+    }
   }
 
   @override
@@ -129,6 +462,7 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
           _InputCardTextField(
             controller: widget.assetNameController,
             hintText: '자산명',
+            onChanged: (_) => _notifyAssetFieldsChanged(),
           ),
           const SizedBox(height: 16),
           _InputCardSelectField(
@@ -144,19 +478,41 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
           _InputCardTextField(
             controller: widget.assetPriceController,
             hintText: '자산 가격 (₩)',
+            focusNode: _assetPriceFocusNode,
             keyboardType: TextInputType.number,
+            inputFormatters: const [_DigitsOnlySafeFormatter()],
+            prefixText: '₩',
+            onChanged: (_) => _notifyAssetFieldsChanged(),
           ),
           const SizedBox(height: 16),
           _InputCardTextField(
             controller: widget.initialInvestmentController,
             hintText: '초기 투자금 (₩)',
+            focusNode: _initialInvestmentFocusNode,
             keyboardType: TextInputType.number,
+            inputFormatters: const [_DigitsOnlySafeFormatter()],
+            prefixText: '₩',
+            onChanged: (_) => _notifyAssetFieldsChanged(),
           ),
           const SizedBox(height: 16),
+
+          _InputCardTextField(
+            controller: widget.monthlyContributionController,
+            hintText: '월 투자금 (₩)',
+            focusNode: _monthlyContributionFocusNode,
+            keyboardType: TextInputType.number,
+            inputFormatters: const [_DigitsOnlySafeFormatter()],
+            prefixText: '₩',
+            onChanged: (_) => _notifyAssetFieldsChanged(),
+          ),
+          const SizedBox(height: 16),
+
           _InputCardTextField(
             controller: widget.annualGrowthRateController,
             hintText: '연 성장률 (%)',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: const [_DecimalNumberFormatter()],
+            onChanged: (_) => _notifyAssetFieldsChanged(),
           ),
           const SizedBox(height: 16),
           _ToggleRow(
@@ -174,13 +530,16 @@ class _AppAssetInputCardState extends State<AppAssetInputCard> {
               dividendCycle: _dividendCycle,
               dividendCycleOptions: widget.dividendCycleOptions,
               isDividendReinvestment: _isDividendReinvestment,
+              dividendPerShareFocusNode: _dividendPerShareFocusNode,
               onDividendCycleChanged: (value) {
                 setState(() => _dividendCycle = value);
                 widget.onDividendCycleChanged?.call(value);
               },
               onDividendReinvestmentChanged: (value) {
                 setState(() => _isDividendReinvestment = value);
+                widget.onDividendReinvestmentChanged?.call(value);
               },
+              onFieldsChanged: _notifyAssetFieldsChanged,
             ),
           ],
           const SizedBox(height: 16),
@@ -216,11 +575,19 @@ class _InputCardTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String hintText;
   final TextInputType? keyboardType;
+  final FocusNode? focusNode;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? prefixText;
+  final ValueChanged<String>? onChanged;
 
   const _InputCardTextField({
     required this.hintText,
     this.controller,
     this.keyboardType,
+    this.focusNode,
+    this.inputFormatters,
+    this.prefixText,
+    this.onChanged,
   });
 
   @override
@@ -229,7 +596,11 @@ class _InputCardTextField extends StatelessWidget {
       height: 44,
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        textInputAction: TextInputAction.done,
+        onChanged: onChanged,
         style: AppTypography.body.m.copyWith(
           color: AppColors.natural.textColors.primary,
         ),
@@ -238,6 +609,14 @@ class _InputCardTextField extends StatelessWidget {
           hintText: hintText,
           hintStyle: AppTypography.body.m.copyWith(
             color: AppColors.natural.textColors.secondary,
+          ),
+          prefixText: prefixText,
+          prefixStyle: AppTypography.body.m.copyWith(
+            color: AppColors.natural.textColors.primary,
+          ),
+          suffixText: hintText.contains('(%)') ? '%' : null,
+          suffixStyle: AppTypography.body.m.copyWith(
+            color: AppColors.natural.textColors.primary,
           ),
           filled: false,
           contentPadding: const EdgeInsets.symmetric(
@@ -297,7 +676,7 @@ class _InputCardSelectField extends StatelessWidget {
           icon: Padding(
             padding: const EdgeInsets.only(left: 8, right: 16),
             child: Image.asset(
-              'assets/icons/Arrow Down.png',
+              'assets/icons/arrow_down.png',
               width: 12,
               height: 12,
               color: AppColors.natural.textColors.disabled,
@@ -449,6 +828,8 @@ class _DividendSection extends StatelessWidget {
   final bool isDividendReinvestment;
   final ValueChanged<String?> onDividendCycleChanged;
   final ValueChanged<bool> onDividendReinvestmentChanged;
+  final FocusNode? dividendPerShareFocusNode;
+  final VoidCallback? onFieldsChanged;
 
   const _DividendSection({
     this.dividendPerShareController,
@@ -458,6 +839,8 @@ class _DividendSection extends StatelessWidget {
     required this.isDividendReinvestment,
     required this.onDividendCycleChanged,
     required this.onDividendReinvestmentChanged,
+    this.dividendPerShareFocusNode,
+    this.onFieldsChanged,
   });
 
   @override
@@ -468,26 +851,38 @@ class _DividendSection extends StatelessWidget {
         _InputCardTextField(
           controller: dividendPerShareController,
           hintText: '주당 배당금 (₩)',
+          focusNode: dividendPerShareFocusNode,
           keyboardType: TextInputType.number,
+          inputFormatters: const [_DigitsOnlySafeFormatter()],
+          prefixText: '₩',
+          onChanged: (_) => onFieldsChanged?.call(),
         ),
         const SizedBox(height: 16),
         _InputCardTextField(
           controller: dividendGrowthRateController,
           hintText: '배당 성장률 (%)',
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: const [_DecimalNumberFormatter()],
+          onChanged: (_) => onFieldsChanged?.call(),
         ),
         const SizedBox(height: 16),
         _InputCardSelectField(
           value: dividendCycle,
           hintText: '배당 주기',
           options: dividendCycleOptions,
-          onChanged: onDividendCycleChanged,
+          onChanged: (value) {
+            onDividendCycleChanged(value);
+            onFieldsChanged?.call();
+          },
         ),
         const SizedBox(height: 16),
         _ToggleRow(
           label: '배당 재투자',
           value: isDividendReinvestment,
-          onChanged: onDividendReinvestmentChanged,
+          onChanged: (value) {
+            onDividendReinvestmentChanged(value);
+            onFieldsChanged?.call();
+          },
         ),
       ],
     );

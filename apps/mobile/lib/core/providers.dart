@@ -371,11 +371,11 @@ final getPortfolioDetailUsecaseProvider = Provider<GetPortfolioDetailUseCase>((
   return GetPortfolioDetailUseCase(repository);
 });
 
-final getPortfolioDetailControllerProvider =
-    StateNotifierProvider<
-      GetPortfolioDetailController,
-      GetPortfolioDetailState
-    >((ref) {
+final getPortfolioDetailControllerProvider = StateNotifierProvider.autoDispose
+    .family<GetPortfolioDetailController, GetPortfolioDetailState, String>((
+      ref,
+      requestKey,
+    ) {
       final useCase = ref.read(getPortfolioDetailUsecaseProvider);
       return GetPortfolioDetailController(useCase: useCase);
     });

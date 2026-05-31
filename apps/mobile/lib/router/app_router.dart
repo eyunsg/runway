@@ -10,9 +10,9 @@ import '../features/register/page/register_screen.dart';
 import 'package:runway/features/profile/page/profile_screen.dart';
 import '../features/password_change/page/password_change_screen.dart';
 import '../features/profile/page/update_profile_screen.dart';
-import '../features/simulation/page/simulation_temp_screen.dart';
-import '../features/portfolio/page/get_portfolio_temp_screen.dart';
-import '../features/portfolio/page/create_portfolio_temp_screen.dart';
+import '../features/simulation/page/simulation_screen.dart';
+import '../features/portfolio/page/get_portfolio_screen.dart';
+import '../features/portfolio/page/create_portfolio_screen.dart';
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
 import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
 import '../features/post/page/create_post_screen.dart';
@@ -48,7 +48,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/simulation',
-        builder: (context, state) => SimulationTempScreen(),
+        builder: (context, state) => SimulationScreen(),
       ),
       GoRoute(
         path: '/portfolio/get',
@@ -57,7 +57,7 @@ class AppRouter {
               ? state.extra as bool
               : false;
 
-          return GetPortfolioTempScreen(isSelectionMode: isSelectionMode);
+          return GetPortfolioScreen(isSelectionMode: isSelectionMode);
         },
       ),
       GoRoute(
@@ -65,7 +65,7 @@ class AppRouter {
         builder: (context, state) {
           final createPortfolioInput = state.extra as CreatePortfolioInput;
 
-          return CreatePortfolioTempScreen(
+          return CreatePortfolioScreen(
             createPortfolioInput: createPortfolioInput,
           );
         },
@@ -75,7 +75,7 @@ class AppRouter {
         builder: (context, state) {
           final String portfolioId = state.pathParameters['portfolioId']!;
 
-          return GetPortfolioDetailTempScreen(portfolioId: portfolioId);
+          return GetPortfolioDetailScreen(portfolioId: portfolioId);
         },
       ),
       GoRoute(
@@ -84,7 +84,7 @@ class AppRouter {
           final String portfolioSnapshotId =
               state.pathParameters['portfolioSnapshotId']!;
 
-          return GetPortfolioDetailTempScreen.snapshot(
+          return GetPortfolioDetailScreen.snapshot(
             portfolioSnapshotId: portfolioSnapshotId,
           );
         },
