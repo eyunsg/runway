@@ -6,6 +6,7 @@ import 'package:runway/features/post/controller/get_post_controller.dart';
 import 'package:runway/features/post/usecase/get_post_usecase.dart';
 import 'package:runway/features/post/types/get_post_state.dart';
 import 'package:runway/core/error/failure.dart';
+import 'package:runway/core/error/failure_extension.dart';
 import 'package:runway/features/post/model/post.dart';
 
 class MockGetPostUsecase extends Mock implements GetPostUsecase {}
@@ -67,26 +68,22 @@ void main() {
       expect(states[2].error, isNull);
     });
 
-    test(
-      '실패 시 error 세팅',
-      () async {
-        when(
-          () => mockUsecase.execute(),
-        ).thenAnswer((_) async => Left(ServerFailure('server error')));
+    test('실패 시 error 세팅', () async {
+      const failure = ServerFailure('server error');
+      when(
+        () => mockUsecase.execute(),
+      ).thenAnswer((_) async => const Left(failure));
 
-        final states = <GetPostState>[];
-        controller.addListener((state) => states.add(state));
+      final states = <GetPostState>[];
+      controller.addListener((state) => states.add(state));
 
-        await controller.fetchPost();
+      await controller.fetchPost();
 
-        expect(states.length, 3);
-        expect(states[0].isLoading, false);
-        expect(states[1].isLoading, true);
-        expect(states[2].isLoading, false);
-        expect(states[2].error, '서버 오류가 발생했습니다.');
-      },
-      skip:
-          'TODO: Error message policy 충돌 (ServerFailure → toMessage 매핑 정리 필요)',
-    );
+      expect(states.length, 3);
+      expect(states[0].isLoading, false);
+      expect(states[1].isLoading, true);
+      expect(states[2].isLoading, false);
+      expect(states[2].error, failure.toMessage());
+    });
   });
 }
