@@ -16,15 +16,11 @@ class GetPortfolioScreen extends ConsumerStatefulWidget {
 }
 
 class _GetPortfolioScreenState extends ConsumerState<GetPortfolioScreen> {
-  // final ScrollController _scrollController = ScrollController();
   bool _hasRequestedInitialData = false;
-
-  // double? _pendingRestoreOffset;
 
   @override
   void initState() {
     super.initState();
-    // _scrollController.addListener(_handleScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_hasRequestedInitialData) return;
@@ -36,27 +32,8 @@ class _GetPortfolioScreenState extends ConsumerState<GetPortfolioScreen> {
 
   @override
   void dispose() {
-    // _scrollController
-    //   ..removeListener(_handleScroll)
-    //   ..dispose();
     super.dispose();
   }
-
-  //  pagination용 하단 도달 감지, 추가 조회 로직
-  // void _handleScroll() {
-  //   if (!_scrollController.hasClients) return;
-
-  //   final double currentScrollOffset = _scrollController.position.pixels;
-  //   final double maxScrollOffset = _scrollController.position.maxScrollExtent;
-
-  //   final bool isNearBottom = currentScrollOffset >= maxScrollOffset - 1;
-
-  //   if (!isNearBottom) return;
-
-  //   _pendingRestoreOffset = maxScrollOffset;
-
-  //   ref.read(getPortfolioControllerProvider.notifier).fetchMore();
-  // }
 
   String _formatInvestmentPeriod(int periodMonths) {
     if (periodMonths % 12 == 0) {
@@ -80,30 +57,11 @@ class _GetPortfolioScreenState extends ConsumerState<GetPortfolioScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(nextState.error!)));
       }
-
-      // final bool hasAppendedItems =
-      //     previousState != null &&
-      //     nextState.portfolios.length > previousState.portfolios.length &&
-      //     _pendingRestoreOffset != null &&
-      //     !nextState.isLoading;
-
-      // if (!hasAppendedItems) return;
-
-      // WidgetsBinding.instance.addPostFrameCallback((_) {
-      //   if (!_scrollController.hasClients || _pendingRestoreOffset == null) {
-      //     return;
-      //   }
-
-      //   _scrollController.jumpTo(_pendingRestoreOffset!);
-      //   _pendingRestoreOffset = null;
-      // });
     });
 
     final List<Portfolio> portfolioList = portfolioState.portfolios;
     final bool isInitialLoading =
         portfolioState.isLoading && portfolioList.isEmpty;
-    // final bool isBottomLoading =
-    //     portfolioState.isLoading && portfolioList.isNotEmpty;
     final bool isEmptyState =
         !portfolioState.isLoading &&
         portfolioState.error == null &&
@@ -121,7 +79,7 @@ class _GetPortfolioScreenState extends ConsumerState<GetPortfolioScreen> {
             height: 40,
             child: GestureDetector(
               onTap: () {
-                context.pop();
+                context.go('/home');
               },
               child: Center(
                 child: Image.asset(
@@ -181,17 +139,9 @@ class _GetPortfolioScreenState extends ConsumerState<GetPortfolioScreen> {
             }
 
             return ListView.builder(
-              // controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               itemCount: portfolioList.length,
               itemBuilder: (context, index) {
-                // if (index == portfolioList.length) {
-                //   return const Padding(
-                //     padding: EdgeInsets.symmetric(vertical: 16),
-                //     child: Center(child: CircularProgressIndicator()),
-                //   );
-                // }
-
                 final Portfolio portfolioItem = portfolioList[index];
                 final String formattedInvestmentPeriod =
                     _formatInvestmentPeriod(portfolioItem.periodMonths);
