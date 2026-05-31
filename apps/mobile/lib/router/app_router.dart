@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:runway/features/login/page/login_screen.dart';
 import 'package:runway/features/password_reset/page/request_password_reset_screen.dart';
 import 'package:runway/features/password_reset/page/password_reset_screen.dart';
-import 'package:runway/features/logout/page/logout_temp_screen.dart';
 import 'package:runway/features/profile/page/app_information_screen.dart';
 import 'package:runway/features/home/page/home_screen.dart';
 import '../features/register/page/register_screen.dart';
@@ -14,7 +13,7 @@ import '../features/simulation/page/simulation_screen.dart';
 import '../features/portfolio/page/get_portfolio_screen.dart';
 import '../features/portfolio/page/create_portfolio_screen.dart';
 import 'package:runway/features/portfolio/model/create_portfolio_input.dart';
-import '../features/portfolio/page/get_portfolio_detail_temp_screen.dart';
+import '../features/portfolio/page/get_portfolio_detail_screen.dart';
 import '../features/post/page/create_post_screen.dart';
 import '../features/post/page/get_my_post_screen.dart';
 import '../features/post/page/get_post_screen.dart';
@@ -37,7 +36,6 @@ class AppRouter {
         path: '/password-change',
         builder: (context, state) => PasswordChangeScreen(),
       ),
-      GoRoute(path: '/logout', builder: (context, state) => LogoutTempScreen()),
       GoRoute(
         path: '/reset-password',
         builder: (context, state) => RequestPasswordResetScreen(),
