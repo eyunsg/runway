@@ -1,0 +1,602 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../features/register/controller/register_controller.dart';
+import '../features/register/types/register_state.dart';
+import '../features/register/usecase/register_usecase.dart';
+import '../features/register/repository/register_repository.dart';
+
+import '../features/login/controller/login_controller.dart';
+import '../features/login/types/login_state.dart';
+import '../features/login/usecase/login_usecase.dart';
+import '../features/login/repository/login_repository.dart';
+
+import 'package:runway/features/profile/controller/get_profile_controller.dart';
+import 'package:runway/features/profile/repository/get_profile_reposity.dart';
+import 'package:runway/features/profile/usecase/get_profile_usecase.dart';
+import 'package:runway/features/profile/types/profile_state.dart';
+
+import '../features/password_change/controller/password_change_controller.dart';
+import '../features/password_change/types/password_change_state.dart';
+import '../features/password_change/usecase/password_change_usecase.dart';
+import '../features/password_change/repository/password_change_repository.dart';
+
+import '../features/logout/controller/logout_controller.dart';
+import '../features/logout/types/logout_state.dart';
+import '../features/logout/usecase/logout_usecase.dart';
+import '../features/logout/repository/logout_repository.dart';
+
+import '../features/password_reset/controller/password_reset_controller.dart';
+import '../features/password_reset/usecase/reset_password_usecase.dart';
+import '../features/password_reset/repository/reset_password_repository.dart';
+import '../features/password_reset/types/password_reset_state.dart';
+
+import 'package:runway/features/profile/controller/delete_profile_controller.dart';
+import 'package:runway/features/profile/repository/delete_profile_repository.dart';
+import 'package:runway/features/profile/types/delete_profile_state.dart';
+import 'package:runway/features/profile/usecase/delete_profile_usecase.dart';
+
+import 'package:runway/features/portfolio/controller/delete_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/delete_portfolio_repository.dart';
+import 'package:runway/features/portfolio/types/delete_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/delete_portfolio_usecase.dart';
+
+import '../features/profile/controller/update_profile_controller.dart';
+import '../features/profile/usecase/update_profile_usecase.dart';
+import '../features/profile/repository/update_profile_repository.dart';
+
+import 'package:runway/features/portfolio/controller/create_portfolio_controller.dart';
+import 'package:runway/features/portfolio/repository/create_portfolio_repository.dart';
+import 'package:runway/features/portfolio/types/create_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/create_portfolio_usecase.dart';
+
+import 'package:runway/features/portfolio/repository/get_portfolio_repository.dart';
+import 'package:runway/features/portfolio/controller/get_portfolio_controller.dart';
+import 'package:runway/features/portfolio/types/get_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/get_portfolio_usecase.dart';
+
+import 'package:runway/features/portfolio/controller/get_portfolio_detail_controller.dart';
+import 'package:runway/features/portfolio/repository/get_portfolio_detail_repository.dart';
+import 'package:runway/features/portfolio/types/get_portfolio_detail_state.dart';
+import 'package:runway/features/portfolio/usecase/get_portfolio_detail_usecase.dart';
+
+import '../features/simulation/controller/simulation_controller.dart';
+import '../features/simulation/usecase/simulation_usecase.dart';
+import '../features/simulation/repository/simulation_repository.dart';
+import '../features/simulation/types/simulation_state.dart';
+
+import 'package:runway/features/post/controller/create_post_controller.dart';
+import 'package:runway/features/post/repository/create_post_repository.dart';
+import 'package:runway/features/post/types/create_post_state.dart';
+import 'package:runway/features/post/usecase/create_post_usecase.dart';
+
+import 'package:runway/features/post/controller/get_my_post_controller.dart';
+import 'package:runway/features/post/repository/get_my_post_repository.dart';
+import 'package:runway/features/post/types/get_my_post_state.dart';
+import 'package:runway/features/post/usecase/get_my_post_usecase.dart';
+
+import 'package:runway/features/post/controller/get_post_controller.dart';
+import 'package:runway/features/post/repository/get_post_repository.dart';
+import 'package:runway/features/post/types/get_post_state.dart';
+import 'package:runway/features/post/usecase/get_post_usecase.dart';
+
+import 'package:runway/features/post/controller/update_post_controller.dart';
+import 'package:runway/features/post/repository/update_post_repository.dart';
+import 'package:runway/features/post/types/update_post_state.dart';
+import 'package:runway/features/post/usecase/update_post_usecase.dart';
+
+import 'package:runway/features/post/controller/get_post_detail_controller.dart';
+import 'package:runway/features/post/repository/get_post_detail_repository.dart';
+import 'package:runway/features/post/types/get_post_detail_state.dart';
+import 'package:runway/features/post/usecase/get_post_detail_usecase.dart';
+
+import 'package:runway/features/comment/controller/get_comments_controller.dart';
+import 'package:runway/features/comment/repository/get_comments_repository.dart';
+import 'package:runway/features/comment/types/get_comments_state.dart';
+import 'package:runway/features/comment/usecase/get_comments_usecase.dart';
+
+import 'package:runway/features/post/controller/delete_post_controller.dart';
+import 'package:runway/features/post/repository/delete_post_repository.dart';
+import 'package:runway/features/post/types/delete_post_state.dart';
+import 'package:runway/features/post/usecase/delete_post_usecase.dart';
+
+import 'package:runway/features/post/controller/create_comment_controller.dart';
+import 'package:runway/features/post/repository/create_comment_repository.dart';
+import 'package:runway/features/post/types/create_comment_state.dart';
+import 'package:runway/features/post/usecase/create_comment_usecase.dart';
+
+import 'package:runway/features/comment/controller/delete_comment_controller.dart';
+import 'package:runway/features/comment/repository/delete_comment_repository.dart';
+import 'package:runway/features/comment/types/delete_comment_state.dart';
+import 'package:runway/features/comment/usecase/delete_comment_usecase.dart';
+
+import 'package:runway/features/portfolio/controller/get_recent_portfolio_controller.dart';
+import 'package:runway/features/portfolio/types/get_recent_portfolio_state.dart';
+import 'package:runway/features/portfolio/usecase/get_recent_portfolio_usecase.dart';
+
+import 'package:runway/features/post/usecase/get_recent_post_usecase.dart';
+import 'package:runway/features/post/controller/get_recent_post_controller.dart';
+
+final supabaseClientProvider = Provider<SupabaseClient>((ref) {
+  return Supabase.instance.client;
+});
+
+/// ---------------- REGISTER ----------------
+
+final registerRepositoryProvider = Provider<RegisterRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return RegisterRepository(client: client);
+});
+
+final registerUsecaseProvider = Provider<RegisterUsecase>((ref) {
+  final repository = ref.read(registerRepositoryProvider);
+  return RegisterUsecase(repository: repository);
+});
+
+final registerControllerProvider =
+    StateNotifierProvider<RegisterController, RegisterState>((ref) {
+      final usecase = ref.read(registerUsecaseProvider);
+      return RegisterController(usecase);
+    });
+
+/// ---------------- LOGIN ----------------
+
+final loginRepositoryProvider = Provider<LoginRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return LoginRepository(client: client);
+});
+
+final loginUsecaseProvider = Provider<LoginUsecase>((ref) {
+  final repository = ref.read(loginRepositoryProvider);
+  return LoginUsecase(repository: repository);
+});
+
+final loginControllerProvider =
+    StateNotifierProvider<LoginController, LoginState>((ref) {
+      final usecase = ref.read(loginUsecaseProvider);
+      return LoginController(usecase);
+    });
+
+/// ---------------- GET PROFILE ----------------
+
+final getProfileRepositoryProvider = Provider<GetProfileRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetProfileRepository(client: client);
+});
+
+final getProfileUsecaseProvider = Provider<GetProfileUseCase>((ref) {
+  final repository = ref.read(getProfileRepositoryProvider);
+  return GetProfileUseCase(repository);
+});
+
+final profileControllerProvider =
+    StateNotifierProvider<GetProfileController, ProfileState>((ref) {
+      final usecase = ref.read(getProfileUsecaseProvider);
+      return GetProfileController(useCase: usecase);
+    });
+
+/// ---------------- PASSWORD CHANGE ----------------
+
+final passwordChangeRepositoryProvider = Provider<PasswordChangeRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return PasswordChangeRepository(client: client);
+});
+
+final passwordChangeUsecaseProvider = Provider<PasswordChangeUsecase>((ref) {
+  final repository = ref.read(passwordChangeRepositoryProvider);
+  return PasswordChangeUsecase(repository: repository);
+});
+
+final passwordChangeControllerProvider =
+    StateNotifierProvider<PasswordChangeController, PasswordChangeState>((ref) {
+      final usecase = ref.read(passwordChangeUsecaseProvider);
+      return PasswordChangeController(usecase);
+    });
+
+/// ---------------- LOGOUT ----------------
+
+final logoutRepositoryProvider = Provider<LogoutRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return LogoutRepository(client: client);
+});
+
+final logoutUsecaseProvider = Provider<LogoutUsecase>((ref) {
+  final repository = ref.read(logoutRepositoryProvider);
+  return LogoutUsecase(repository: repository);
+});
+
+final logoutControllerProvider =
+    StateNotifierProvider<LogoutController, LogoutState>((ref) {
+      final usecase = ref.read(logoutUsecaseProvider);
+      return LogoutController(usecase);
+    });
+
+/// ---------------- PASSWORD RESET ----------------
+
+/// Request Password Reset
+final requestPasswordResetRepositoryProvider =
+    Provider<RequestPasswordResetRepository>((ref) {
+      final client = ref.read(supabaseClientProvider);
+      return RequestPasswordResetRepository(client: client);
+    });
+
+final requestPasswordResetUsecaseProvider =
+    Provider<RequestPasswordResetUsecase>((ref) {
+      final repository = ref.read(requestPasswordResetRepositoryProvider);
+      return RequestPasswordResetUsecase(repository: repository);
+    });
+
+final requestPasswordResetControllerProvider =
+    StateNotifierProvider<
+      RequestPasswordResetController,
+      RequestPasswordResetState
+    >((ref) {
+      final usecase = ref.read(requestPasswordResetUsecaseProvider);
+      return RequestPasswordResetController(usecase);
+    });
+
+/// Reset Password
+final resetPasswordRepositoryProvider = Provider<ResetPasswordRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return ResetPasswordRepository(client: client);
+});
+
+final resetPasswordUsecaseProvider = Provider<ResetPasswordUsecase>((ref) {
+  final repository = ref.read(resetPasswordRepositoryProvider);
+  return ResetPasswordUsecase(repository: repository);
+});
+
+final resetPasswordControllerProvider =
+    StateNotifierProvider<PasswordResetController, PasswordResetState>((ref) {
+      final usecase = ref.read(resetPasswordUsecaseProvider);
+      return PasswordResetController(usecase);
+    });
+
+/// ---------------- DELETE PROFILE ----------------
+
+final deleteProfileRepositoryProvider = Provider<DeleteProfileRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeleteProfileRepository(client: client);
+});
+
+final deleteProfileUsecaseProvider = Provider<DeleteProfileUseCase>((ref) {
+  final repository = ref.read(deleteProfileRepositoryProvider);
+  return DeleteProfileUseCase(repository: repository);
+});
+
+final deleteProfileControllerProvider =
+    StateNotifierProvider<DeleteProfileController, DeleteProfileState>((ref) {
+      final usecase = ref.read(deleteProfileUsecaseProvider);
+      return DeleteProfileController(deleteProfileUseCase: usecase);
+    });
+
+/// ---------------- DELETE PORTFOLIO ----------------
+
+final deleteClientRepositoryProvider = Provider<DeletePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeletePortfolioRepository(client: client);
+});
+
+final deleteClientUsecaseProvider = Provider<DeletePortfolioUsecase>((ref) {
+  final repository = ref.read(deleteClientRepositoryProvider);
+  return DeletePortfolioUsecase(repository: repository);
+});
+
+final deleteClientControllerProvider =
+    StateNotifierProvider<DeletePortfolioController, DeletePortfolioState>((
+      ref,
+    ) {
+      final usecase = ref.read(deleteClientUsecaseProvider);
+      return DeletePortfolioController(useCase: usecase);
+    });
+
+/// ---------------- UPDATE PROFILE ----------------
+
+final updateProfileRepositoryProvider = Provider<UpdateProfileRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return UpdateProfileRepository(client: client);
+});
+
+final updateProfileUsecaseProvider = Provider<UpdateProfileUseCase>((ref) {
+  final repository = ref.read(updateProfileRepositoryProvider);
+  return UpdateProfileUseCase(repository: repository);
+});
+
+final updateProfileControllerProvider =
+    StateNotifierProvider<UpdateProfileController, ProfileState>((ref) {
+      final usecase = ref.read(updateProfileUsecaseProvider);
+      return UpdateProfileController(useCase: usecase);
+    });
+
+/// ---------------- CREATE PORTFOLIO ----------------
+
+final createPortfolioRepositoryProvider = Provider<CreatePortfolioRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return CreatePortfolioRepository(client: client);
+});
+
+final createPortfolioUsecaseProvider = Provider<CreatePortfolioUseCase>((ref) {
+  final repository = ref.read(createPortfolioRepositoryProvider);
+  return CreatePortfolioUseCase(repository);
+});
+
+final createPortfolioControllerProvider =
+    StateNotifierProvider<CreatePortfolioController, PortfolioState>((ref) {
+      final usecase = ref.read(createPortfolioUsecaseProvider);
+      return CreatePortfolioController(useCase: usecase);
+    });
+
+/// ---------------- GET PORTFOLIO ----------------
+
+final getPortfolioRepositoryProvider = Provider<GetPortfolioRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPortfolioRepository(client: client);
+});
+
+final getPortfolioUsecaseProvider = Provider<GetPortfolioUseCase>((ref) {
+  final repository = ref.read(getPortfolioRepositoryProvider);
+  return GetPortfolioUseCase(repository);
+});
+
+final getPortfolioControllerProvider =
+    StateNotifierProvider<GetPortfolioController, GetPortfolioState>((ref) {
+      final usecase = ref.read(getPortfolioUsecaseProvider);
+      return GetPortfolioController(useCase: usecase);
+    });
+
+/// ---------------- GET PORTFOLIO DETAIL ----------------
+
+final getPortfolioDetailRepositoryProvider =
+    Provider<GetPortfolioDetailRepository>((ref) {
+      final client = ref.read(supabaseClientProvider);
+      return GetPortfolioDetailRepository(client: client);
+    });
+
+final getPortfolioDetailUsecaseProvider = Provider<GetPortfolioDetailUseCase>((
+  ref,
+) {
+  final repository = ref.read(getPortfolioDetailRepositoryProvider);
+  return GetPortfolioDetailUseCase(repository);
+});
+
+final getPortfolioDetailControllerProvider = StateNotifierProvider.autoDispose
+    .family<GetPortfolioDetailController, GetPortfolioDetailState, String>((
+      ref,
+      requestKey,
+    ) {
+      final useCase = ref.read(getPortfolioDetailUsecaseProvider);
+      return GetPortfolioDetailController(useCase: useCase);
+    });
+
+/// ---------------- SIMULATION ----------------
+
+final simulationRepositoryProvider = Provider<SimulationRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return SimulationRepositoryImpl(client: client);
+});
+
+final simulationUseCaseProvider = Provider<SimulationUseCase>((ref) {
+  final repository = ref.read(simulationRepositoryProvider);
+  return SimulationUseCase(repository);
+});
+
+final simulationControllerProvider =
+    StateNotifierProvider<SimulationController, SimulationState>((ref) {
+      final useCase = ref.read(simulationUseCaseProvider);
+      return SimulationController(useCase: useCase);
+    });
+
+/// ---------------- CREATE POST ----------------
+
+final createPostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return CreatePostRepository(client: client);
+});
+
+final createPostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(createPostRepositoryProvider);
+  return CreatePostUseCase(repository);
+});
+
+final createPostControllerProvider =
+    StateNotifierProvider<CreatePostController, CreatePostState>((ref) {
+      final usecase = ref.read(createPostUsecaseProvider);
+      return CreatePostController(useCase: usecase);
+    });
+
+/// ---------------- GET MY POST ----------------
+
+final getMyPostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetMyPostRepository(client: client);
+});
+
+final getMyPostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getMyPostRepositoryProvider);
+  return GetMyPostUsecase(repository);
+});
+
+final getMyPostControllerProvider =
+    StateNotifierProvider<GetMyPostController, GetMyPostState>((ref) {
+      final useCase = ref.read(getMyPostUsecaseProvider);
+      return GetMyPostController(useCase: useCase);
+    });
+
+/// ---------------- DELETE POST ----------------
+
+final deletePostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return DeletePostRepository(client: client);
+});
+
+final deletePostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(deletePostRepositoryProvider);
+  return DeletePostUsecase(repository: repository);
+});
+
+final deletePostControllerProvider =
+    StateNotifierProvider<DeletePostController, DeletePostState>((ref) {
+      final useCase = ref.read(deletePostUsecaseProvider);
+      return DeletePostController(useCase: useCase);
+    });
+
+/// ---------------- GET POST ----------------
+
+final getPostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPostRepository(client: client);
+});
+
+final getPostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getPostRepositoryProvider);
+  return GetPostUsecase(repository);
+});
+
+final getPostControllerProvider =
+    StateNotifierProvider<GetPostController, GetPostState>((ref) {
+      final useCase = ref.read(getPostUsecaseProvider);
+      return GetPostController(useCase: useCase);
+    });
+
+/// ---------------- UPDATE POST ----------------
+
+final updatePostRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return UpdatePostRepository(client: client);
+});
+
+final updatePostUsecaseProvider = Provider((ref) {
+  final repository = ref.read(updatePostRepositoryProvider);
+  return UpdatePostUsecase(repository);
+});
+
+final updatePostControllerProvider =
+    StateNotifierProvider<UpdatePostController, UpdatePostState>((ref) {
+      final useCase = ref.read(updatePostUsecaseProvider);
+      return UpdatePostController(useCase: useCase);
+    });
+
+/// ---------------- GET POST DETAIL ----------------
+
+final getPostDetailRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPostDetailRepository(client: client);
+});
+
+final getPostDetailUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getPostDetailRepositoryProvider);
+  return GetPostDetailUsecase(repository);
+});
+
+final getPostDetailControllerProvider =
+    StateNotifierProvider<GetPostDetailController, GetPostDetailState>((ref) {
+      final useCase = ref.read(getPostDetailUsecaseProvider);
+      return GetPostDetailController(useCase: useCase);
+    });
+
+/// ---------------- CREATE COMMENT ----------------
+
+final createCommentRepositoryProvider = Provider<CreateCommentRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return CreateCommentRepository(client: client);
+});
+
+final createCommentUsecaseProvider = Provider<CreateCommentUsecase>((ref) {
+  final repository = ref.read(createCommentRepositoryProvider);
+  return CreateCommentUsecase(repository);
+});
+
+final createCommentControllerProvider =
+    StateNotifierProvider<CreateCommentController, CreateCommentState>((ref) {
+      final usecase = ref.read(createCommentUsecaseProvider);
+      return CreateCommentController(useCase: usecase);
+    });
+
+/// ---------------- GET COMMENTS ----------------
+
+final getCommentsRepositoryProvider = Provider((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetCommentsRepository(client: client);
+});
+
+final getCommentsUsecaseProvider = Provider((ref) {
+  final repository = ref.read(getCommentsRepositoryProvider);
+  return GetCommentsUsecase(repository);
+});
+
+final getCommentsControllerProvider =
+    StateNotifierProvider<GetCommentsController, GetCommentsState>((ref) {
+      final useCase = ref.read(getCommentsUsecaseProvider);
+      return GetCommentsController(useCase: useCase);
+    });
+
+/// ---------------- DELETE COMMENT ----------------
+final deleteCommentRepositoryProvider = Provider<DeleteCommentRepository>((
+  ref,
+) {
+  final client = ref.read(supabaseClientProvider);
+  return DeleteCommentRepository(client: client);
+});
+
+final deleteCommentUsecaseProvider = Provider<DeleteCommentUsecase>((ref) {
+  final repository = ref.read(deleteCommentRepositoryProvider);
+  return DeleteCommentUsecase(repository);
+});
+
+final deleteCommentControllerProvider =
+    StateNotifierProvider<DeleteCommentController, DeleteCommentState>((ref) {
+      final usecase = ref.read(deleteCommentUsecaseProvider);
+      return DeleteCommentController(useCase: usecase);
+    });
+
+/// ---------------- GET RECENT PORTFOLIO ----------------
+
+final getRecentPortfolioUsecaseProvider = Provider<GetRecentPortfolioUseCase>((
+  ref,
+) {
+  final repository = ref.read(getPortfolioRepositoryProvider);
+
+  return GetRecentPortfolioUseCase(repository);
+});
+
+final getRecentPortfolioControllerProvider =
+    StateNotifierProvider<
+      GetRecentPortfolioController,
+      GetRecentPortfolioState
+    >((ref) {
+      final useCase = ref.read(getRecentPortfolioUsecaseProvider);
+
+      return GetRecentPortfolioController(useCase: useCase);
+    });
+
+/// ---------------- GET RECENT POST ----------------
+
+final getRecentPostRepositoryProvider = Provider<GetPostRepository>((ref) {
+  final client = ref.read(supabaseClientProvider);
+  return GetPostRepository(client: client);
+});
+
+final getRecentPostUsecaseProvider = Provider<GetRecentPostUsecase>((ref) {
+  final repository = ref.read(getRecentPostRepositoryProvider);
+  return GetRecentPostUsecase(repository);
+});
+
+final getRecentPostControllerProvider =
+    StateNotifierProvider<GetRecentPostController, GetPostState>((ref) {
+      final useCase = ref.read(getRecentPostUsecaseProvider);
+      return GetRecentPostController(useCase: useCase);
+    });

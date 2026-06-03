@@ -3,6 +3,8 @@
 # ===============================
 # Build outputs
 /build/
+apps/mobile/build/
+.dart_tool/
 /.flutter-plugins
 .flutter-plugins-dependencies
 .packages
@@ -15,9 +17,6 @@
 *.flutter-*.dart
 *.lock
 *.log
-
-# VS Code
-.vscode/
 
 # macOS
 .DS_Store
@@ -41,6 +40,8 @@ android/captures/
 # ===============================
 # Node modules
 /backend/supabase/node_modules/
+/backend/node_modules/
+/node_modules/
 
 # Logs
 /backend/supabase/*.log
@@ -48,11 +49,58 @@ android/captures/
 /backend/supabase/yarn-debug.log*
 /backend/supabase/yarn-error.log*
 
-# Env
+# Build outputs
+/backend/supabase/dist/
+/backend/supabase/.vercel/
+
+# Supabase internal / temp
+/backend/supabase/.temp/
+/backend/supabase/.branches/
+
+# ===============================
+# Environment Variables
+# ===============================
+# Root
+.env
+.env.local
+.env.*.local
+
+# Backend
+/backend/.env
+/backend/.env.local
+/backend/.env.*.local
+
+# Supabase
 /backend/supabase/.env
 /backend/supabase/.env.local
 /backend/supabase/.env.*.local
 
-# Build outputs
-/backend/supabase/dist/
-/backend/supabase/.vercel/
+# Mobile
+apps/mobile/.env
+
+# ===============================
+# Flutter Generated (apps/mobile)
+# ===============================
+
+# iOS generated
+apps/mobile/ios/Flutter/Debug.xcconfig
+apps/mobile/ios/Flutter/Release.xcconfig
+
+# macOS generated
+apps/mobile/macos/Flutter/Flutter-Debug.xcconfig
+apps/mobile/macos/Flutter/Flutter-Release.xcconfig
+apps/mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Linux generated
+apps/mobile/linux/flutter/generated_*
+
+# Windows generated
+apps/mobile/windows/flutter/generated_*
+
+# CocoaPods
+apps/mobile/ios/Pods/
+apps/mobile/macos/Pods/
+
+# Pod lock (팀 정책에 따라 필요 없으면 ignore)
+apps/mobile/ios/Podfile.lock
+apps/mobile/macos/Podfile.lock

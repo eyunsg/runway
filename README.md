@@ -54,3 +54,102 @@
 ## 6. API Design
 
 - [API Specification](https://iyunsung423.atlassian.net/wiki/x/DAA_/)
+
+## 7. Development Environment Setup
+
+### Prerequisites
+
+로컬 개발 환경 구성을 위해 아래 실행 환경이 사전에 설치되어 있어야 합니다.
+
+- Node.js >= 20.18.0 (LTS)
+- npm >= 10.x
+- Flutter >= 3.41.2
+- Dart >= 3.11.0
+- Git >= 2.50
+
+---
+
+본 저장소는 Monorepo 구조이며 Git Commit 규칙을 강제하기 위해  
+**Husky + Commitlint**가 Repository Root 기준으로 설정되어 있습니다.
+
+따라서 프로젝트 최초 실행 시 **루트 경로에서 dependency 설치가 반드시 필요합니다.**
+
+### 1. Repository Clone
+
+```bash
+git clone https://github.com/eyunsg/runway.git
+
+cd runway
+```
+
+### 2. Install Root Dependency
+
+```bash
+npm install
+```
+
+### 3. Setup Backend Environment
+
+- backend 디렉토리로 이동
+
+```bash
+cd backend
+```
+
+- 환경 변수 파일 생성
+
+```bash
+cp .env.example .env
+```
+
+- 의존성 설치
+
+```bash
+npm install
+```
+
+- 테스트 실행
+
+```bash
+npm test
+```
+
+- Supabase 연결 테스트
+
+```bash
+npm run test:supabase
+```
+
+### 4. Install Frontend Dependency
+
+- 루트 디렉토리로 이동
+
+```bash
+cd ..
+```
+
+- 의존성 설치
+
+```bash
+cd apps/mobile
+
+flutter pub get
+```
+
+- 환경 변수 파일 생성
+
+```bash
+cp .env.example assets/env/.env
+```
+
+---
+
+> **⚠️ VSCode Prettier Extension 설치**
+> <br>
+> 프로젝트 내 코드 스타일 일관성 유지를 위해 아래 확장 프로그램 설치를 권장합니다.
+> <br>
+> `Prettier - Code Formatter`
+> <br>
+> `Prettier SQL Formatter`
+> <br>
+> 확장 설치 후 저장 시 자동으로 팀 Prettier 규칙이 적용됩니다.

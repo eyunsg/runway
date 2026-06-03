@@ -1,0 +1,68 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+export class HttpError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+function createAuthClient(authHeader: string) {
+  return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
+}
+
+export async function softDeleteCommentRepo(
+  authHeader: string,
+  commentId: string
+): Promise<boolean> {
+  const client = createAuthClient(authHeader);
+  const token = authHeader.replace('Bearer ', '');
+
+  const {
+    data: { user },
+    error: authError,
+  } = await client.auth.getUser(token);
+
+  if (authError || !user) {
+    throw new HttpError(401, 'UNAUTHORIZED');
+  }
+
+  // 1. 댓글 조회
+  const { data: comment, error: findError } = await client
+    .from('comments')
+    .select('id, user_id, deleted_at')
+    .eq('id', commentId)
+    .single();
+
+  if (findError || !comment) {
+    throw new HttpError(404, 'COMMENT_NOT_FOUND');
+  }
+
+  // 2. 이미 삭제 여부
+  if (comment.deleted_at) {
+    throw new HttpError(400, 'COMMENT_ALREADY_DELETED');
+  }
+
+  // 3. 작성자 검증
+  if (comment.user_id !== user.id) {
+    throw new HttpError(403, 'COMMENT_DELETE_FORBIDDEN');
+  }
+
+  // 4. soft delete
+  const { error: deleteError } = await client
+    .from('comments')
+    .update({
+      deleted_at: new Date().toISOString(),
+    })
+    .eq('id', commentId);
+
+  if (deleteError) {
+    throw new HttpError(500, `DATABASE_ERROR: ${deleteError.message}`);
+  }
+
+  return true;
+}
